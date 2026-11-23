@@ -9,6 +9,10 @@
 - Optional email and Slack notifications for successful and failed backups.
 - Verified backup manifest comparison through `backup:compare`.
 - Backup inventory and storage usage reports through `backup:report`.
+- GZIP and ZIP structure validation during backup verification.
+- S3 multipart upload for large artifacts when supported by the AWS SDK adapter.
+- PostgreSQL and SQLite database dump/restore support alongside MySQL.
+- Dashboard queue retries and the `backup:protect` command for permanent or time-limited deletion protection.
 
 
 ## [0.7.0] - 2026-11-23
