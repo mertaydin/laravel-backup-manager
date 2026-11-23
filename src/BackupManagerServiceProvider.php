@@ -72,7 +72,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(StorageSettingsRepository::class);
         $this->app->singleton(StorageHealthChecker::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
-            $manager = new BackupManager
+            $manager = new BackupManager;
             $manager->extend('local', $app->make(LocalBackupDriver::class));
 
             return $manager;
@@ -92,7 +92,7 @@ class BackupManagerServiceProvider extends ServiceProvider
                 }
             }
 
-            $client = new Client
+            $client = new Client;
             $client->setApplicationName((string) config('app.name', 'Laravel Backup Manager'));
             $client->setClientId((string) $credentials['client_id']);
             $client->setClientSecret((string) $credentials['client_secret']);
