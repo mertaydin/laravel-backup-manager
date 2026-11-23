@@ -25,6 +25,9 @@ Route::middleware(array_merge(
             ->whereIn('locale', SetDashboardLocale::SUPPORTED_LOCALES)
             ->name('locale');
         Route::post('/run', [DashboardController::class, 'run'])->name('run');
+        Route::get('/{id}', [DashboardController::class, 'show'])
+            ->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')
+            ->name('details');
         Route::get('/jobs/{jobId}', [DashboardController::class, 'jobStatus'])->name('jobs.status');
         Route::get('/{id}/download/{artifact}', [DashboardController::class, 'download'])
             ->where(['id' => '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}', 'artifact' => '[A-Za-z0-9_.-]+'])
