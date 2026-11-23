@@ -308,18 +308,26 @@ final class DashboardBackupActionsTest extends TestCase
     {
         Storage::fake('s3');
         Storage::fake('local');
+        app(StorageSettingsRepository::class)->putDisk('google-drive', [
+            'client_id' => 'client-id',
+            'client_secret' => 'client-secret',
+            'refresh_token' => 'refresh-token',
+            'root_folder_id' => 'root',
+        ]);
+
+        self::assertSame('google-drive', config('filesystems.disks.google-drive.driver'));
 
         $this->get('/backup-manager/storage')
             ->assertOk()
             ->assertSee('Yedekleme hedefleri')
             ->assertSee('name="targets[]"', false)
-            ->assertSee('value="s3"', false);
+            ->assertSee('value="google-drive"', false);
 
         $this->post('/backup-manager/storage/targets', [
-            'targets' => ['s3'],
+            'targets' => ['google-drive'],
         ])->assertRedirect()
             ->assertSessionHas('storage_success');
 
-        self::assertSame(['s3'], app(StorageSettingsRepository::class)->all()['backup_targets']);
+        self::assertSame(['google-drive'], app(StorageSettingsRepository::class)->all()['backup_targets']);
     }
 }
