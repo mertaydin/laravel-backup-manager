@@ -57,6 +57,7 @@ final class BackupDeleter
         $path = ($prefix === '' ? '' : $prefix.'/').$id;
         $disks = array_values(array_unique($targets !== [] ? $targets : [
             (string) ($storage['disk'] ?? 'local'),
+            (string) ($storage['local_disk'] ?? 'local'),
             ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
         ]));
 
