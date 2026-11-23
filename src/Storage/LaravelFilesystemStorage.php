@@ -48,8 +48,8 @@ final class LaravelFilesystemStorage implements BackupStorage
 
         $filesystem = $this->filesystem->disk($this->disk);
         $adapter = method_exists($filesystem, 'getAdapter') ? $filesystem->getAdapter() : null;
-        $adapterClass = \\League\\Flysystem\\AwsS3V3\\AwsS3V3Adapter::class;
-        $uploaderClass = \\Aws\\S3\\MultipartUploader::class;
+        $adapterClass = \League\Flysystem\AwsS3V3\AwsS3V3Adapter::class;
+        $uploaderClass = \Aws\S3\MultipartUploader::class;
         if (! is_object($adapter)
             || ! is_a($adapter, $adapterClass)
             || ! class_exists($uploaderClass)
