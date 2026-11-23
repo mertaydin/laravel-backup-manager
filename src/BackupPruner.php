@@ -105,7 +105,7 @@ final class BackupPruner
         $failed = [];
         if ($execute) {
             $localDiskName = (string) ($profile['storage']['local_disk'] ?? 'local');
-            $diskNames = array_values(array_unique([$diskName, $localDiskName]));
+            $diskNames = array_values(array_unique([$diskName, $localDiskName, ...array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string')]));
             foreach ($candidates as $backup) {
                 $id = (string) $backup['id'];
                 $allDeleted = true;
