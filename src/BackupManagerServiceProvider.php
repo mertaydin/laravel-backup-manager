@@ -96,9 +96,7 @@ class BackupManagerServiceProvider extends ServiceProvider
             $client->setApplicationName((string) config('app.name', 'Laravel Backup Manager'));
             $client->setClientId((string) $credentials['client_id']);
             $client->setClientSecret((string) $credentials['client_secret']);
-            $client->setAccessType('offline');
-            $client->setScopes(['https://www.googleapis.com/auth/drive']);
-            $client->fetchAccessTokenWithRefreshToken((string) $credentials['refresh_token']);
+            $client->refreshToken((string) $credentials['refresh_token']);
 
             $service = new Drive($client);
             $adapter = new GoogleDriveAdapter(
