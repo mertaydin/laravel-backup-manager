@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Unit;
 
+use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use Orchestra\Testbench\TestCase;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 final class BackupInspectorTest extends TestCase

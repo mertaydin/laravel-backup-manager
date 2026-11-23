@@ -7,7 +7,7 @@ namespace MertAydin\LaravelBackupManager\Data;
 final class BackupResult
 {
     /** @param array<string, mixed> $artifacts
-     *  @param array<string, mixed> $metadata
+     * @param  array<string, mixed>  $metadata
      */
     public function __construct(
         public readonly string $id,

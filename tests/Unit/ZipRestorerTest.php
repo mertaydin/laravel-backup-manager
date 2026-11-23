@@ -36,7 +36,7 @@ final class ZipRestorerTest extends TestCase
         ]);
         $target = $this->directory.'/application';
 
-        $restored = (new ZipRestorer())->restore($archive, $target);
+        $restored = (new ZipRestorer)->restore($archive, $target);
 
         self::assertSame(2, $restored);
         self::assertSame('<?php return [];', file_get_contents($target.'/config/app.php'));
@@ -52,7 +52,7 @@ final class ZipRestorerTest extends TestCase
         $target = $this->directory.'/application';
 
         try {
-            (new ZipRestorer())->restore($archive, $target);
+            (new ZipRestorer)->restore($archive, $target);
             self::fail('Path traversal entries must be rejected.');
         } catch (RuntimeException) {
             self::assertFileDoesNotExist($target.'/safe.txt');
@@ -71,7 +71,7 @@ final class ZipRestorerTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('beneath a file');
 
-        (new ZipRestorer())->restore($archive, $target);
+        (new ZipRestorer)->restore($archive, $target);
     }
 
     public function test_it_refuses_to_restore_environment_files(): void
@@ -81,7 +81,7 @@ final class ZipRestorerTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('environment file');
 
-        (new ZipRestorer())->restore($archive, $this->directory.'/application');
+        (new ZipRestorer)->restore($archive, $this->directory.'/application');
     }
 
     public function test_it_does_not_overwrite_existing_files_when_overwrite_is_disabled(): void
@@ -94,14 +94,14 @@ final class ZipRestorerTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('already exists');
 
-        (new ZipRestorer())->restore($archive, $target, false);
+        (new ZipRestorer)->restore($archive, $target, false);
     }
 
     /** @param array<string, string> $entries */
     private function createArchive(array $entries): string
     {
         $path = $this->directory.'/application.zip';
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         self::assertTrue($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true);
 
         foreach ($entries as $name => $contents) {

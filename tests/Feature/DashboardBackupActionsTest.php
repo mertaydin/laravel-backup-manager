@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
+use MertAydin\LaravelBackupManager\Facades\BackupManager as BackupManagerFacade;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use Orchestra\Testbench\TestCase;
 
@@ -26,6 +28,23 @@ final class DashboardBackupActionsTest extends TestCase
         $app['config']->set('backup-manager.profiles.default.storage.disk', 's3');
         $app['config']->set('backup-manager.profiles.default.storage.local_disk', 'local');
         $app['config']->set('backup-manager.profiles.default.storage.path', 'backups');
+    }
+
+    public function test_dashboard_authorization_callback_can_deny_access(): void
+    {
+        BackupManagerFacade::auth(static fn (Request $request): bool => false);
+
+        $this->get('/backup-manager')
+            ->assertForbidden();
+    }
+
+    public function test_dashboard_authorization_callback_receives_the_request(): void
+    {
+        Storage::fake('s3');
+        BackupManagerFacade::auth(static fn (Request $request): bool => $request->path() === 'backup-manager');
+
+        $this->get('/backup-manager')
+            ->assertOk();
     }
 
     public function test_delete_removes_backup_from_remote_and_local_disks(): void

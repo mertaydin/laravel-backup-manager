@@ -63,7 +63,7 @@ final class DecryptBackupCommandTest extends TestCase
         $contents = 'database dump payload';
         $encryptedPath = $this->directory.'/database.sql.gz.enc';
         file_put_contents($this->directory.'/source.sql.gz', $contents);
-        (new ArtifactEncryptor())->encrypt($this->directory.'/source.sql.gz', $encryptedPath, $this->key);
+        (new ArtifactEncryptor)->encrypt($this->directory.'/source.sql.gz', $encryptedPath, $this->key);
 
         $encrypted = file_get_contents($encryptedPath);
         $this->storeEncryptedArtifact($encrypted);
@@ -84,7 +84,7 @@ final class DecryptBackupCommandTest extends TestCase
         $contents = 'database dump payload';
         $encryptedPath = $this->directory.'/database.sql.gz.enc';
         file_put_contents($this->directory.'/source.sql.gz', $contents);
-        (new ArtifactEncryptor())->encrypt($this->directory.'/source.sql.gz', $encryptedPath, $this->key);
+        (new ArtifactEncryptor)->encrypt($this->directory.'/source.sql.gz', $encryptedPath, $this->key);
         $this->storeEncryptedArtifact(file_get_contents($encryptedPath));
 
         $destination = $this->directory.'/existing.sql.gz';

@@ -16,6 +16,7 @@ final class MySqlDumper
         if ($database === '') {
             throw new RuntimeException('The configured MySQL connection has no database name.');
         }
+        $this->validateIdentifier($database);
 
         foreach (array_merge($includeTables, $excludeTables) as $table) {
             $this->validateIdentifier((string) $table);
@@ -145,13 +146,13 @@ final class MySqlDumper
 
     private function escapeOptionValue(string $value): string
     {
-        return str_replace(["\\", '"', "\n", "\r"], ["\\\\", '\\"', '\\n', '\\r'], $value);
+        return str_replace(['\\', '"', "\n", "\r"], ['\\\\', '\\"', '\\n', '\\r'], $value);
     }
 
     private function validateIdentifier(string $identifier): void
     {
-        if (! preg_match('/^[A-Za-z0-9_$-]+$/', $identifier)) {
-            throw new RuntimeException('Invalid MySQL table identifier: '.$identifier);
+        if (! preg_match('/^[A-Za-z0-9_][A-Za-z0-9_$-]*$/', $identifier)) {
+            throw new RuntimeException('Invalid MySQL database or table identifier: '.$identifier);
         }
     }
 }

@@ -15,6 +15,9 @@ final class MySqlRestorer
         if ($database === '') {
             throw new RuntimeException('The configured MySQL connection has no database name.');
         }
+        if (! preg_match('/^[A-Za-z0-9_][A-Za-z0-9_$-]*$/', $database)) {
+            throw new RuntimeException('Invalid MySQL database identifier.');
+        }
 
         $this->validateCompressedDump($compressedDump);
 
@@ -109,7 +112,6 @@ final class MySqlRestorer
         }
     }
 
-
     private function validateCompressedDump(string $path): void
     {
         $header = file_get_contents($path, false, null, 0, 2);
@@ -157,7 +159,7 @@ final class MySqlRestorer
 
     private function escapeOptionValue(string $value): string
     {
-        return str_replace(["\\", '"', "\n", "\r"], ["\\\\", '\\"', '\\n', '\\r'], $value);
+        return str_replace(['\\', '"', "\n", "\r"], ['\\\\', '\\"', '\\n', '\\r'], $value);
     }
 
     /** @param resource $stream */

@@ -13,8 +13,7 @@ final class BackupDeleter
     public function __construct(
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
-    ) {
-    }
+    ) {}
 
     /** @return array{deleted: list<string>, failed: list<string>} */
     public function delete(string $id, ?string $profileName = null): array
@@ -44,6 +43,7 @@ final class BackupDeleter
                 $disk = $this->filesystem->disk($diskName);
                 if (! $disk->deleteDirectory($path)) {
                     $failed[] = $diskName;
+
                     continue;
                 }
                 $deleted[] = $diskName;

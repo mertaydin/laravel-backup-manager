@@ -24,8 +24,8 @@ final class ZipArchiverTest extends TestCase
         $archive = $root.'/result.zip';
 
         try {
-            (new ZipArchiver())->archive($root, ['config', '.env', '.hidden'], [], $archive);
-            $zip = new \ZipArchive();
+            (new ZipArchiver)->archive($root, ['config', '.env', '.hidden'], [], $archive);
+            $zip = new \ZipArchive;
             self::assertTrue($zip->open($archive));
             self::assertSame(1, $zip->numFiles);
             self::assertSame('config/app.php', $zip->getNameIndex(0));

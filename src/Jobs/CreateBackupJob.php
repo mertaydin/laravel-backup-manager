@@ -22,8 +22,7 @@ final class CreateBackupJob implements ShouldQueue
     public function __construct(
         public readonly string $jobId,
         public readonly array $options,
-    ) {
-    }
+    ) {}
 
     public function handle(BackupManager $manager, CacheRepository $cache): void
     {

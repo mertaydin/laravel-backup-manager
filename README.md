@@ -1,5 +1,7 @@
 # Laravel Backup Manager
 
+[Türkçe dokümantasyon için tıklayın](README.tr.md)
+
 [![Latest Version](https://img.shields.io/packagist/v/mertaydin/laravel-backup-manager?label=Packagist)](https://packagist.org/packages/mertaydin/laravel-backup-manager)
 [![Total Downloads](https://img.shields.io/packagist/dt/mertaydin/laravel-backup-manager?label=downloads)](https://packagist.org/packages/mertaydin/laravel-backup-manager)
 [![PHP](https://img.shields.io/packagist/php-v/mertaydin/laravel-backup-manager?label=PHP)](https://packagist.org/packages/mertaydin/laravel-backup-manager)
@@ -50,7 +52,7 @@ A Laravel package for database and application file backups, compression, encryp
 ## Installation
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.5
+composer require mertaydin/laravel-backup-manager:^0.6
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
@@ -66,6 +68,20 @@ The dashboard assets are published to `public/vendor/backup-manager`; republish 
 ```
 
 For applications with a custom admin authorization middleware, replace the middleware list with your own middleware, for example `['web', 'auth', 'can:manage-backups']`. Do not expose the dashboard publicly.
+
+You can also register a request-based authorization callback using the package facade. This callback is an additional authorization layer; the configured route middleware (including `auth`) still runs first. If no callback is registered, the existing middleware-only behavior is preserved.
+
+```php
+use Illuminate\Http\Request;
+use MertAydin\LaravelBackupManager\Facades\BackupManager;
+
+BackupManager::auth(function (Request $request) {
+    return $request->user()?->isSuperAdmin()
+        && (int) $request->user()->id === 1;
+});
+```
+
+Register the callback in your application's `AppServiceProvider::boot()` method or another provider that boots before the dashboard request. Return `true` to allow access and `false` to respond with HTTP 403.
 
 ## Usage
 
@@ -187,6 +203,27 @@ A dedicated Google Drive OAuth adapter is not included yet. Google Drive integra
 ## Security
 
 The dashboard is protected by `web` and `auth` middleware by default. Use an additional authorization middleware in production. Application archives exclude `.env` and hidden files by default and skip symlinks. Database output is streamed and credentials are kept out of process arguments.
+
+## Development
+
+Install the development dependencies and run the quality checks:
+
+```bash
+composer install
+composer format
+composer format:test
+composer test
+composer audit
+```
+
+Generate IDE autocomplete metadata with Barryvdh Laravel IDE Helper:
+
+```bash
+composer ide-helper:generate
+composer ide-helper:meta
+```
+
+Generated IDE Helper files are excluded from version control.
 
 ## License
 

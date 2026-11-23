@@ -2,9 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
+use MertAydin\LaravelBackupManager\Http\Middleware\AuthorizeDashboard;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 
-Route::middleware(array_merge(config('backup-manager.ui.middleware', ['web', 'auth']), [SetDashboardLocale::class]))
+Route::middleware(array_merge(
+    config('backup-manager.ui.middleware', ['web', 'auth']),
+    [AuthorizeDashboard::class, SetDashboardLocale::class],
+))
     ->prefix(config('backup-manager.ui.prefix', 'backup-manager'))
     ->name('backup-manager.')
     ->group(function (): void {
@@ -20,5 +24,7 @@ Route::middleware(array_merge(config('backup-manager.ui.middleware', ['web', 'au
         Route::delete('/{id}', [DashboardController::class, 'delete'])
             ->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')
             ->name('delete');
-        Route::post('/{id}/verify', [DashboardController::class, 'verify'])->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')->name('verify');
+        Route::post('/{id}/verify', [DashboardController::class, 'verify'])
+            ->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')
+            ->name('verify');
     });

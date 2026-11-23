@@ -14,8 +14,7 @@ final class BackupInspector
     public function __construct(
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<array<string, mixed>>
@@ -110,6 +109,7 @@ final class BackupInspector
         foreach ($manifest['artifacts'] as $name => $expected) {
             if (! is_string($name) || basename($name) !== $name || $name === '' || ! is_array($expected)) {
                 $errors[] = 'Manifest contains an invalid artifact entry.';
+
                 continue;
             }
 
@@ -117,6 +117,7 @@ final class BackupInspector
             if (! $disk->exists($path)) {
                 $results[$name] = ['valid' => false, 'error' => 'Artifact is missing.'];
                 $errors[] = "{$name}: artifact is missing.";
+
                 continue;
             }
 
@@ -124,6 +125,7 @@ final class BackupInspector
             if (! is_resource($stream)) {
                 $results[$name] = ['valid' => false, 'error' => 'Artifact could not be read.'];
                 $errors[] = "{$name}: artifact could not be read.";
+
                 continue;
             }
 

@@ -22,11 +22,10 @@ final class BackupRestorer
         private readonly ArtifactEncryptor $encryptor,
         private readonly MySqlRestorer $mysql,
         private readonly ZipRestorer $zip,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array{component: string, profile?: string, disk?: string, target?: string} $options
+     * @param  array{component: string, profile?: string, disk?: string, target?: string}  $options
      * @return array{id: string, component: string, target: string|null, restored_files: int|null}
      */
     public function restore(string $id, array $options): array
