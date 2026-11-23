@@ -7,6 +7,7 @@ namespace MertAydin\LaravelBackupManager;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Support\Carbon;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use RuntimeException;
 
 final class BackupPruner
@@ -50,7 +51,7 @@ final class BackupPruner
         $targets = [];
         try {
             $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             // Fall back to the profile destination before settings are installed.
         }
         $diskName ??= (string) ($targets[0] ?? $profile['storage']['disk'] ?? 'local');
