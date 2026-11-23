@@ -139,7 +139,7 @@ final class DashboardController extends Controller
             'files' => (bool) ($validated['files'] ?? false),
             'label' => $validated['label'] ?? null,
             'note' => $validated['note'] ?? null,
-            'tags' => array_values(array_filter(array_map('trim', $validated['tags'] ?? []))),
+            'tags' => array_values(array_unique(array_filter(array_map('trim', preg_split('/[\\r\\n,]+/', implode("\\n", $validated['tags'] ?? [])) ?: [])))),
             'type' => 'manual',
         ]);
 
