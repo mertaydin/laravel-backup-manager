@@ -40,6 +40,7 @@ return [
             ],
             'storage' => [
                 'disk' => env('BACKUP_MANAGER_DISK', 'local'),
+                'local_disk' => env('BACKUP_MANAGER_LOCAL_DISK', 'local'),
                 'path' => 'backups',
             ],
             'encryption' => [
