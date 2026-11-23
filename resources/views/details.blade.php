@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ __('backup-manager::dashboard.details_title') }} · {{ $backup['id'] }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.4') }}-0.8.4">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.6') }}-0.8.6">
 </head>
 <body>
 <div class="shell">
     <header class="topbar">
         <a class="brand" href="{{ route('backup-manager.dashboard') }}"><strong>Backup Manager</strong></a>
-        <div class="top-actions"><select class="toolbar-select" aria-label="{{ __('backup-manager::dashboard.language') }}" onchange="window.location.href=this.value">@foreach(['en'=>'English','tr'=>'Türkçe','es'=>'Español','zh_CN'=>'简体中文','hi'=>'हिन्दी','ar'=>'العربية'] as $locale => $label)<option value="{{ route('backup-manager.locale', ['locale' => $locale]) }}" {{ app()->getLocale() === $locale ? 'selected' : '' }}>{{ $label }}</option>@endforeach</select><a class="theme-button" href="{{ route('backup-manager.dashboard') }}">← {{ __('backup-manager::dashboard.back') }}</a></div>
+        <div class="top-actions"><select class="toolbar-select" aria-label="{{ __('backup-manager::dashboard.language') }}" data-locale-switcher>@foreach(['en'=>'English','tr'=>'Türkçe','es'=>'Español','zh_CN'=>'简体中文','hi'=>'हिन्दी','ar'=>'العربية'] as $locale => $label)<option value="{{ route('backup-manager.locale', ['locale' => $locale]) }}" {{ app()->getLocale() === $locale ? 'selected' : '' }}>{{ $label }}</option>@endforeach</select><a class="theme-button" href="{{ route('backup-manager.dashboard') }}">← {{ __('backup-manager::dashboard.back') }}</a></div>
     </header>
     <section class="hero">
         <div><div class="eyebrow">{{ __('backup-manager::dashboard.details_title') }}</div><h1>{{ ($backup['label'] ?? '') ?: $backup['id'] }}</h1><p>{{ $backup['id'] }} · {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y H:i:s T') : __('backup-manager::dashboard.date_unavailable') }}</p></div>
