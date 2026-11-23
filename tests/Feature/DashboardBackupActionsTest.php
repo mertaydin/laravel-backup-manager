@@ -6,6 +6,7 @@ namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -64,6 +65,34 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertOk()
             ->assertSee('dashboard.css?v=0.8.4-0.8.4')
             ->assertSee('dashboard.js?v=0.8.4-0.8.4');
+    }
+
+
+    public function test_dashboard_locale_selection_persists_for_every_supported_language(): void
+    {
+        $locales = [
+            'en' => 'en',
+            'tr' => 'tr',
+            'es' => 'es',
+            'zh_CN' => 'zh-CN',
+            'hi' => 'hi',
+            'ar' => 'ar',
+        ];
+
+        foreach ($locales as $locale => $htmlLocale) {
+            $this->withHeaders(['referer' => url('/backup-manager')])
+                ->get('/backup-manager/locale/'.$locale)
+                ->assertRedirect()
+                ->assertSessionHas('backup_manager_locale', $locale);
+
+            $this->get('/backup-manager')
+                ->assertOk()
+                ->assertSee('<html lang="'.$htmlLocale.'"', false)
+                ->assertSee(Lang::get('backup-manager::dashboard.dashboard_title', [], $locale));
+        }
+
+        $this->get('/backup-manager/locale/unsupported')
+            ->assertNotFound();
     }
 
     public function test_delete_removes_backup_from_remote_and_local_disks(): void
@@ -165,8 +194,11 @@ final class DashboardBackupActionsTest extends TestCase
         ]));
         Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/database.sql.gz', 'backup');
 
-        $this->get('/backup-manager/'.self::BACKUP_ID)
+        $this->withSession(['backup_manager_locale' => 'tr'])
+            ->get('/backup-manager/'.self::BACKUP_ID)
             ->assertOk()
+            ->assertSee('Yedek ayrıntıları')
+            ->assertSee('Türkçe')
             ->assertSee('dashboard.css?v=0.8.4-0.8.4')
             ->assertSee('details-panel')
             ->assertSee('details-checksum')
