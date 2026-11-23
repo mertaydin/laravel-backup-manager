@@ -87,3 +87,18 @@
         });
     });
 })();
+
+
+(function () {
+    var count = document.getElementById('destination-selected-count');
+    var form = document.querySelector('.destination-form');
+    if (!count || !form) return;
+
+    function updateSelectedCount() {
+        count.textContent = form.querySelectorAll('input[name="targets[]"]:checked').length;
+    }
+
+    form.querySelectorAll('input[name="targets[]"]').forEach(function (input) {
+        input.addEventListener('change', updateSelectedCount);
+    });
+})();
