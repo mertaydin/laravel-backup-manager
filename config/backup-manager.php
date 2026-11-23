@@ -15,6 +15,10 @@ return [
     'integrity' => [
         'verify_after_upload' => env('BACKUP_MANAGER_VERIFY_AFTER_UPLOAD', true),
     ],
+    'retry' => [
+        'max_attempts' => (int) env('BACKUP_MANAGER_RETRY_ATTEMPTS', 1),
+        'delay_seconds' => (int) env('BACKUP_MANAGER_RETRY_DELAY', 30),
+    ],
     'mysql' => [
         'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
         'restore_binary' => env('BACKUP_MANAGER_MYSQL_BINARY', 'mysql'),
@@ -48,6 +52,7 @@ return [
             'storage' => [
                 'disk' => env('BACKUP_MANAGER_DISK', 'local'),
                 'local_disk' => env('BACKUP_MANAGER_LOCAL_DISK', 'local'),
+                'disks' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_MANAGER_TARGET_DISKS', ''))))),
                 'path' => 'backups',
             ],
             'encryption' => [
