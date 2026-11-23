@@ -250,8 +250,19 @@ final class BackupInspector
 
                 try {
                     for ($index = 0; $index < $archive->numFiles; $index++) {
-                        if ($archive->getFromIndex($index) === false) {
-                            return 'Application ZIP archive contains a corrupted entry.';
+                        $entry = $archive->getStreamIndex($index);
+                        if (! is_resource($entry)) {
+                            return 'Application ZIP archive contains an unreadable entry.';
+                        }
+
+                        try {
+                            while (! feof($entry)) {
+                                if (fread($entry, 1024 * 1024) === false) {
+                                    return 'Application ZIP archive contains a corrupted entry.';
+                                }
+                            }
+                        } finally {
+                            fclose($entry);
                         }
                     }
                 } finally {
