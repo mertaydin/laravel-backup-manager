@@ -27,6 +27,8 @@ jobs:
           restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-
       - run: composer validate --strict
       - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: composer ide-helper:generate
+      - run: composer ide-helper:meta
       - run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
       - run: vendor/bin/pint --test
       - run: composer audit --no-interaction
