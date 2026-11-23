@@ -482,3 +482,47 @@ html[data-theme="light"] .protection-input{background:#fff;color:#17233b}
 html[data-theme="light"] .protection-button{border-color:#c7d2f0;background:#edf2ff;color:#405bbd}
 html[data-theme="light"] .protection-button--unlock,html[data-theme="light"] .protection-badge{border-color:#a8d9c9;background:#eaf8f2;color:#176b50}
 @media(max-width:650px){.protection-form{width:100%}.protection-input{flex:1 1 140px;max-width:none}}
+
+
+/* Destination picker */
+.destination-section{padding:0;overflow:hidden}
+.destination-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:25px 26px 20px;border-bottom:1px solid var(--line)}
+.destination-eyebrow{display:block;margin-bottom:7px;color:var(--blue);font-size:10px;font-weight:800;letter-spacing:.16em}
+.destination-heading h2{margin:0 0 6px;font-size:19px;letter-spacing:-.025em}
+.destination-heading p{max-width:650px;margin:0;color:var(--muted);font-size:12px;line-height:1.65}
+.destination-count{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;min-width:82px;min-height:70px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.destination-count span{font-size:23px;font-weight:800;line-height:1.1;color:var(--text)}
+.destination-count small{margin-top:4px;color:var(--muted);font-size:10px}
+.destination-form{padding:22px 26px 24px}
+.destination-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.destination-option{position:relative;display:flex;align-items:flex-start;gap:14px;min-width:0;min-height:126px;margin:0;padding:18px;border:1px solid var(--line);border-radius:13px;background:var(--panel);cursor:pointer;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease}
+.destination-option:hover{border-color:var(--blue);background:var(--panel2)}
+.destination-option.is-selected{border-color:var(--blue);background:linear-gradient(135deg,#718cff18,var(--panel));box-shadow:inset 0 0 0 1px #718cff20}
+.destination-option>input{position:absolute;width:1px;height:1px;opacity:0}
+.destination-option:focus-within{outline:2px solid var(--blue);outline-offset:3px}
+.destination-icon{display:grid;place-items:center;flex:none;width:43px;height:43px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);color:var(--blue)}
+.destination-icon svg{width:23px;height:23px}
+.destination-option:has(input:checked) .destination-icon{border-color:#718cff55;background:#718cff18}
+.destination-copy{display:flex;flex:1;flex-direction:column;min-width:0;padding-top:1px}
+.destination-copy>strong{color:var(--text);font-size:13px;font-weight:750}
+.destination-copy>small{margin-top:4px;color:var(--muted);font-size:11px;line-height:1.55}
+.destination-kind{align-self:flex-start;margin-top:10px;padding:3px 7px;border:1px solid var(--line);border-radius:5px;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.09em}
+.destination-check{display:grid;place-items:center;flex:none;width:21px;height:21px;border:1.5px solid var(--line);border-radius:6px;color:transparent}
+.destination-check svg{width:14px;height:14px}
+.destination-option:has(input:checked) .destination-check{border-color:var(--blue);background:var(--blue);color:white}
+.destination-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.destination-note{display:flex;flex-direction:column;gap:3px;max-width:540px}
+.destination-note strong{font-size:11px;color:var(--text)}
+.destination-note span{font-size:10px;line-height:1.55;color:var(--muted)}
+.destination-save{display:inline-flex!important;align-items:center;justify-content:center;gap:12px;min-height:42px!important;padding:11px 17px!important;white-space:nowrap}
+.destination-save span{font-size:16px;line-height:1}
+@media(max-width:650px){
+ .destination-heading{padding:19px 17px 16px;gap:12px}
+ .destination-heading h2{font-size:17px}
+ .destination-count{min-width:68px;min-height:62px}
+ .destination-form{padding:16px 17px 19px}
+ .destination-grid{grid-template-columns:minmax(0,1fr);gap:9px}
+ .destination-option{min-height:112px;padding:15px}
+ .destination-footer{align-items:stretch;flex-direction:column}
+ .destination-save{width:100%!important}
+}
