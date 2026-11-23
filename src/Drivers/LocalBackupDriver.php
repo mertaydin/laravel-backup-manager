@@ -32,6 +32,7 @@ final class LocalBackupDriver implements BackupDriver
         private readonly Filesystem $files,
         private readonly ArtifactEncryptor $encryptor,
         private readonly BackupInspector $inspector,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     public function run(array $options = []): BackupResult
@@ -172,10 +173,26 @@ final class LocalBackupDriver implements BackupDriver
             file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
             $artifacts['manifest.json'] = $manifestPath;
 
+            $configuredTargets = [];
+            try {
+                $configuredTargets = (array) ($this->settings->all()['backup_targets'] ?? []);
+            } catch (Throwable) {
+                // The package can still run before its settings migration has been applied.
+            }
+
             $disk = (string) ($options['disk'] ?? $profile['storage']['disk'] ?? 'local');
-            $localDisk = (string) ($profile['storage']['local_disk'] ?? 'local');
-            $additionalDisks = array_values(array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'));
-            $diskNames = array_values(array_unique(array_filter([$localDisk, $disk, ...$additionalDisks])));
+            $diskNames = isset($options['disk'])
+                ? [$disk]
+                : array_values(array_unique(array_filter(
+                    $configuredTargets !== []
+                        ? $configuredTargets
+                        : [$disk, ...array_values(array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'))],
+                    'is_string',
+                )));
+            if ($diskNames === []) {
+                throw new RuntimeException('No backup destinations are selected. Choose at least one destination in Storage Management.');
+            }
+            $disk = $diskNames[0];
             $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
 
             foreach ($diskNames as $diskName) {
