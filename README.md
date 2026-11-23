@@ -23,10 +23,11 @@ A Laravel package for database and application file backups, compression, encryp
 
 ## Features
 
-- Streaming MySQL backups as compressed `database.sql.gz`.
+- Streaming MySQL and PostgreSQL backups as compressed SQL archives; consistent SQLite snapshots as compressed database files.
 - Optional application ZIP archives with conservative default exclusions.
-- Laravel Filesystem disks: local, Amazon S3 and S3-compatible services such as Cloudflare R2.
-- SHA-256 checksums and JSON manifests.
+- Multiple Laravel Filesystem destinations, including local, Amazon S3 and S3-compatible services such as Cloudflare R2.
+- Automatic S3 multipart uploads for large artifacts when the AWS SDK adapter is available.
+- SHA-256 checksums, JSON manifests, and GZIP/ZIP structure validation.
 - Backup history listing with `backup:list`.
 - Streaming SHA-256 and file-size integrity checks with `backup:verify`.
 - Verified MySQL and application ZIP restore with `backup:restore`.
@@ -54,7 +55,9 @@ A Laravel package for database and application file backups, compression, encryp
 
 - PHP 8.2+
 - Laravel 11, 12 or 13
-- MySQL client tools (`mysqldump` and `mysql`)
+- MySQL client tools (`mysqldump` and `mysql`) for MySQL connections
+- PostgreSQL client tools (`pg_dump` and `psql`) for PostgreSQL connections
+- PHP `pdo_sqlite` extension and a file-backed SQLite database for SQLite connections
 - PHP `zip` extension when application file backups are enabled
 - PHP `sodium` extension when backup encryption is enabled
 
@@ -122,6 +125,9 @@ php artisan backup:list --disk=s3 --limit=50
 php artisan backup:verify 20261123_120000_aabbccdd
 php artisan backup:compare 20261123_120000_aabbccdd 20261124_120000_ccddeeff
 php artisan backup:report --json
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Compliance retention"
+php artisan backup:protect 20261123_120000_aabbccdd --until="2027-01-01T00:00:00Z"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
 php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 php artisan backup:prune
 php artisan backup:prune --execute
@@ -331,7 +337,7 @@ To send each backup set to more than one additional Laravel Filesystem disk, con
 BACKUP_MANAGER_TARGET_DISKS=s3,r2
 ```
 
-The configured primary disk and local mirror are still included; duplicate disk names are removed. All destinations are checked during preflight.
+The configured primary disk and local mirror are still included; duplicate disk names are removed. All destinations are checked during preflight and post-upload integrity verification. S3-compatible disks use multipart upload for large artifacts when the Flysystem AWS S3 adapter and AWS SDK multipart uploader are installed. The default threshold is 64 MiB and the default part size is 8 MiB.
 
 Email and Slack notifications are opt-in:
 
@@ -342,6 +348,16 @@ BACKUP_MANAGER_SLACK_WEBHOOK=https://hooks.slack.com/services/REDACTED
 ```
 
 Configure a real Slack incoming webhook URL in your secret manager; never commit it to source control. Notifications are sent for completed and failed backups.
+
+For MySQL, table include/exclude filters are supported. PostgreSQL and SQLite currently back up the complete configured database. SQLite `:memory:` connections are not supported because they do not have a persistent database file.
+
+Protect a backup permanently or until a specified date. Protected backups are excluded from manual deletion and retention cleanup:
+
+```bash
+php artisan backup:protect BACKUP_ID --reason="Compliance retention"
+php artisan backup:protect BACKUP_ID --until="2027-01-01T00:00:00Z"
+php artisan backup:protect BACKUP_ID --unlock
+```
 
 Compare two verified backup manifests and their artifact sizes:
 
