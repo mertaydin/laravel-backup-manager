@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.7.0] - 2026-11-23
+
+### Added
+- Storage health checks for connection, listing, write, read, and delete permissions.
+- Backup preflight validation for storage access, MySQL tooling, required PHP extensions, and temporary workspace permissions.
+- Backup labels, notes, tags, and configurable naming templates.
+- Backup history filtering by search text, date range, storage disk, backup type, and manifest status.
+- A backup details page showing artifact sizes and SHA-256 checksums.
+- Automatic post-upload SHA-256 and file-size verification, configurable through `BACKUP_MANAGER_VERIFY_AFTER_UPLOAD`.
+- Lifecycle events: `BackupCompleted`, `BackupFailed`, `BackupDeleted`, and `BackupRestored`.
+- Dashboard display of the next scheduled backup and total stored artifact size.
+- Interactive confirmation before destructive restore operations.
+
+### Improved
+- Backup history includes the configured remote disk and local mirror without duplicate backup entries.
+- Backup labels are generated from a configurable template when no custom label is supplied.
+- Dashboard asset cache version defaults to `0.7.0`.
+
+### Configuration
+- `BACKUP_MANAGER_NAME_TEMPLATE` supports `:app`, `:date`, `:time`, and `:id` placeholders.
+- `BACKUP_MANAGER_VERIFY_AFTER_UPLOAD` enables or disables post-upload verification.
+
 ## [0.6.3] - 2026-11-23
 
 ### Documentation
