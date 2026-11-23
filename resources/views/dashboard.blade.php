@@ -53,6 +53,7 @@
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
                 <select name="type" aria-label="Backup type"><option value="">All types</option><option value="manual" {{ ($filters['type'] ?? '') === 'manual' ? 'selected' : '' }}>Manual</option><option value="scheduled" {{ ($filters['type'] ?? '') === 'scheduled' ? 'selected' : '' }}>Scheduled</option></select>
+                <select name="status" aria-label="Backup status"><option value="">All statuses</option><option value="available" {{ ($filters['status'] ?? '') === 'available' ? 'selected' : '' }}>Available</option><option value="invalid" {{ ($filters['status'] ?? '') === 'invalid' ? 'selected' : '' }}>Invalid manifest</option></select>
                 <button class="action-button" type="submit">Filter</button>
                 <a class="action-button" href="{{ route('backup-manager.dashboard') }}">Clear</a>
             </form>
