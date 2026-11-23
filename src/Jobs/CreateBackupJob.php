@@ -7,7 +7,6 @@ namespace MertAydin\\LaravelBackupManager\\Jobs;
 use Illuminate\\Bus\\Queueable;
 use Illuminate\\Contracts\\Cache\\Repository as CacheRepository;
 use Illuminate\\Contracts\\Queue\\ShouldQueue;
-use Illuminate\\Foundation\\Bus\\Dispatchable;
 use Illuminate\\Queue\\InteractsWithQueue;
 use Illuminate\\Queue\\SerializesModels;
 use MertAydin\\LaravelBackupManager\\BackupManager;
@@ -15,7 +14,6 @@ use Throwable;
 
 final class CreateBackupJob implements ShouldQueue
 {
-    use Dispatchable;
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
