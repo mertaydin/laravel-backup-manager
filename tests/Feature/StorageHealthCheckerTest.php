@@ -23,6 +23,7 @@ final class StorageHealthCheckerTest extends TestCase
             ])->assertExitCode(0);
         }
     }
+
     protected function getPackageProviders($app): array
     {
         return [BackupManagerServiceProvider::class];
