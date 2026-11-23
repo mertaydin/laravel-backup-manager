@@ -14,7 +14,7 @@ final class RestoreBackupCommand extends Command
 {
     protected $signature = 'backup:restore
         {id : Backup identifier}
-        {--database : Restore the MySQL database}
+        {--database : Restore the configured database}
         {--files : Restore application files}
         {--profile= : Backup profile name}
         {--disk= : Override the configured storage disk}
