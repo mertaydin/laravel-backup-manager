@@ -28,7 +28,6 @@ jobs:
       - run: composer validate --strict
       - run: composer install --prefer-dist --no-interaction --no-progress
       - run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
-      - run: vendor/bin/pint
       - run: vendor/bin/pint --test
       - run: composer audit --no-interaction
       - run: vendor/bin/phpunit
