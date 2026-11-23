@@ -22,7 +22,7 @@ final class BackupManager
 
     public function driver(?string $name = null): BackupDriver
     {
-        $name ??= (string) config('backup-manager.default');
+        $name ??= (string) config('backup-manager.default_driver', 'local');
 
         return $this->drivers[$name]
             ?? throw new InvalidArgumentException("Backup driver [{$name}] is not registered.");
