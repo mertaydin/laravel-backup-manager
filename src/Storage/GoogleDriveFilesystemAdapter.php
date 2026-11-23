@@ -20,8 +20,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
     public function __construct(
         private readonly GoogleDriveClient $client,
         private readonly string $rootFolderId = 'root',
-    ) {
-    }
+    ) {}
 
     public function fileExists(string $path): bool
     {
@@ -187,12 +186,14 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
     public function lastModified(string $path): FileAttributes
     {
         $file = $this->find($path, false);
+
         return new FileAttributes($path, null, null, isset($file['createdTime']) ? strtotime((string) $file['createdTime']) : null);
     }
 
     public function fileSize(string $path): FileAttributes
     {
         $file = $this->find($path, false);
+
         return new FileAttributes($path, isset($file['size']) ? (int) $file['size'] : null);
     }
 
@@ -282,6 +283,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
             ));
             if ($matches !== []) {
                 $parent = (string) $matches[0]['id'];
+
                 continue;
             }
             if (! $create) {
