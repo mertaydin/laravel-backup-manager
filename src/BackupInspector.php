@@ -234,17 +234,23 @@ final class BackupInspector
                 }
 
                 try {
-                    while (! feof($input)) {
-                        $chunk = fread($input, 16 * 1024);
-                        if ($chunk === false) {
+                    $chunk = fread($input, 16 * 1024);
+                    while ($chunk !== false && $chunk !== '') {
+                        $next = fread($input, 16 * 1024);
+                        if ($next === false) {
                             return 'Unable to read the database GZIP stream.';
                         }
-                        if ($chunk !== '' && @inflate_add($inflater, $chunk, ZLIB_SYNC_FLUSH) === false) {
+
+                        $flush = $next === '' ? ZLIB_FINISH : ZLIB_SYNC_FLUSH;
+                        if (@inflate_add($inflater, $chunk, $flush) === false) {
                             return 'Database GZIP stream is corrupted.';
                         }
+
+                        $chunk = $next;
                     }
 
-                    if (inflate_get_status($inflater) !== ZLIB_STREAM_END
+                    if ($chunk === false
+                        || inflate_get_status($inflater) !== ZLIB_STREAM_END
                         || inflate_get_read_len($inflater) !== (int) filesize($temporary)) {
                         return 'Database GZIP stream failed its integrity check.';
                     }
