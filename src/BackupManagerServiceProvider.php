@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager;
 
-use Google\Client;
-use Google\Service\Drive;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem as Flysystem;
-use Masbug\Flysystem\GoogleDriveAdapter;
 use MertAydin\LaravelBackupManager\Console\Commands\CompareBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
@@ -92,17 +89,10 @@ class BackupManagerServiceProvider extends ServiceProvider
                 }
             }
 
-            $client = new Client;
-            $client->setApplicationName((string) config('app.name', 'Laravel Backup Manager'));
-            $client->setClientId((string) $credentials['client_id']);
-            $client->setClientSecret((string) $credentials['client_secret']);
-            $client->refreshToken((string) $credentials['refresh_token']);
-
-            $service = new Drive($client);
-            $adapter = new GoogleDriveAdapter(
-                $service,
+            $client = new GoogleDriveClient($credentials);
+            $adapter = new GoogleDriveFilesystemAdapter(
+                $client,
                 (string) ($credentials['root_folder_id'] ?? 'root'),
-                ['useDisplayPaths' => true],
             );
 
             return new FilesystemAdapter(new Flysystem($adapter), $adapter);
