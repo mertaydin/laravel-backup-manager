@@ -136,7 +136,9 @@ final class StorageManagementController extends Controller
         ]);
 
         try {
-            $result = $this->healthChecker->check($data['disk']);
+            $profileName = (string) config('backup-manager.default', 'default');
+            $prefix = (string) data_get(config('backup-manager.profiles.'.$profileName, []), 'storage.path', 'backups');
+            $result = $this->healthChecker->check($data['disk'], $prefix);
             $failed = array_keys(array_filter($result['checks'], static fn (bool $passed): bool => ! $passed));
 
             if ($result['successful']) {
