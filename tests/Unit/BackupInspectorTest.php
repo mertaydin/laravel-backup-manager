@@ -68,6 +68,32 @@ final class BackupInspectorTest extends TestCase
         self::assertNotEmpty($result['errors']);
     }
 
+
+    public function test_it_rejects_a_corrupt_gzip_even_when_its_manifest_checksum_matches(): void
+    {
+        $contents = 'not a gzip stream';
+        Storage::disk('backup-test')->put('backups/'.self::BACKUP_ID.'/database.sql.gz', $contents);
+        Storage::disk('backup-test')->put(
+            'backups/'.self::BACKUP_ID.'/manifest.json',
+            json_encode([
+                'id' => self::BACKUP_ID,
+                'created_at' => '2026-11-23T12:00:00+00:00',
+                'profile' => 'default',
+                'artifacts' => [
+                    'database.sql.gz' => [
+                        'size' => strlen($contents),
+                        'sha256' => hash('sha256', $contents),
+                    ],
+                ],
+            ], JSON_THROW_ON_ERROR)
+        );
+
+        $result = app(BackupInspector::class)->verify(self::BACKUP_ID);
+
+        self::assertFalse($result['valid']);
+        self::assertStringContainsString('GZIP', implode(' ', $result['errors']));
+    }
+
     public function test_it_rejects_invalid_backup_identifiers(): void
     {
         $this->expectException(RuntimeException::class);
