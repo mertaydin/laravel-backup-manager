@@ -23,6 +23,7 @@ final class DatabaseDumper
         $driver = (string) ($connection['driver'] ?? '');
         if ($driver === 'mysql') {
             $this->mysql->dump($connection, $destination, $includeTables, $excludeTables);
+
             return;
         }
 
@@ -32,11 +33,13 @@ final class DatabaseDumper
 
         if ($driver === 'pgsql') {
             $this->postgres->dump($connection, $destination);
+
             return;
         }
 
         if ($driver === 'sqlite') {
             $this->sqlite->dump($connection, $destination);
+
             return;
         }
 
