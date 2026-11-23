@@ -66,7 +66,7 @@ php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
 
-Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.8.2`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
+Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.8.7`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
 
 ```bash
 php artisan vendor:publish --tag=backup-manager-assets --force
