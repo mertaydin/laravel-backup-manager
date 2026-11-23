@@ -10,6 +10,8 @@ use Illuminate\Filesystem\Filesystem;
 use MertAydin\LaravelBackupManager\Contracts\BackupDriver;
 use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\Data\BackupResult;
+use MertAydin\LaravelBackupManager\Events\BackupCompleted;
+use MertAydin\LaravelBackupManager\Events\BackupFailed;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
@@ -154,7 +156,7 @@ final class LocalBackupDriver implements BackupDriver
                 }
             }
 
-            return BackupResult::success($id, $uploaded[$disk] ?? [], [
+            $result = BackupResult::success($id, $uploaded[$disk] ?? [], [
                 'profile' => $profileName,
                 'disk' => $disk,
                 'storage_disks' => $diskNames,
@@ -162,6 +164,9 @@ final class LocalBackupDriver implements BackupDriver
                 'encryption' => $encryptionMetadata,
                 'verification' => $verification,
             ]);
+            event(new BackupCompleted($result));
+
+            return $result;
         } catch (Throwable $exception) {
             foreach ($uploaded as $diskName => $paths) {
                 foreach ($paths as $remotePath) {
@@ -173,7 +178,10 @@ final class LocalBackupDriver implements BackupDriver
                 }
             }
 
-            return BackupResult::failure($id, $exception->getMessage(), ['profile' => $profileName, 'uploaded_artifacts_cleaned' => $uploaded !== []]);
+            $result = BackupResult::failure($id, $exception->getMessage(), ['profile' => $profileName, 'uploaded_artifacts_cleaned' => $uploaded !== []]);
+            event(new BackupFailed($result));
+
+            return $result;
         } finally {
             $this->files->deleteDirectory($workdir);
         }
