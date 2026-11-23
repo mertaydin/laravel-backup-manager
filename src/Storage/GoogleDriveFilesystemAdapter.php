@@ -25,7 +25,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
 
     public function fileExists(string $path): bool
     {
-        return $this->find($path, false) ! == null;
+        return $this->find($path, false) !== null;
     }
 
     public function directoryExists(string $path): bool
@@ -92,7 +92,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
         try {
             $parent = $this->folderId(dirname($path), true);
             $existing = $this->find($path, false);
-            if ($existing ! == null) {
+            if ($existing !== null) {
                 $this->client->delete((string) $existing['id']);
             }
             $this->client->upload($temporary, basename($path), $parent);
@@ -146,7 +146,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
     public function delete(string $path): void
     {
         $file = $this->find($path, false);
-        if ($file ! == null) {
+        if ($file !== null) {
             $this->client->delete((string) $file['id']);
         }
     }
@@ -280,7 +280,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
                 static fn (array $item): bool => ($item['name'] ?? null) === $part
                     && ($item['mimeType'] ?? '') === 'application/vnd.google-apps.folder',
             ));
-            if ($matches ! == []) {
+            if ($matches !== []) {
                 $parent = (string) $matches[0]['id'];
                 continue;
             }
