@@ -6,6 +6,7 @@ namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Support\Carbon;
 use MertAydin\LaravelBackupManager\Events\BackupDeleted;
 use RuntimeException;
 
@@ -30,11 +31,26 @@ final class BackupDeleter
         }
 
         $storage = $profile['storage'] ?? [];
+        $primaryDisk = (string) ($storage['disk'] ?? 'local');
+        $manifestPath = trim((string) ($storage['path'] ?? 'backups'), '/').'/'.$id.'/manifest.json';
+        $primary = $this->filesystem->disk($primaryDisk);
+        if (! $primary->exists($manifestPath)) {
+            throw new RuntimeException("Backup manifest [{$id}] was not found on disk [{$primaryDisk}].");
+        }
+        $manifest = json_decode((string) $primary->get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+        $locked = (bool) data_get($manifest, 'protection.locked', false);
+        $protectedUntil = data_get($manifest, 'protection.protected_until');
+        if ($locked || ($protectedUntil && now()->lt(Carbon::parse($protectedUntil)))) {
+            $reason = trim((string) data_get($manifest, 'protection.reason', ''));
+            throw new RuntimeException('This backup is protected from deletion.'.($reason !== '' ? ' Reason: '.$reason : ''));
+        }
+
         $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
         $path = ($prefix === '' ? '' : $prefix.'/').$id;
         $disks = array_values(array_unique([
             (string) ($storage['disk'] ?? 'local'),
             (string) ($storage['local_disk'] ?? 'local'),
+            ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
         ]));
 
         $deleted = [];
