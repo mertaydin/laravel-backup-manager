@@ -18,6 +18,7 @@ use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
@@ -34,7 +35,8 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(BackupDeleter::class);
         $this->app->singleton(BackupPruner::class);
         $this->app->singleton(BackupRestorer::class);
-        $this->app->singleton(DashboardAuthorizer::class);\n        $this->app->singleton(StorageSettingsRepository::class);
+        $this->app->singleton(DashboardAuthorizer::class);
+        $this->app->singleton(StorageSettingsRepository::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
             $manager = new BackupManager;
             $manager->extend('local', $app->make(LocalBackupDriver::class));
@@ -55,7 +57,8 @@ class BackupManagerServiceProvider extends ServiceProvider
         ], 'backup-manager-assets');
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'backup-manager');
-        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'backup-manager');\n        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'backup-manager');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         if ($this->app['config']->get('backup-manager.ui.enabled', true)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
