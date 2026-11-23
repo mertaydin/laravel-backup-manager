@@ -13,7 +13,7 @@ final class StorageHealthChecker
     public function __construct(private readonly FilesystemFactory $filesystem) {}
 
     /** @return array{disk: string, driver: string, checks: array<string, bool>, successful: bool} */
-    public function check(string $diskName): array
+    public function check(string $diskName, string $prefix = 'backups'): array
     {
         $diskConfig = config('filesystems.disks.'.$diskName);
         if (! is_array($diskConfig)) {
@@ -21,13 +21,14 @@ final class StorageHealthChecker
         }
 
         $disk = $this->filesystem->disk($diskName);
-        $probe = '.backup-manager-health/'.bin2hex(random_bytes(16)).'.tmp';
+        $prefix = trim($prefix, '/');
+        $probe = ($prefix === '' ? '' : $prefix.'/').'.backup-manager-health/'.bin2hex(random_bytes(16)).'.tmp';
         $checks = ['connection' => false, 'list' => false, 'write' => false, 'read' => false, 'delete' => false];
 
         try {
-            $disk->directories('');
+            $disk->directories($prefix);
             $checks['connection'] = true;
-            $disk->files('');
+            $disk->files($prefix);
             $checks['list'] = true;
 
             $written = $disk->put($probe, 'backup-manager-health-check');
