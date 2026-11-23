@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\\Support\\Facades\\Route;
-use MertAydin\\LaravelBackupManager\\Http\\Controllers\\DashboardController;
-use MertAydin\\LaravelBackupManager\\Http\\Middleware\\AuthorizeDashboard;
-use MertAydin\\LaravelBackupManager\\Http\\Middleware\\SetDashboardLocale;
+use Illuminate\Support\Facades\Route;
+use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
+use MertAydin\LaravelBackupManager\Http\Middleware\AuthorizeDashboard;
+use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 
 Route::middleware(array_merge(
     config('backup-manager.ui.middleware', ['web', 'auth']),
