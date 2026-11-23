@@ -82,7 +82,7 @@ class BackupManagerServiceProvider extends ServiceProvider
             $credentials = $app->make(StorageSettingsRepository::class)->all()['disks']['google-drive'] ?? [];
             foreach (['client_id', 'client_secret', 'refresh_token'] as $key) {
                 if (empty($credentials[$key])) {
-                    throw new \\RuntimeException('Google Drive is not connected. Configure and connect it from Backup Manager storage settings.');
+                    throw new \RuntimeException('Google Drive is not connected. Configure and connect it from Backup Manager storage settings.');
                 }
             }
 
