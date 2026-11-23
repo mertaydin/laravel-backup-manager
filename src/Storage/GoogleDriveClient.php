@@ -71,6 +71,7 @@ final class GoogleDriveClient
 
         try {
             $response = Http::withToken($this->accessToken())
+                ->timeout(0)
                 ->withHeaders(['Content-Type' => 'application/octet-stream'])
                 ->withOptions(['body' => $stream])
                 ->put($session->header('Location'));
@@ -124,7 +125,7 @@ final class GoogleDriveClient
 
     public function download(string $fileId, string $destination): void
     {
-        $response = Http::withToken($this->accessToken())->withOptions(['sink' => $destination])
+        $response = Http::withToken($this->accessToken())->timeout(0)->withOptions(['sink' => $destination])
             ->get(self::API.'/files/'.rawurlencode($fileId), ['alt' => 'media']);
 
         if (! $response->successful()) {
