@@ -19,6 +19,11 @@ return [
         'max_attempts' => (int) env('BACKUP_MANAGER_RETRY_ATTEMPTS', 1),
         'delay_seconds' => (int) env('BACKUP_MANAGER_RETRY_DELAY', 30),
     ],
+    'notifications' => [
+        'enabled' => (bool) env('BACKUP_MANAGER_NOTIFICATIONS_ENABLED', false),
+        'mail_to' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_MANAGER_NOTIFICATION_EMAILS', ''))))),
+        'slack_webhook' => env('BACKUP_MANAGER_SLACK_WEBHOOK'),
+    ],
     'mysql' => [
         'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
         'restore_binary' => env('BACKUP_MANAGER_MYSQL_BINARY', 'mysql'),
