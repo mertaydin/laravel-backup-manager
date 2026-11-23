@@ -29,6 +29,10 @@ A Laravel package for database and application file backups, compression, encryp
 - Streaming SHA-256 and file-size integrity checks with `backup:verify`.
 - Verified MySQL and application ZIP restore with `backup:restore`.
 - One-click integrity verification from the dashboard.
+- Download individual backup artifacts and manifests directly from the dashboard.
+- Delete backup sets from both the configured remote disk and the local mirror.
+- Mirror each backup to a configurable local filesystem disk when remote storage is used.
+- Background dashboard backups with job status polling; use a Laravel queue worker for fully independent execution.
 - Configurable retention policy with safe dry-run pruning.
 - Built-in responsive administration dashboard with six languages (English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic).
 - Light, dark, and system theme preferences, remembered in the browser.
@@ -46,7 +50,7 @@ A Laravel package for database and application file backups, compression, encryp
 ## Installation
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.3
+composer require mertaydin/laravel-backup-manager:^0.5
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
@@ -82,7 +86,7 @@ php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my
 php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my-app --force
 ```
 
-The default profile backs up the configured MySQL connection. Application files are disabled by default. Enable them in `config/backup-manager.php`:
+The default profile backs up the configured MySQL connection. Application files are disabled by default. When the configured backup disk is remote, each completed backup is also mirrored to `storage.local_disk` (default: `local`). Configure both destinations in `config/backup-manager.php`:
 
 ```php
 'files' => [
@@ -93,6 +97,17 @@ The default profile backs up the configured MySQL connection. Application files 
     'exclude_env' => true,
 ],
 ```
+
+For example, set `storage.disk` to `s3` and `storage.local_disk` to `local` to keep a local copy and upload the same backup set to S3/R2. Set both to `local` to avoid duplicate writes. Deleting a backup from the dashboard and running retention pruning remove its directory from both disks.
+
+The dashboard returns immediately after scheduling a backup. By default, when `BACKUP_MANAGER_QUEUE_CONNECTION` is not set, Laravel runs the job after sending the HTTP response; this does not require a queue worker, but it still uses a PHP-FPM worker while the backup finishes. For long-running production backups, configure a real queue connection and run a worker:
+
+```dotenv
+BACKUP_MANAGER_QUEUE_CONNECTION=database
+BACKUP_MANAGER_QUEUE=backups
+```
+
+Ensure the Laravel queue migration is installed and run `php artisan queue:work --queue=backups`. The dashboard polls the job status and refreshes when the backup completes.
 
 The database connection is read from Laravel's `database.connections` configuration. The package uses a temporary mode-0600 MySQL option file for credentials; passwords are not passed in process arguments.
 
@@ -167,7 +182,7 @@ Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disk
 
 ## Current limitations
 
-Queued execution, backup download actions, and a dedicated Google Drive adapter are not implemented yet.
+A dedicated Google Drive OAuth adapter is not included yet. Google Drive integrations must be provided through a Laravel filesystem disk.
 
 ## Security
 
