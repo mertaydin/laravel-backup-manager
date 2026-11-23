@@ -10,6 +10,7 @@ use RuntimeException;
 final class GoogleDriveClient
 {
     private const API = 'https://www.googleapis.com/drive/v3';
+
     private const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';
 
     /** @var array<string, mixed> */
@@ -88,7 +89,7 @@ final class GoogleDriveClient
     public function list(string $folderId): array
     {
         $response = Http::withToken($this->accessToken())->get(self::API.'/files', [
-            'q' => "'".$this->escapeQuery($folderId)."' in parents and trashed = false",
+            'q' => '\''.$this->escapeQuery($folderId).'\' in parents and trashed = false',
             'fields' => 'files(id,name,mimeType,size,createdTime)',
             'pageSize' => 1000,
             'orderBy' => 'createdTime desc',
