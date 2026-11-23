@@ -60,6 +60,21 @@ final class MySqlRestorerTest extends TestCase
         (new MySqlRestorer())->restore(['database' => 'application'], $dump, $binary);
     }
 
+    public function test_it_rejects_a_corrupt_gzip_before_starting_the_mysql_client(): void
+    {
+        $dump = $this->directory.'/corrupt.sql.gz';
+        $marker = $this->directory.'/client-started';
+        file_put_contents($dump, 'not a gzip stream');
+        $binary = $this->createClient('touch '.escapeshellarg($marker));
+
+        try {
+            (new MySqlRestorer())->restore(['database' => 'application'], $dump, $binary);
+            self::fail('Corrupt gzip data must be rejected before starting mysql.');
+        } catch (RuntimeException) {
+            self::assertFileDoesNotExist($marker);
+        }
+    }
+
     public function test_it_requires_a_database_name(): void
     {
         $this->expectException(RuntimeException::class);
