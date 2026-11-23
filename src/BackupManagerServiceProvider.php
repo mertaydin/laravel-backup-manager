@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Support\ServiceProvider;
+use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
@@ -48,6 +49,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RunBackupCommand::class,
+                DecryptBackupCommand::class,
                 ListBackupsCommand::class,
                 VerifyBackupCommand::class,
             ]);
