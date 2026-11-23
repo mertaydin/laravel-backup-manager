@@ -9,6 +9,7 @@
 </head>
 <body>
 <div class="shell">
+    @if(session('backup_job_id'))<div class="job-status" id="backup-job-status" role="status" data-status-url="{{ route('backup-manager.jobs.status', ['jobId' => session('backup_job_id')]) }}" data-running="{{ __('backup-manager::dashboard.backup_running') }}" data-completed="{{ __('backup-manager::dashboard.backup_completed') }}" data-failed="{{ __('backup-manager::dashboard.backup_failed') }}">{{ __('backup-manager::dashboard.backup_queued') }}</div>@endif
     <header class="topbar">
         <a class="brand" href="{{ route('backup-manager.dashboard') }}">
             <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 5 6v5c0 4.5 2.8 7.8 7 10 4.2-2.2 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
@@ -38,9 +39,9 @@
 
     <section class="stats">
         <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.total_backups') }} <span class="stat-icon">▤</span></div><div class="stat-value">{{ number_format($totalBackups) }}</div><div class="stat-note">{{ __('backup-manager::dashboard.stored_sets') }}</div></article>
-        <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.total_storage') }} <span class="stat-icon">◫</span></div><div class="stat-value">{{ number_format($totalSize / 1048576, 1) }} <small style="font-size:13px;color:var(--muted)">MB</small></div><div class="stat-note">{{ __('backup-manager::dashboard.across_artifacts') }}</div></article>
-        <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.latest_backup') }} <span class="stat-icon">◷</span></div><div class="stat-value" style="font-size:20px">{{ $latestBackup && $latestBackup['created_at'] ? \Illuminate\Support\Carbon::parse($latestBackup['created_at'])->diffForHumans() : '—' }}</div><div class="stat-note">{{ __('backup-manager::dashboard.most_recent') }}</div></article>
-        <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.storage_status') }} <span class="stat-icon">⌁</span></div><div class="stat-value" style="font-size:20px"><span class="status">{{ __('backup-manager::dashboard.configured') }}</span></div><div class="stat-note">{{ $diskName }} {{ __('backup-manager::dashboard.configured_disk') }}</div></article>
+        <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.total_storage') }} <span class="stat-icon">◫</span></div><div class="stat-value">{{ number_format($totalSize / 1048576, 1) }} <small class="stat-unit">MB</small></div><div class="stat-note">{{ __('backup-manager::dashboard.across_artifacts') }}</div></article>
+        <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.latest_backup') }} <span class="stat-icon">◷</span></div><div class="stat-value stat-value--compact">{{ $latestBackup && $latestBackup['created_at'] ? \Illuminate\Support\Carbon::parse($latestBackup['created_at'])->diffForHumans() : '—' }}</div><div class="stat-note">{{ __('backup-manager::dashboard.most_recent') }}</div></article>
+        <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.storage_status') }} <span class="stat-icon">⌁</span></div><div class="stat-value stat-value--compact"><span class="status">{{ __('backup-manager::dashboard.configured') }}</span></div><div class="stat-note">{{ $diskName }} {{ __('backup-manager::dashboard.configured_disk') }}</div></article>
     </section>
 
     <section class="content">
@@ -52,7 +53,19 @@
                     <div class="backup-main"><div class="backup-title">{{ $backup['id'] }}</div><div class="backup-sub">{{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
                     @if($backup['encrypted'] ?? false)<span class="artifact">{{ __('backup-manager::dashboard.encrypted') }}</span>@endif</div></div>
                     <div class="backup-size">{{ number_format($backup['size'] / 1048576, 2) }} MB</div>
-                    @if(empty($backup['error']))<form class="verify-form" method="POST" action="{{ route('backup-manager.verify', $backup['id']) }}">@csrf<button class="verify-button" type="submit">✓ {{ __('backup-manager::dashboard.verify') }}</button></form>@endif
+                    <div class="backup-actions">
+                        @foreach($backup['artifacts'] as $artifact)
+                            <a class="action-button" href="{{ route('backup-manager.download', ['id' => $backup['id'], 'artifact' => $artifact['name']]) }}">↓ {{ $artifact['name'] }}</a>
+                        @endforeach
+                        <a class="action-button" href="{{ route('backup-manager.download', ['id' => $backup['id'], 'artifact' => 'manifest.json']) }}">↓ manifest</a>
+                        @if(empty($backup['error']))
+                            <form class="verify-form" method="POST" action="{{ route('backup-manager.verify', $backup['id']) }}">@csrf<button class="verify-button" type="submit">✓ {{ __('backup-manager::dashboard.verify') }}</button></form>
+                        @endif
+                        <form class="delete-form" method="POST" action="{{ route('backup-manager.delete', $backup['id']) }}" data-confirm="{{ __('backup-manager::dashboard.confirm_delete') }}">
+                            @csrf @method('DELETE')
+                            <button class="delete-button" type="submit">× {{ __('backup-manager::dashboard.delete') }}</button>
+                        </form>
+                    </div>
                 </article></div>
             @empty
                 <div class="empty"><div class="empty-icon">▤</div><h3>{{ __('backup-manager::dashboard.no_backups') }}</h3><p>{{ __('backup-manager::dashboard.first_backup_hint') }}</p></div>
