@@ -57,22 +57,32 @@ class BackupPreflight
         if ($database) {
             $connectionName = (string) data_get($profile, 'database.connection', config('database.default'));
             $connection = config('database.connections.'.$connectionName, []);
-            $checks['mysql_connection'] = is_array($connection) && ($connection['driver'] ?? null) === 'mysql';
-            if ($checks['mysql_connection']) {
+            $driver = (string) ($connection['driver'] ?? '');
+            $checks['database_connection'] = is_array($connection) && in_array($driver, ['mysql', 'pgsql', 'sqlite'], true);
+            if ($checks['database_connection']) {
                 try {
                     app('db')->connection($connectionName)->getPdo();
                 } catch (\Throwable) {
-                    $checks['mysql_connection'] = false;
+                    $checks['database_connection'] = false;
                 }
             }
-            if (! $checks['mysql_connection']) {
-                $errors[] = 'The selected MySQL connection is unavailable or is not configured correctly.';
+            if (! $checks['database_connection']) {
+                $errors[] = 'The selected database connection is unavailable or uses an unsupported driver. Supported drivers: MySQL, PostgreSQL and SQLite.';
             }
 
-            $binary = (string) data_get($profile, 'database.dump_binary', config('backup-manager.mysql.dump_binary', 'mysqldump'));
-            $checks['mysqldump'] = $this->executables->find($binary) !== null;
-            if (! $checks['mysqldump']) {
-                $errors[] = 'The mysqldump executable could not be found in the PHP process PATH.';
+            if ($driver === 'mysql' || $driver === 'pgsql') {
+                $binary = $driver === 'pgsql'
+                    ? (string) data_get($profile, 'database.dump_binary', config('backup-manager.postgresql.dump_binary', 'pg_dump'))
+                    : (string) data_get($profile, 'database.dump_binary', config('backup-manager.mysql.dump_binary', 'mysqldump'));
+                $checks['database_dump_binary'] = $this->executables->find($binary) !== null;
+                if (! $checks['database_dump_binary']) {
+                    $errors[] = "The {$binary} executable for the selected database driver could not be found in the PHP process PATH.";
+                }
+            } elseif ($driver === 'sqlite') {
+                $checks['pdo_sqlite'] = in_array('sqlite', \\PDO::getAvailableDrivers(), true);
+                if (! $checks['pdo_sqlite']) {
+                    $errors[] = 'The PDO SQLite extension is required for SQLite backups.';
+                }
             }
         }
 
