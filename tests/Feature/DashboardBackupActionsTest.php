@@ -14,6 +14,7 @@ use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\Facades\BackupManager as BackupManagerFacade;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Orchestra\Testbench\TestCase;
 
 final class DashboardBackupActionsTest extends TestCase
@@ -26,7 +27,7 @@ final class DashboardBackupActionsTest extends TestCase
     {
         parent::setUp();
 
-        if (! Schema::hasTable('backup_manager_storage_settings')) {
+        if (!Schema::hasTable('backup_manager_storage_settings')) {
             $this->artisan('migrate', [
                 '--path' => dirname(__DIR__, 2).'/database/migrations',
                 '--realpath' => true,
@@ -305,7 +306,7 @@ final class DashboardBackupActionsTest extends TestCase
 
     public function test_dashboard_can_select_google_drive_as_the_only_backup_destination(): void
     {
-        $settings = app(\MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository::class);
+        $settings = app(StorageSettingsRepository::class);
         $settings->putDisk('google-drive', [
             'refresh_token' => 'refresh-token',
             'client_id' => 'client-id',
