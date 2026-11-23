@@ -38,18 +38,57 @@
         <p>{{ __('backup-manager::dashboard.google_setup') }}</p>
     </section>
 
-    <section class="storage-card">
-        <h2>Yedekleme hedefleri</h2>
-        <p>Yedekler yalnızca seçtiğin hedeflere yüklenir. Birden fazla hedef seçerek kopyalı yedekleme yapabilirsin. Yerel sunucuya kopya istemiyorsan yalnızca Google Drive'ı seç.</p>
-        <form method="POST" action="{{ route('backup-manager.storage.targets') }}">
+    <section class="storage-card destination-section">
+        <div class="destination-heading">
+            <div>
+                <span class="destination-eyebrow">BACKUP STORAGE</span>
+                <h2>Yedekleme hedefleri</h2>
+                <p>Yedeklerinin nereye gönderileceğini belirle. Birden fazla hedef seçersen her yedek seçtiğin konumlara ayrı ayrı kopyalanır.</p>
+            </div>
+            <div class="destination-count"><span>{{ count($selectedTargets) }}</span><small>seçili hedef</small></div>
+        </div>
+
+        <form method="POST" action="{{ route('backup-manager.storage.targets') }}" class="destination-form">
             @csrf
-            @foreach($filesystemDisks as $disk)
-                <label class="storage-field" style="display:flex;align-items:center;gap:10px">
-                    <input type="checkbox" name="targets[]" value="{{ $disk }}" {{ in_array($disk, $selectedTargets, true) ? 'checked' : '' }}>
-                    <strong>{{ $disk === 'google-drive' ? 'Google Drive' : $disk }}</strong>
-                </label>
-            @endforeach
-            <div class="storage-actions"><button class="primary" type="submit">Seçili hedefleri kaydet</button></div>
+            <div class="destination-grid">
+                @foreach($filesystemDisks as $disk)
+                    @php
+                        $isGoogleDrive = $disk === 'google-drive';
+                        $isLocal = in_array($disk, ['local', 'public'], true);
+                        $isSelected = in_array($disk, $selectedTargets, true);
+                        $destinationName = $isGoogleDrive ? 'Google Drive' : ($disk === 'local' ? 'Sunucu diski' : ($disk === 'public' ? 'Public disk' : \Illuminate\Support\Str::headline($disk)));
+                        $destinationDescription = $isGoogleDrive
+                            ? 'Yedekleri bağlı Google hesabındaki seçili klasöre gönderir.'
+                            : ($isLocal ? 'Yedekleri uygulamanın bulunduğu sunucunun diskinde saklar.' : 'Laravel dosya sistemi yapılandırmasındaki bu diske yedek kopyası gönderir.');
+                    @endphp
+                    <label class="destination-option {{ $isSelected ? 'is-selected' : '' }}" for="backup-target-{{ $loop->index }}">
+                        <input id="backup-target-{{ $loop->index }}" type="checkbox" name="targets[]" value="{{ $disk }}" {{ $isSelected ? 'checked' : '' }}>
+                        <span class="destination-icon" aria-hidden="true">
+                            @if($isGoogleDrive)
+                                <svg viewBox="0 0 48 48"><path fill="#00832d" d="M15.4 6h10.2L10.2 32.7H0z"/><path fill="#2684fc" d="M10.2 32.7h30.6L35.7 42H5.1z"/><path fill="#ffba00" d="M25.6 6 48 42H35.7L15.4 6z"/></svg>
+                            @elseif($isLocal)
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01M17 7h1M17 17h1"/></svg>
+                            @else
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9L12 3Z"/><path d="m3.8 7.7 8.2 4.5 8.2-4.5M12 12.2V21"/></svg>
+                            @endif
+                        </span>
+                        <span class="destination-copy">
+                            <strong>{{ $destinationName }}</strong>
+                            <small>{{ $destinationDescription }}</small>
+                            <span class="destination-kind">{{ $isGoogleDrive ? 'BULUT DEPOLAMA' : ($isLocal ? 'YEREL DEPOLAMA' : 'DOSYA SİSTEMİ') }}</span>
+                        </span>
+                        <span class="destination-check" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    </label>
+                @endforeach
+            </div>
+
+            <div class="destination-footer">
+                <div class="destination-note">
+                    <strong>Bilgi</strong>
+                    <span>Hedef değişikliği yalnızca bundan sonra oluşturulacak yedekleri etkiler. Mevcut yedekler taşınmaz.</span>
+                </div>
+                <button class="primary destination-save" type="submit">Seçili hedefleri kaydet <span aria-hidden="true">→</span></button>
+            </div>
         </form>
     </section>
 
