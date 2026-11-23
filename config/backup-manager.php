@@ -44,6 +44,7 @@ return [
             'encryption' => [
                 'enabled' => false,
                 'key' => env('BACKUP_MANAGER_ENCRYPTION_KEY'),
+                'key_id' => env('BACKUP_MANAGER_ENCRYPTION_KEY_ID'),
             ],
             'retention' => [
                 'enabled' => false,
