@@ -9,6 +9,9 @@ return [
         'asset_version' => env('BACKUP_MANAGER_ASSET_VERSION', '0.6.3'),
         'middleware' => ['web', 'auth'],
     ],
+    'naming' => [
+        'template' => env('BACKUP_MANAGER_NAME_TEMPLATE', ':app-:date-:time'),
+    ],
     'integrity' => [
         'verify_after_upload' => env('BACKUP_MANAGER_VERIFY_AFTER_UPLOAD', true),
     ],
