@@ -106,4 +106,6 @@ return [
     'download_artifact' => "下载备份文件",
     'download_manifest' => "下载清单",
     'verify_integrity' => "验证完整性",
+    'note' => "备注",
+    'tags' => "标签",
 ];
