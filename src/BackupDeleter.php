@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager;
 
-use MertAydin\LaravelBackupManager\Events\BackupDeleted;
-
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use MertAydin\LaravelBackupManager\Events\BackupDeleted;
 use RuntimeException;
 
 final class BackupDeleter
