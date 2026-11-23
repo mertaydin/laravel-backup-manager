@@ -128,7 +128,7 @@ final class BackupInspector
 
             $context = hash_init('sha256');
             try {
-                 $bytes = hash_update_stream($context, $stream);
+                $bytes = hash_update_stream($context, $stream);
                 if ($bytes === false) {
                     throw new RuntimeException("Unable to hash artifact [{$name}].");
                 }
