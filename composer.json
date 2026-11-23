@@ -1,0 +1,41 @@
+{
+    "name": "mertaydin/laravel-backup-manager",
+    "description": "Database and application file backups for Laravel with pluggable cloud storage.",
+    "keywords": ["laravel", "backup", "mysql", "database", "s3", "cloudflare-r2", "google-drive"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^11.0|^12.0",
+        "illuminate/contracts": "^11.0|^12.0",
+        "illuminate/filesystem": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.0",
+        "laravel/pint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MertAydin\\LaravelBackupManager\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MertAydin\\LaravelBackupManager\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["MertAydin\\LaravelBackupManager\\BackupManagerServiceProvider"],
+            "aliases": {"Backup": "MertAydin\\LaravelBackupManager\\Facades\\Backup"}
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "format": "pint",
+        "format:test": "pint --test"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
