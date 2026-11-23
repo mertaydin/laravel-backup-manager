@@ -7,7 +7,7 @@ namespace MertAydin\LaravelBackupManager;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
 use Symfony\Component\Process\ExecutableFinder;
 
-final class BackupPreflight
+class BackupPreflight
 {
     public function __construct(
         private readonly BackupInspector $inspector,
