@@ -23,6 +23,7 @@ final class BackupRestorer
         private readonly ArtifactEncryptor $encryptor,
         private readonly DatabaseRestorer $databaseRestorer,
         private readonly ZipRestorer $zip,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     /**
@@ -42,7 +43,13 @@ final class BackupRestorer
             throw new RuntimeException("Backup profile [{$profileName}] does not exist.");
         }
 
-        $diskName = (string) ($options['disk'] ?? $profile['storage']['disk'] ?? 'local');
+        $targets = [];
+        try {
+            $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        } catch (\\Throwable) {
+            // Fall back to the profile disk before settings are installed.
+        }
+        $diskName = (string) ($options['disk'] ?? $targets[0] ?? $profile['storage']['disk'] ?? 'local');
         $verification = $this->inspector->verify($id, $profileName, $diskName);
         if (! $verification['valid']) {
             throw new RuntimeException('Backup integrity verification failed: '.implode(' ', $verification['errors']));
