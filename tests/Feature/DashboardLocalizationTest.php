@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
+use Illuminate\Support\Facades\Schema;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use Orchestra\Testbench\TestCase;
 
@@ -28,6 +29,8 @@ final class DashboardLocalizationTest extends TestCase
             ->assertSee('vendor/backup-manager/css/dashboard.css')
             ->assertSee('vendor/backup-manager/js/dashboard.js')
             ->assertSee('dashboard-language')
+            ->assertSee('data-locale-switcher', false)
+            ->assertDontSee('onchange=', false)
             ->assertSee('Total backups');
     }
 
@@ -50,6 +53,37 @@ final class DashboardLocalizationTest extends TestCase
             ->assertOk()
             ->assertSee('Yedekleme paneli')
             ->assertSee('Toplam yedek');
+    }
+
+    public function test_storage_page_renders_translated_language_switcher_and_external_script(): void
+    {
+        if (! Schema::hasTable('backup_manager_storage_settings')) {
+            $this->artisan('migrate', [
+                '--path' => dirname(__DIR__, 2).'/database/migrations',
+                '--realpath' => true,
+            ])->assertExitCode(0);
+        }
+
+        $this->withSession(['backup_manager_locale' => 'tr'])
+            ->get('/backup-manager/storage')
+            ->assertOk()
+            ->assertSee('Depolama Yönetimi')
+            ->assertSee('data-locale-switcher', false)
+            ->assertDontSee('onchange=', false)
+            ->assertSee('dashboard.js?v=0.8.6-0.8.6');
+    }
+
+    public function test_language_switcher_uses_external_javascript_compatible_with_strict_csp(): void
+    {
+        $html = file_get_contents(dirname(__DIR__, 2).'/resources/views/dashboard.blade.php');
+        $javascript = file_get_contents(dirname(__DIR__, 2).'/resources/dist/js/dashboard.js');
+
+        self::assertIsString($html);
+        self::assertIsString($javascript);
+        self::assertStringContainsString('data-locale-switcher', $html);
+        self::assertStringNotContainsString('onchange=', $html);
+        self::assertStringContainsString("addEventListener('change'", $javascript);
+        self::assertStringContainsString('window.location.assign(select.value)', $javascript);
     }
 
     public function test_arabic_dashboard_uses_right_to_left_layout(): void

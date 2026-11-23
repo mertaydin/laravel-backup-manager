@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Backup Manager · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.4') }}-0.8.4">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.6') }}-0.8.6">
 </head>
 <body>
 <div class="shell">
@@ -20,7 +20,7 @@
             <div class="top-meta"><i class="pulse"></i> {{ __('backup-manager::dashboard.control_panel') }} <span>·</span> {{ now()->format('d M Y') }}</div>
             <form method="GET" action="{{ route('backup-manager.locale', ['locale' => app()->getLocale()]) }}" id="language-form">
                 <label for="dashboard-language" class="sr-only">{{ __('backup-manager::dashboard.language') }}</label>
-                <select id="dashboard-language" class="toolbar-select" aria-label="{{ __('backup-manager::dashboard.language') }}" onchange="window.location.href=this.value">
+                <select id="dashboard-language" class="toolbar-select" aria-label="{{ __('backup-manager::dashboard.language') }}" data-locale-switcher>
                     @foreach(['en'=>'English','tr'=>'Türkçe','es'=>'Español','zh_CN'=>'简体中文','hi'=>'हिन्दी','ar'=>'العربية'] as $locale => $label)
                         <option value="{{ route('backup-manager.locale', ['locale' => $locale]) }}" {{ app()->getLocale() === $locale ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
@@ -121,6 +121,6 @@
     </section>
     <footer class="footer"><span>Laravel Backup Manager</span><span>{{ __('backup-manager::dashboard.protect') }}</span></footer>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.4') }}-0.8.4" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.6') }}-0.8.6" defer></script>
 </body>
 </html>
