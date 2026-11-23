@@ -66,7 +66,7 @@ final class LocalBackupDriver implements BackupDriver
                 if ($connectionDriver === 'mysql') {
                     $connectionConfig['dump_binary'] = $databaseConfig['dump_binary'] ?? $this->config->get('backup-manager.mysql.dump_binary', 'mysqldump');
                 } elseif ($connectionDriver === 'pgsql') {
-                    $connectionConfig['dump_binary'] = $databaseConfig['dump_binary'] ?? $this->config->get('backup-manager.postgresql.dump_binary', 'pg_dump');
+                    $connectionConfig['dump_binary'] = $databaseConfig['postgres_dump_binary'] ?? $this->config->get('backup-manager.postgresql.dump_binary', 'pg_dump');
                 }
                 $databaseArtifactName = $connectionDriver === 'sqlite' ? 'database.sqlite.gz' : 'database.sql.gz';
                 $path = $workdir.'/'.$databaseArtifactName;
