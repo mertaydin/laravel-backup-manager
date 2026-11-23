@@ -43,7 +43,6 @@ final class StorageManagementController extends Controller
         ]);
     }
 
-
     public function saveTargets(Request $request): RedirectResponse
     {
         $data = $request->validate([
