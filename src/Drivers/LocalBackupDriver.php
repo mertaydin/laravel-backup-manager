@@ -18,6 +18,7 @@ use MertAydin\LaravelBackupManager\Events\BackupFailed;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Storage\LaravelFilesystemStorage;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use RuntimeException;
 use Throwable;
 
