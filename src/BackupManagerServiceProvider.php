@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Filesystem\FilesystemAdapter;
-use League\Flysystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
+use League\Flysystem\Filesystem;
 use MertAydin\LaravelBackupManager\Console\Commands\CompareBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
@@ -95,7 +95,7 @@ class BackupManagerServiceProvider extends ServiceProvider
             try {
                 $settings = $this->app->make(StorageSettingsRepository::class)->all();
                 $credentials = (array) data_get($settings, 'disks.google-drive', []);
-                if (! empty($credentials['refresh_token'])) {
+                if (!empty($credentials['refresh_token'])) {
                     config(['filesystems.disks.google-drive' => [
                         'driver' => 'google-drive',
                         'root_folder_id' => (string) ($credentials['root_folder_id'] ?? 'root'),
