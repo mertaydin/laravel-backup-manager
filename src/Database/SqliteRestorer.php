@@ -69,6 +69,8 @@ final class SqliteRestorer
             }
 
             DB::purge($connectionName);
+            @unlink($database.'-wal');
+            @unlink($database.'-shm');
             if (! @rename($temporary, $database)) {
                 throw new RuntimeException('Unable to atomically replace the configured SQLite database file.');
             }
