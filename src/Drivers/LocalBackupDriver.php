@@ -12,6 +12,7 @@ use MertAydin\LaravelBackupManager\Data\BackupResult;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Storage\LaravelFilesystemStorage;
+use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use RuntimeException;
 use Throwable;
 
@@ -23,6 +24,7 @@ final class LocalBackupDriver implements BackupDriver
         private readonly MySqlDumper $dumper,
         private readonly ZipArchiver $archiver,
         private readonly Filesystem $files,
+        private readonly ArtifactEncryptor $encryptor,
     ) {
     }
 
@@ -34,10 +36,6 @@ final class LocalBackupDriver implements BackupDriver
 
         if (! is_array($profile)) {
             return BackupResult::failure($id, "Backup profile [{$profileName}] does not exist.");
-        }
-
-        if (($profile['encryption']['enabled'] ?? false) === true) {
-            return BackupResult::failure($id, 'Backup encryption is enabled but no encryption engine is available yet. Disable encryption rather than creating an unencrypted backup.');
         }
 
         $temporaryRoot = (string) $this->config->get('backup-manager.temporary_directory');
@@ -82,11 +80,44 @@ final class LocalBackupDriver implements BackupDriver
                 throw new RuntimeException('No backup components are enabled. Enable database and/or files in the selected profile.');
             }
 
-            $manifest = ['id' => $id, 'created_at' => now()->toIso8601String(), 'profile' => $profileName, 'artifacts' => []];
+            $encryptionMetadata = null;
+            $encryptionConfig = $profile['encryption'] ?? [];
+            if (($encryptionConfig['enabled'] ?? false) === true) {
+                $encryptedArtifacts = [];
+                $encryptionKey = (string) ($encryptionConfig['key'] ?? '');
+
+                foreach ($artifacts as $name => $path) {
+                    $encryptedName = $name.'.enc';
+                    $encryptedPath = $path.'.enc';
+                    $encryptionMetadata = $this->encryptor->encrypt($path, $encryptedPath, $encryptionKey);
+                    if (! @unlink($path)) {
+                        throw new RuntimeException("Unable to remove the temporary plaintext artifact [{$name}].");
+                    }
+                    $encryptedArtifacts[$encryptedName] = $encryptedPath;
+                }
+
+                $artifacts = $encryptedArtifacts;
+                $encryptionMetadata['enabled'] = true;
+                $encryptionMetadata['key_id'] = $encryptionConfig['key_id'] ?? null;
+            }
+
+            $manifest = [
+                'id' => $id,
+                'created_at' => now()->toIso8601String(),
+                'profile' => $profileName,
+                'artifacts' => [],
+            ];
+            if ($encryptionMetadata !== null) {
+                $manifest['encryption'] = $encryptionMetadata;
+            }
             $checksumLines = [];
             foreach ($artifacts as $name => $path) {
                 $checksum = hash_file('sha256', $path);
-                $manifest['artifacts'][$name] = ['size' => filesize($path), 'sha256' => $checksum];
+                $size = filesize($path);
+                if ($checksum === false || $size === false) {
+                    throw new RuntimeException("Unable to calculate integrity metadata for artifact [{$name}].");
+                }
+                $manifest['artifacts'][$name] = ['size' => $size, 'sha256' => $checksum];
                 $checksumLines[] = $checksum.'  '.$name;
             }
 
@@ -105,7 +136,7 @@ final class LocalBackupDriver implements BackupDriver
                 $uploaded[$name] = $storage->put($path, $prefix.'/'.$name);
             }
 
-            return BackupResult::success($id, $uploaded, ['profile' => $profileName, 'disk' => $disk, 'checksums' => $manifest['artifacts']]);
+            return BackupResult::success($id, $uploaded, ['profile' => $profileName, 'disk' => $disk, 'checksums' => $manifest['artifacts'], 'encryption' => $encryptionMetadata]);
         } catch (Throwable $exception) {
             if ($storage !== null) {
                 foreach ($uploaded as $remotePath) {

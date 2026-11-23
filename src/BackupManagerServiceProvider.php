@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Support\ServiceProvider;
+use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
@@ -12,6 +13,7 @@ use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
+use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
@@ -21,6 +23,7 @@ class BackupManagerServiceProvider extends ServiceProvider
 
         $this->app->singleton(MySqlDumper::class);
         $this->app->singleton(ZipArchiver::class);
+        $this->app->singleton(ArtifactEncryptor::class);
         $this->app->singleton(BackupInspector::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
             $manager = new BackupManager();
@@ -46,6 +49,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RunBackupCommand::class,
+                DecryptBackupCommand::class,
                 ListBackupsCommand::class,
                 VerifyBackupCommand::class,
             ]);

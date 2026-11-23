@@ -49,7 +49,8 @@
             @forelse($backups->take(12) as $backup)
                 <div class="backup-list"><article class="backup">
                     <div class="file-icon">▤</div>
-                    <div class="backup-main"><div class="backup-title">{{ $backup['id'] }}</div><div class="backup-sub">{{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : 'Tarih bilgisi yok' }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach</div></div>
+                    <div class="backup-main"><div class="backup-title">{{ $backup['id'] }}</div><div class="backup-sub">{{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : 'Tarih bilgisi yok' }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
+                    @if($backup['encrypted'] ?? false)<span class="artifact">Encrypted</span>@endif</div></div>
                     <div class="backup-size">{{ number_format($backup['size'] / 1048576, 2) }} MB</div>
                     @if(empty($backup['error']))<form class="verify-form" method="POST" action="{{ route('backup-manager.verify', $backup['id']) }}">@csrf<button class="verify-button" type="submit" title="SHA-256 bütünlük kontrolü">✓ Verify</button></form>@endif
                 </article></div>
