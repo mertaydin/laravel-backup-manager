@@ -34,7 +34,7 @@ final class ZipRestorer
                 }
 
                 $normalized = str_replace('\\', '/', $name);
-                if ($normalized === '' || str_starts_with($normalized, '/') || preg_match('/^[A-Za-z]:/', $normalized) === 1 || str_contains($normalized, "\0")) {
+                if ($normalized === '' || str_starts_with($normalized, '/') || preg_match('/^[A-Za-z]:/', $normalized) === 1 || str_contains($normalized, ':') || preg_match('/[\\x00-\\x1F]/', $normalized) === 1) {
                     throw new RuntimeException("The ZIP archive contains an unsafe path [{$name}].");
                 }
 
