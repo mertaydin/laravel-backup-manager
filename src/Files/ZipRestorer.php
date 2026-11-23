@@ -129,7 +129,7 @@ final class ZipRestorer
                     if (! fflush($output)) {
                         throw new RuntimeException("Unable to flush restored file [{$entry['relative']}].");
                     }
-                } catch (\\Throwable $exception) {
+                } catch (\Throwable $exception) {
                     @unlink($temporaryDestination);
                     throw $exception;
                 } finally {
