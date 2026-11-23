@@ -45,6 +45,7 @@ final class ScheduledBackupCommand extends Command
             $checks = $preflight->inspect(['type' => 'scheduled']);
             if (! $checks['ready']) {
                 $cache->forget($lockKey);
+                $cache->put('backup-manager:last-run', ['status' => 'failed', 'error' => implode(' ', $checks['errors']), 'finished_at' => now()->toIso8601String()], now()->addDays(30));
                 foreach ($checks['errors'] as $error) {
                     $this->components->error($error);
                 }
@@ -55,6 +56,7 @@ final class ScheduledBackupCommand extends Command
             $result = $manager->run(['type' => 'scheduled']);
             if (! $result->successful) {
                 $cache->forget($lockKey);
+                $cache->put('backup-manager:last-run', ['status' => 'failed', 'backup_id' => $result->id, 'error' => $result->error, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
                 $this->components->error($result->error ?? 'Scheduled backup failed.');
 
                 return self::FAILURE;
@@ -67,6 +69,7 @@ final class ScheduledBackupCommand extends Command
                 'backup-manager.profiles.'.$profileName.'.retention.keep_last' => 0,
             ]);
 
+            $cache->put('backup-manager:last-run', ['status' => 'completed', 'backup_id' => $result->id, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
             $pruned = $pruner->run($profileName, null, true);
             $this->components->info('Scheduled backup completed: '.$result->id);
             $this->line('Expired backups deleted: '.count($pruned['deleted']));
@@ -74,6 +77,7 @@ final class ScheduledBackupCommand extends Command
             return self::SUCCESS;
         } catch (Throwable $exception) {
             $cache->forget($lockKey);
+            $cache->put('backup-manager:last-run', ['status' => 'failed', 'error' => $exception->getMessage(), 'finished_at' => now()->toIso8601String()], now()->addDays(30));
             report($exception);
             $this->components->error('Scheduled backup failed: '.$exception->getMessage());
 
