@@ -188,7 +188,7 @@ final class BackupInspector
 
     private function validateArtifactFormat(object $disk, string $path, string $name): ?string
     {
-        if (! in_array($name, ['database.sql.gz', 'application.zip'], true)) {
+        if (! in_array($name, ['database.sql.gz', 'database.sqlite.gz', 'application.zip'], true)) {
             return null;
         }
 
@@ -220,7 +220,7 @@ final class BackupInspector
         }
 
         try {
-            if ($name === 'database.sql.gz') {
+            if (in_array($name, ['database.sql.gz', 'database.sqlite.gz'], true)) {
                 $gzip = @gzopen($temporary, 'rb');
                 if ($gzip === false) {
                     return 'Database artifact is not a valid GZIP stream.';
