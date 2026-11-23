@@ -157,7 +157,11 @@ final class ZipRestorer
             throw new RuntimeException('The application restore target is not a valid directory.');
         }
 
-        return $root === DIRECTORY_SEPARATOR ? $root : rtrim($root, DIRECTORY_SEPARATOR);
+        if ($root === DIRECTORY_SEPARATOR) {
+            throw new RuntimeException('Refusing to restore application files into the filesystem root.');
+        }
+
+        return rtrim($root, DIRECTORY_SEPARATOR);
     }
 
     /**
