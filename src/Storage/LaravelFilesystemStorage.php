@@ -15,6 +15,10 @@ final class LaravelFilesystemStorage implements BackupStorage
 
     public function put(string $sourcePath, string $destination): string
     {
+        if ($this->uploadMultipartWhenSupported($sourcePath, $destination)) {
+            return $destination;
+        }
+
         $stream = fopen($sourcePath, 'rb');
         if ($stream === false) {
             throw new RuntimeException('Unable to open backup artifact for upload.');
@@ -30,6 +34,42 @@ final class LaravelFilesystemStorage implements BackupStorage
         }
 
         return $destination;
+    }
+
+
+    private function uploadMultipartWhenSupported(string $sourcePath, string $destination): bool
+    {
+        $enabled = (bool) config('backup-manager.upload.multipart.enabled', true);
+        $minimumBytes = max(5 * 1024 * 1024, (int) config('backup-manager.upload.multipart.threshold_bytes', 64 * 1024 * 1024));
+        $partSize = max(5 * 1024 * 1024, (int) config('backup-manager.upload.multipart.part_size_bytes', 8 * 1024 * 1024));
+        if (! $enabled || ! is_file($sourcePath) || (int) filesize($sourcePath) < $minimumBytes) {
+            return false;
+        }
+
+        $filesystem = $this->filesystem->disk($this->disk);
+        $adapter = method_exists($filesystem, 'getAdapter') ? $filesystem->getAdapter() : null;
+        $adapterClass = \\League\\Flysystem\\AwsS3V3\\AwsS3V3Adapter::class;
+        $uploaderClass = \\Aws\\S3\\MultipartUploader::class;
+        if (! is_object($adapter)
+            || ! is_a($adapter, $adapterClass)
+            || ! class_exists($uploaderClass)
+            || ! method_exists($adapter, 'getClient')
+            || ! method_exists($adapter, 'getBucket')) {
+            return false;
+        }
+
+        $diskConfig = (array) config('filesystems.disks.'.$this->disk, []);
+        $bucket = (string) $adapter->getBucket();
+        $root = trim((string) ($diskConfig['root'] ?? ''), '/');
+        $key = ltrim(($root === '' ? '' : $root.'/').$destination, '/');
+        $uploader = new $uploaderClass($adapter->getClient(), $sourcePath, [
+            'bucket' => $bucket,
+            'key' => $key,
+            'part_size' => $partSize,
+        ]);
+        $uploader->upload();
+
+        return true;
     }
 
     public function get(string $source, string $destinationPath): string
