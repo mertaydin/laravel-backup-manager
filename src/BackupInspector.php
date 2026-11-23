@@ -153,7 +153,11 @@ final class BackupInspector
             $checksumMatches = preg_match('/^[a-f0-9]{64}$/', $expectedChecksum) === 1
                 && hash_equals($expectedChecksum, $actualChecksum);
             $sizeMatches = isset($expected['size']) && (int) $expected['size'] === $bytes;
-            $valid = $checksumMatches && $sizeMatches;
+            $formatError = null;
+            if ($checksumMatches && $sizeMatches && ! str_ends_with($name, '.enc')) {
+                $formatError = $this->validateArtifactFormat($disk, $path, $name);
+            }
+            $valid = $checksumMatches && $sizeMatches && $formatError === null;
 
             $results[$name] = [
                 'valid' => $valid,
@@ -161,10 +165,11 @@ final class BackupInspector
                 'actual_sha256' => $actualChecksum,
                 'expected_size' => $expected['size'] ?? null,
                 'actual_size' => $bytes,
+                'format_error' => $formatError,
             ];
 
             if (! $valid) {
-                $errors[] = "{$name}: ".(! $checksumMatches ? 'SHA-256 checksum mismatch.' : 'File size mismatch.');
+                $errors[] = "{$name}: ".(! $checksumMatches ? 'SHA-256 checksum mismatch.' : (! $sizeMatches ? 'File size mismatch.' : (string) $formatError));
             }
         }
 
@@ -179,6 +184,85 @@ final class BackupInspector
             'artifacts' => $results,
             'errors' => $errors,
         ];
+    }
+
+    private function validateArtifactFormat(object $disk, string $path, string $name): ?string
+    {
+        if (! in_array($name, ['database.sql.gz', 'application.zip'], true)) {
+            return null;
+        }
+
+        $temporary = tempnam(sys_get_temp_dir(), 'backup-verify-');
+        if ($temporary === false) {
+            return 'Unable to create a temporary file for archive validation.';
+        }
+
+        $stream = $disk->readStream($path);
+        if (! is_resource($stream)) {
+            @unlink($temporary);
+            return 'Artifact could not be reopened for archive validation.';
+        }
+
+        $target = fopen($temporary, 'wb');
+        if ($target === false) {
+            fclose($stream);
+            @unlink($temporary);
+            return 'Unable to write the temporary archive validation file.';
+        }
+
+        try {
+            if (stream_copy_to_stream($stream, $target) === false) {
+                return 'Unable to copy the artifact for archive validation.';
+            }
+        } finally {
+            fclose($stream);
+            fclose($target);
+        }
+
+        try {
+            if ($name === 'database.sql.gz') {
+                $gzip = @gzopen($temporary, 'rb');
+                if ($gzip === false) {
+                    return 'Database artifact is not a valid GZIP stream.';
+                }
+
+                try {
+                    while (! gzeof($gzip)) {
+                        if (gzread($gzip, 1024 * 1024) === false) {
+                            return 'Database GZIP stream is corrupted.';
+                        }
+                    }
+                    if (gzerror($gzip) !== ZLIB_OK) {
+                        return 'Database GZIP stream failed its integrity check.';
+                    }
+                } finally {
+                    gzclose($gzip);
+                }
+            } else {
+                if (! class_exists(\ZipArchive::class)) {
+                    return 'The PHP ZIP extension is required to validate the application archive.';
+                }
+
+                $archive = new \ZipArchive;
+                if ($archive->open($temporary, \ZipArchive::CHECKCONS) !== true) {
+                    return 'Application ZIP archive is invalid or corrupted.';
+                }
+
+                try {
+                    for ($index = 0; $index < $archive->numFiles; $index++) {
+                        if ($archive->getFromIndex($index) === false) {
+                            return 'Application ZIP archive contains a corrupted entry.';
+                        }
+                    }
+                } finally {
+                    $archive->close();
+                }
+            }
+        } finally {
+            @unlink($temporary);
+        }
+
+        return null;
     }
 
     /**
