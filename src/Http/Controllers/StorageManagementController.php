@@ -12,6 +12,7 @@ use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveClient;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveOAuth;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
+use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
 use Throwable;
 
 final class StorageManagementController extends Controller
@@ -19,6 +20,7 @@ final class StorageManagementController extends Controller
     public function __construct(
         private readonly StorageSettingsRepository $settings,
         private readonly GoogleDriveOAuth $oauth,
+        private readonly StorageHealthChecker $healthChecker,
     ) {}
 
     public function index(): View
@@ -124,6 +126,28 @@ final class StorageManagementController extends Controller
             report($exception);
 
             return redirect()->route('backup-manager.storage')->with('storage_error', 'Google Drive authorization failed. Check the application log.');
+        }
+    }
+
+    public function testDisk(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'disk' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_.-]+$/'],
+        ]);
+
+        try {
+            $result = $this->healthChecker->check($data['disk']);
+            $failed = array_keys(array_filter($result['checks'], static fn (bool $passed): bool => ! $passed));
+
+            if ($result['successful']) {
+                return back()->with('storage_success', "Storage disk [{$data['disk']}] passed connection, list, write, read and delete checks.");
+            }
+
+            return back()->with('storage_error', "Storage disk [{$data['disk']}] failed checks: ".implode(', ', $failed).'.');
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('storage_error', "Storage disk [{$data['disk']}] could not be checked. Review the application log.");
         }
     }
 
