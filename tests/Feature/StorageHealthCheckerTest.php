@@ -52,7 +52,7 @@ final class StorageHealthCheckerTest extends TestCase
             ->assertSee('OAuth İstemci Kimliği')
             ->assertSee('Otomatik yedekleme ayarlarını kaydet')
             ->assertSee('Yedekleme hedefleri')
-            ->assertSee('backup-manager.storage.targets');
+            ->assertSee('/backup-manager/storage/targets');
 
         $css = file_get_contents(dirname(__DIR__, 2).'/resources/dist/css/dashboard.css');
 
