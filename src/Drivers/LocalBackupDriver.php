@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Drivers;
 
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Filesystem\Filesystem;
@@ -24,6 +25,7 @@ final class LocalBackupDriver implements BackupDriver
 {
     public function __construct(
         private readonly ConfigRepository $config,
+        private readonly CacheFactory $cache,
         private readonly FilesystemFactory $filesystem,
         private readonly DatabaseDumper $dumper,
         private readonly ZipArchiver $archiver,
@@ -49,6 +51,18 @@ final class LocalBackupDriver implements BackupDriver
         $workdir = rtrim($temporaryRoot, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$id;
         if (! $this->files->makeDirectory($workdir, 0700, true, true)) {
             $result = BackupResult::failure($id, 'Unable to create the temporary backup workspace.');
+            event(new BackupFailed($result));
+
+            return $result;
+        }
+
+        $lock = $this->cache->store()->lock(
+            'backup-manager:profile:'.$profileName,
+            max(60, (int) $this->config->get('backup-manager.lock_seconds', 21600)),
+        );
+        if (! $lock->get()) {
+            $this->files->deleteDirectory($workdir);
+            $result = BackupResult::failure($id, "Another backup is already running for profile [{$profileName}].");
             event(new BackupFailed($result));
 
             return $result;
@@ -209,6 +223,7 @@ final class LocalBackupDriver implements BackupDriver
             return $result;
         } finally {
             $this->files->deleteDirectory($workdir);
+            $lock->release();
         }
     }
 }
