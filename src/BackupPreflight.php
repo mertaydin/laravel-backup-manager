@@ -36,7 +36,7 @@ class BackupPreflight
         }
 
         try {
-            $storage = $this->storageHealth->check($diskName);
+            $storage = $this->storageHealth->check($diskName, (string) data_get($profile, 'storage.path', 'backups'));
             $checks['storage'] = $storage['successful'];
         } catch (\Throwable) {
             $checks['storage'] = false;
