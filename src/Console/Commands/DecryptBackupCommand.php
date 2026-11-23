@@ -54,7 +54,7 @@ final class DecryptBackupCommand extends Command
         $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
         $manifestPath = $prefix.'/manifest.json';
 
-        $destinationMayBePartial = false;
+        $temporaryDestination = null;
 
         try {
             $verification = $inspector->verify($id, $profileName, $diskName);
@@ -85,6 +85,10 @@ final class DecryptBackupCommand extends Command
                 'app/backup-manager/decrypted/'.$id.'/'.substr($artifact, 0, -4)
             );
             $destination = (string) ($this->option('output') ?: $defaultDestination);
+            if (is_link($destination)) {
+                throw new RuntimeException('The destination cannot be a symbolic link.');
+            }
+
             if (is_file($destination) && ! $this->option('force')) {
                 throw new RuntimeException("Destination [{$destination}] already exists. Use --force to replace it.");
             }
@@ -123,8 +127,13 @@ final class DecryptBackupCommand extends Command
                     fclose($target);
                 }
 
-                $destinationMayBePartial = true;
-                $encryptor->decrypt($temporaryArtifact, $destination, $encryptionKey);
+                $temporaryDestination = $destination.'.partial-'.bin2hex(random_bytes(4));
+                $encryptor->decrypt($temporaryArtifact, $temporaryDestination, $encryptionKey);
+
+                if (! @rename($temporaryDestination, $destination)) {
+                    throw new RuntimeException('Unable to move the decrypted artifact into its destination.');
+                }
+                $temporaryDestination = null;
             } finally {
                 $files->deleteDirectory($workdir);
             }
@@ -133,8 +142,8 @@ final class DecryptBackupCommand extends Command
 
             return self::SUCCESS;
         } catch (Throwable $exception) {
-            if ($destinationMayBePartial && isset($destination) && is_file($destination)) {
-                @unlink($destination);
+            if ($temporaryDestination !== null && is_file($temporaryDestination)) {
+                @unlink($temporaryDestination);
             }
 
             $this->components->error($exception->getMessage());
