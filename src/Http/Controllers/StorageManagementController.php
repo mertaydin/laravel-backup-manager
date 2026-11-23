@@ -27,7 +27,7 @@ final class StorageManagementController extends Controller
     {
         $settings = $this->settings->all();
         $disks = array_keys(config('filesystems.disks', []));
-        sort($disks);
+        if (! empty(data_get($settings, 'disks.google-drive.refresh_token'))) {\n            $disks[] = 'google-drive';\n        }\n        $disks = array_values(array_unique($disks));\n        sort($disks);
 
         return view('backup-manager::storage', [
             'settings' => $settings,
