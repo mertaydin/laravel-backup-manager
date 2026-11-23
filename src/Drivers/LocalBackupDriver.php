@@ -127,6 +127,11 @@ final class LocalBackupDriver implements BackupDriver
                 'note' => trim((string) ($options['note'] ?? '')) ?: null,
                 'tags' => array_values(array_unique(array_filter((array) ($options['tags'] ?? []), 'is_string'))),
                 'type' => (string) ($options['type'] ?? 'manual'),
+                'protection' => [
+                    'locked' => (bool) ($options['locked'] ?? false),
+                    'protected_until' => $options['protected_until'] ?? null,
+                    'reason' => isset($options['protection_reason']) ? trim((string) $options['protection_reason']) : null,
+                ],
                 'artifacts' => [],
             ];
             if ($encryptionMetadata !== null) {
