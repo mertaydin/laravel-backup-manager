@@ -25,7 +25,8 @@ A Laravel package for database and application file backups, compression, encryp
 
 - Streaming MySQL and PostgreSQL backups as compressed SQL archives; consistent SQLite snapshots as compressed database files.
 - Optional application ZIP archives with conservative default exclusions.
-- Multiple Laravel Filesystem destinations, including local, Amazon S3 and S3-compatible services such as Cloudflare R2.
+- Multiple Laravel Filesystem destinations, including local, Amazon S3, S3-compatible services such as Cloudflare R2, and native Google Drive OAuth storage.
+- Dashboard destination selection supports Google Drive-only backups (without a local mirror), multiple destination copies, and a configurable Drive folder.
 - Automatic S3 multipart uploads for large artifacts when the AWS SDK adapter is available.
 - SHA-256 checksums, JSON manifests, and GZIP/ZIP structure validation.
 - Backup history listing with `backup:list`.

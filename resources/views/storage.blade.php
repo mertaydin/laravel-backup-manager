@@ -25,6 +25,7 @@
             @csrf
             <label class="storage-field"><strong>{{ __('backup-manager::dashboard.oauth_client_id') }}</strong><input type="text" name="client_id" value="{{ old('client_id', data_get($settings, 'disks.google-drive.client_id')) }}" required autocomplete="off"></label>
             <label class="storage-field"><strong>{{ __('backup-manager::dashboard.oauth_client_secret') }}</strong><input type="password" name="client_secret" value="{{ old('client_secret') }}" placeholder="{{ data_get($settings, 'disks.google-drive.client_secret') ? __('backup-manager::dashboard.saved_secret') : '' }}" {{ data_get($settings, 'disks.google-drive.client_secret') ? '' : 'required' }} autocomplete="new-password"></label>
+            <label class="storage-field"><strong>Google Drive klasör kimliği</strong><input type="text" name="root_folder_id" value="{{ old('root_folder_id', data_get($settings, 'disks.google-drive.root_folder_id', 'root')) }}" placeholder="root"><small>Drive'da yedeklerin tutulacağı klasörün kimliğini gir. Boş bırakırsan Drive kök dizini kullanılır.</small></label>
             <p><strong>{{ __('backup-manager::dashboard.redirect_uri') }}:</strong><br><code>{{ $callbackUrl }}</code></p>
             <div class="storage-actions"><button class="primary" type="submit">{{ __('backup-manager::dashboard.save_credentials') }}</button></div>
         </form>
@@ -35,6 +36,21 @@
             @endif
         </div>
         <p>{{ __('backup-manager::dashboard.google_setup') }}</p>
+    </section>
+
+    <section class="storage-card">
+        <h2>Yedekleme hedefleri</h2>
+        <p>Yedekler yalnızca seçtiğin hedeflere yüklenir. Birden fazla hedef seçerek kopyalı yedekleme yapabilirsin. Yerel sunucuya kopya istemiyorsan yalnızca Google Drive'ı seç.</p>
+        <form method="POST" action="{{ route('backup-manager.storage.targets') }}">
+            @csrf
+            @foreach($filesystemDisks as $disk)
+                <label class="storage-field" style="display:flex;align-items:center;gap:10px">
+                    <input type="checkbox" name="targets[]" value="{{ $disk }}" {{ in_array($disk, $selectedTargets, true) ? 'checked' : '' }}>
+                    <strong>{{ $disk === 'google-drive' ? 'Google Drive' : $disk }}</strong>
+                </label>
+            @endforeach
+            <div class="storage-actions"><button class="primary" type="submit">Seçili hedefleri kaydet</button></div>
+        </form>
     </section>
 
     <section class="storage-card">

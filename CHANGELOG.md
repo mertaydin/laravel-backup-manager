@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+- Google Drive is available as a real Laravel Filesystem destination for backup upload, inventory, checksum verification, download, restore, and deletion.
+- The storage dashboard can select one or multiple backup destinations, including Google Drive-only mode without a local mirror, and configure the target Drive folder ID.
+- Google Drive destination checks verify listing, write, read, and delete permissions.
+
 ## [0.8.7] - 2026-11-23
 
 ### Added

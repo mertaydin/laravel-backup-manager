@@ -25,7 +25,7 @@ final class GoogleDriveClient
     public function testConnection(): void
     {
         $response = Http::withToken($this->accessToken())
-            ->get(self::API.'/about', ['fields' => 'user(displayName,emailAddress)']);
+            ->get(self::API.'/files', ['q' => 'trashed = false', 'pageSize' => 1, 'fields' => 'files(id)']);
 
         if (! $response->successful()) {
             throw new RuntimeException('Google Drive connection test failed: '.$response->body());
@@ -88,18 +88,30 @@ final class GoogleDriveClient
     /** @return array<int, array<string, mixed>> */
     public function list(string $folderId): array
     {
-        $response = Http::withToken($this->accessToken())->get(self::API.'/files', [
-            'q' => '\''.$this->escapeQuery($folderId).'\' in parents and trashed = false',
-            'fields' => 'files(id,name,mimeType,size,createdTime)',
-            'pageSize' => 1000,
-            'orderBy' => 'createdTime desc',
-        ]);
+        $files = [];
+        $pageToken = null;
 
-        if (! $response->successful()) {
-            throw new RuntimeException('Unable to list Google Drive backups: '.$response->body());
-        }
+        do {
+            $query = [
+                'q' => "'".$this->escapeQuery($folderId)."' in parents and trashed = false",
+                'fields' => 'nextPageToken,files(id,name,mimeType,size,createdTime,parents)',
+                'pageSize' => 1000,
+                'orderBy' => 'createdTime desc',
+            ];
+            if ($pageToken !== null) {
+                $query['pageToken'] = $pageToken;
+            }
 
-        return $response->json('files', []);
+            $response = Http::withToken($this->accessToken())->get(self::API.'/files', $query);
+            if (! $response->successful()) {
+                throw new RuntimeException('Unable to list Google Drive backups: '.$response->body());
+            }
+
+            $files = [...$files, ...$response->json('files', [])];
+            $pageToken = $response->json('nextPageToken');
+        } while (is_string($pageToken) && $pageToken !== '');
+
+        return $files;
     }
 
     public function delete(string $fileId): void
@@ -120,6 +132,51 @@ final class GoogleDriveClient
                 unlink($destination);
             }
             throw new RuntimeException('Unable to download the Google Drive backup: '.$response->body());
+        }
+    }
+
+    public function createFolder(string $name, string $parentId): string
+    {
+        $response = Http::withToken($this->accessToken())->post(self::API.'/files?fields=id', [
+            'name' => $name,
+            'mimeType' => 'application/vnd.google-apps.folder',
+            'parents' => [$parentId],
+        ]);
+
+        if (! $response->successful() || ! is_string($response->json('id'))) {
+            throw new RuntimeException('Unable to create a Google Drive folder: '.$response->body());
+        }
+
+        return $response->json('id');
+    }
+
+    public function move(string $fileId, string $parentId, string $name): void
+    {
+        $file = Http::withToken($this->accessToken())->get(self::API.'/files/'.rawurlencode($fileId), ['fields' => 'parents']);
+        if (! $file->successful()) {
+            throw new RuntimeException('Unable to inspect the Google Drive file before moving it.');
+        }
+
+        $parents = implode(',', (array) $file->json('parents', []));
+        $response = Http::withToken($this->accessToken())->patch(
+            self::API.'/files/'.rawurlencode($fileId).'?'.http_build_query(['addParents' => $parentId, 'removeParents' => $parents]),
+            ['name' => $name],
+        );
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Unable to move the Google Drive file: '.$response->body());
+        }
+    }
+
+    public function copy(string $fileId, string $parentId, string $name): void
+    {
+        $response = Http::withToken($this->accessToken())->post(self::API.'/files/'.rawurlencode($fileId).'/copy', [
+            'name' => $name,
+            'parents' => [$parentId],
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Unable to copy the Google Drive file: '.$response->body());
         }
     }
 

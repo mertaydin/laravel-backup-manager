@@ -23,7 +23,7 @@ final class GoogleDriveOAuth
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
-            'scope' => 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email',
+            'scope' => 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email',
             'access_type' => 'offline',
             'prompt' => 'consent',
             'include_granted_scopes' => 'true',
