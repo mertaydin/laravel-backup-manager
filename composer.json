@@ -26,35 +26,38 @@
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0|^11.0",
         "phpunit/phpunit": "^10.5|^11.0",
-        "laravel/pint": "^1.0"
+        "laravel/pint": "^1.0",
+        "barryvdh/laravel-ide-helper": "^3.1"
     },
     "suggest": {
         "ext-sodium": "Required when authenticated backup encryption is enabled."
     },
     "autoload": {
         "psr-4": {
-            "MertAydin\\LaravelBackupManager\\": "src/"
+            "MertAydin\\\\LaravelBackupManager\\\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "MertAydin\\LaravelBackupManager\\Tests\\": "tests/"
+            "MertAydin\\\\LaravelBackupManager\\\\Tests\\\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "MertAydin\\LaravelBackupManager\\BackupManagerServiceProvider"
+                "MertAydin\\\\LaravelBackupManager\\\\BackupManagerServiceProvider"
             ],
             "aliases": {
-                "Backup": "MertAydin\\LaravelBackupManager\\Facades\\Backup"
+                "Backup": "MertAydin\\\\LaravelBackupManager\\\\Facades\\\\Backup"
             }
         }
     },
     "scripts": {
         "test": "phpunit",
         "format": "pint",
-        "format:test": "pint --test"
+        "format:test": "pint --test",
+        "ide-helper:generate": "@php artisan ide-helper:generate",
+        "ide-helper:meta": "@php artisan ide-helper:meta"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
