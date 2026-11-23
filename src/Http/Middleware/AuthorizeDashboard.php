@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Http\\Middleware;
+namespace MertAydin\LaravelBackupManager\Http\Middleware;
 
 use Closure;
-use Illuminate\\Http\\Request;
-use MertAydin\\LaravelBackupManager\\Services\\DashboardAuthorizer;
-use Symfony\\Component\\HttpFoundation\\Response;
+use Illuminate\Http\Request;
+use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
+use Symfony\Component\HttpFoundation\Response;
 
 final class AuthorizeDashboard
 {
