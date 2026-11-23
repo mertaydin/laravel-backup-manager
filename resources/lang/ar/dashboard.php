@@ -119,4 +119,6 @@ return [
     'protection_removed' => 'تمت إزالة الحماية من حذف النسخة.',
     'protection_failed' => 'تعذر تحديث حماية النسخة.',
     'protection_unlock_date_conflict' => 'لا يمكن تحديد تاريخ انتهاء عند إلغاء قفل النسخة.',
+    'protection_status' => 'الحماية من الحذف',
+    'unprotected' => 'غير محمية',
 ];
