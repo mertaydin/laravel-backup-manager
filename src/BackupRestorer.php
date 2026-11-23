@@ -67,7 +67,20 @@ final class BackupRestorer
             }
         }
 
-        $artifactName = $component === 'database' ? 'database.sql.gz' : 'application.zip';
+        $connectionName = null;
+        $connection = null;
+        if ($component === 'database') {
+            $database = $profile['database'] ?? [];
+            $connectionName = $database['connection'] ?? $this->config->get('database.default');
+            $connection = $this->config->get('database.connections.'.$connectionName);
+            if (! is_array($connection) || ! in_array(($connection['driver'] ?? null), ['mysql', 'pgsql', 'sqlite'], true)) {
+                throw new RuntimeException('The selected database profile does not use a supported database connection.');
+            }
+        }
+
+        $artifactName = $component === 'database'
+            ? ((($connection['driver'] ?? null) === 'sqlite') ? 'database.sqlite.gz' : 'database.sql.gz')
+            : 'application.zip';
         $storedArtifact = $artifactName.($encrypted ? '.enc' : '');
         if (! isset($manifest['artifacts'][$storedArtifact])) {
             throw new RuntimeException("The selected backup does not contain the [{$component}] artifact.");
@@ -100,12 +113,9 @@ final class BackupRestorer
             $restoredFiles = null;
             if ($component === 'database') {
                 $database = $profile['database'] ?? [];
-                $connectionName = $database['connection'] ?? $this->config->get('database.default');
-                $connection = $this->config->get('database.connections.'.$connectionName);
-                if (! is_array($connection) || ($connection['driver'] ?? null) !== 'mysql') {
-                    throw new RuntimeException('The selected database profile does not use a supported MySQL connection.');
+                if (($connection['driver'] ?? null) === 'pgsql') {
+                    $connection['restore_binary'] = $database['restore_binary'] ?? $this->config->get('backup-manager.postgresql.restore_binary', 'psql');
                 }
-
                 $binary = (string) ($database['restore_binary'] ?? $this->config->get('backup-manager.mysql.restore_binary', 'mysql'));
                 $this->databaseRestorer->restore((string) $connectionName, $connection, $restorePath, $binary);
             } else {
