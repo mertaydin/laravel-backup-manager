@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager\Tests\Unit;
 
 use MertAydin\LaravelBackupManager\BackupInspector;
+use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use Orchestra\Testbench\TestCase;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 final class BackupInspectorTest extends TestCase
 {
+    protected function getPackageProviders($app): array
+    {
+        return [BackupManagerServiceProvider::class];
+    }
+
     private const BACKUP_ID = '20261123_120000_aabbccdd';
 
     protected function setUp(): void
