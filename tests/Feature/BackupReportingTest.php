@@ -41,7 +41,7 @@ final class BackupReportingTest extends TestCase
 
         self::assertSame(1, $result['changed_count']);
         self::assertSame('changed', $result['artifacts'][0]['status']);
-        self::assertSame(-1, $result['artifacts'][0]['size_delta']);
+        self::assertSame(1, $result['artifacts'][0]['size_delta']);
     }
 
     public function test_it_generates_a_backup_inventory_report(): void

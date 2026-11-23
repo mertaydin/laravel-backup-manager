@@ -15,9 +15,29 @@ return [
     'integrity' => [
         'verify_after_upload' => env('BACKUP_MANAGER_VERIFY_AFTER_UPLOAD', true),
     ],
+    'retry' => [
+        'max_attempts' => (int) env('BACKUP_MANAGER_RETRY_ATTEMPTS', 1),
+        'delay_seconds' => (int) env('BACKUP_MANAGER_RETRY_DELAY', 30),
+    ],
+    'upload' => [
+        'multipart' => [
+            'enabled' => (bool) env('BACKUP_MANAGER_MULTIPART_ENABLED', true),
+            'threshold_bytes' => (int) env('BACKUP_MANAGER_MULTIPART_THRESHOLD', 67108864),
+            'part_size_bytes' => (int) env('BACKUP_MANAGER_MULTIPART_PART_SIZE', 8388608),
+        ],
+    ],
+    'notifications' => [
+        'enabled' => (bool) env('BACKUP_MANAGER_NOTIFICATIONS_ENABLED', false),
+        'mail_to' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_MANAGER_NOTIFICATION_EMAILS', ''))))),
+        'slack_webhook' => env('BACKUP_MANAGER_SLACK_WEBHOOK'),
+    ],
     'mysql' => [
         'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
         'restore_binary' => env('BACKUP_MANAGER_MYSQL_BINARY', 'mysql'),
+    ],
+    'postgresql' => [
+        'dump_binary' => env('BACKUP_MANAGER_PG_DUMP_BINARY', 'pg_dump'),
+        'restore_binary' => env('BACKUP_MANAGER_PSQL_BINARY', 'psql'),
     ],
 
     'profiles' => [
@@ -28,6 +48,8 @@ return [
                 'tables' => [],
                 'exclude_tables' => [],
                 'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
+                'postgres_dump_binary' => env('BACKUP_MANAGER_PG_DUMP_BINARY', 'pg_dump'),
+                'postgres_restore_binary' => env('BACKUP_MANAGER_PSQL_BINARY', 'psql'),
             ],
             'files' => [
                 'enabled' => false,
@@ -48,6 +70,7 @@ return [
             'storage' => [
                 'disk' => env('BACKUP_MANAGER_DISK', 'local'),
                 'local_disk' => env('BACKUP_MANAGER_LOCAL_DISK', 'local'),
+                'disks' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_MANAGER_TARGET_DISKS', ''))))),
                 'path' => 'backups',
             ],
             'encryption' => [

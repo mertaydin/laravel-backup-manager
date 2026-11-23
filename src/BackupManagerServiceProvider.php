@@ -5,19 +5,32 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use MertAydin\LaravelBackupManager\Console\Commands\CompareBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\ProtectBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\PruneBackupsCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\ReportBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RestoreBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ScheduledBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
+use MertAydin\LaravelBackupManager\Database\DatabaseDumper;
+use MertAydin\LaravelBackupManager\Database\DatabaseRestorer;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
+use MertAydin\LaravelBackupManager\Database\PostgreSqlDumper;
+use MertAydin\LaravelBackupManager\Database\PostgreSqlRestorer;
+use MertAydin\LaravelBackupManager\Database\SqliteDumper;
+use MertAydin\LaravelBackupManager\Database\SqliteRestorer;
 use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
+use MertAydin\LaravelBackupManager\Events\BackupCompleted;
+use MertAydin\LaravelBackupManager\Events\BackupFailed;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
+use MertAydin\LaravelBackupManager\Listeners\SendBackupNotifications;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
@@ -31,10 +44,19 @@ class BackupManagerServiceProvider extends ServiceProvider
 
         $this->app->singleton(MySqlDumper::class);
         $this->app->singleton(MySqlRestorer::class);
+        $this->app->singleton(PostgreSqlDumper::class);
+        $this->app->singleton(PostgreSqlRestorer::class);
+        $this->app->singleton(SqliteDumper::class);
+        $this->app->singleton(SqliteRestorer::class);
+        $this->app->singleton(DatabaseDumper::class);
+        $this->app->singleton(DatabaseRestorer::class);
         $this->app->singleton(ZipArchiver::class);
         $this->app->singleton(ZipRestorer::class);
         $this->app->singleton(ArtifactEncryptor::class);
         $this->app->singleton(BackupInspector::class);
+        $this->app->singleton(BackupProtector::class);
+        $this->app->singleton(BackupComparator::class);
+        $this->app->singleton(BackupReporter::class);
         $this->app->singleton(BackupPreflight::class);
         $this->app->singleton(BackupDeleter::class);
         $this->app->singleton(BackupPruner::class);
@@ -53,6 +75,7 @@ class BackupManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Event::listen([BackupCompleted::class, BackupFailed::class], [SendBackupNotifications::class, 'handle']);
         $this->publishes([
             __DIR__.'/../config/backup-manager.php' => config_path('backup-manager.php'),
         ], 'backup-manager-config');
@@ -79,12 +102,15 @@ class BackupManagerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RunBackupCommand::class,
+                CompareBackupsCommand::class,
+                ReportBackupsCommand::class,
                 ScheduledBackupCommand::class,
                 RestoreBackupCommand::class,
                 DecryptBackupCommand::class,
                 ListBackupsCommand::class,
                 VerifyBackupCommand::class,
                 PruneBackupsCommand::class,
+                ProtectBackupCommand::class,
             ]);
         }
     }

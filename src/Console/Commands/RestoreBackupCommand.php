@@ -14,7 +14,7 @@ final class RestoreBackupCommand extends Command
 {
     protected $signature = 'backup:restore
         {id : Backup identifier}
-        {--database : Restore the MySQL database}
+        {--database : Restore the configured database}
         {--files : Restore application files}
         {--profile= : Backup profile name}
         {--disk= : Override the configured storage disk}
@@ -53,7 +53,7 @@ final class RestoreBackupCommand extends Command
 
             $artifactNames = array_keys($verification['artifacts']);
             $expectedArtifacts = $component === 'database'
-                ? ['database.sql.gz', 'database.sql.gz.enc']
+                ? ['database.sql.gz', 'database.sql.gz.enc', 'database.sqlite.gz', 'database.sqlite.gz.enc']
                 : ['application.zip', 'application.zip.enc'];
 
             if (array_intersect($expectedArtifacts, $artifactNames) === []) {
