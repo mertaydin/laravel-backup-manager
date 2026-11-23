@@ -34,7 +34,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(ZipArchiver::class);
         $this->app->singleton(ZipRestorer::class);
         $this->app->singleton(ArtifactEncryptor::class);
-        $this->app->singleton(BackupInspector::class);
+        $this->app->singleton(BackupInspector::class);\n        $this->app->singleton(BackupComparator::class);\n        $this->app->singleton(BackupReporter::class);
         $this->app->singleton(BackupPreflight::class);
         $this->app->singleton(BackupDeleter::class);
         $this->app->singleton(BackupPruner::class);
@@ -78,7 +78,7 @@ class BackupManagerServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                RunBackupCommand::class,
+                RunBackupCommand::class,\n                CompareBackupsCommand::class,\n                ReportBackupsCommand::class,
                 ScheduledBackupCommand::class,
                 RestoreBackupCommand::class,
                 DecryptBackupCommand::class,
