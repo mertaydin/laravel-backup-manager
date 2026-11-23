@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
-use Illuminate\Support\Facades\Artisan;
 use MertAydin\LaravelBackupManager\BackupManager;
+use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Mockery;
 use Orchestra\Testbench\TestCase;
@@ -14,7 +14,7 @@ final class ScheduledBackupCommandTest extends TestCase
 {
     protected function getPackageProviders($app): array
     {
-        return [\MertAydin\LaravelBackupManager\BackupManagerServiceProvider::class];
+        return [BackupManagerServiceProvider::class];
     }
 
     public function test_disabled_schedule_does_not_run_a_backup(): void
