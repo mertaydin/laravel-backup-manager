@@ -77,7 +77,7 @@ final class MySqlRestorer
             try {
                 while (! gzeof($input)) {
                     $chunk = gzread($input, 1024 * 1024);
-                    if ($chunk === false) {
+                    if ($chunk === false || ($chunk === '' && ! gzeof($input))) {
                         throw new RuntimeException('Unable to decompress the SQL backup.');
                     }
                     if ($chunk !== '') {
@@ -119,7 +119,8 @@ final class MySqlRestorer
 
         try {
             while (! gzeof($input)) {
-                if (gzread($input, 1024 * 1024) === false) {
+                $chunk = gzread($input, 1024 * 1024);
+                if ($chunk === false || ($chunk === '' && ! gzeof($input))) {
                     throw new RuntimeException('The compressed SQL backup is corrupt or incomplete.');
                 }
             }
