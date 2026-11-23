@@ -65,7 +65,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
 
     public function writeStream(string $path, $contents, Config $config): void
     {
-        if (! is_resource($contents)) {
+        if (!is_resource($contents)) {
             throw new RuntimeException('Invalid Google Drive upload stream.');
         }
 
