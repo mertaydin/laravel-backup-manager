@@ -60,7 +60,7 @@ class BackupPreflight
             if ($checks['mysql_connection']) {
                 try {
                     app('db')->connection($connectionName)->getPdo();
-                } catch (\\Throwable) {
+                } catch (\Throwable) {
                     $checks['mysql_connection'] = false;
                 }
             }
