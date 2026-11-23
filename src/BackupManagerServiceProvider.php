@@ -2,22 +2,23 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\LaravelBackupManager;
+namespace MertAydin\\LaravelBackupManager;
 
-use Illuminate\Support\ServiceProvider;
-use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
-use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
-use MertAydin\LaravelBackupManager\Console\Commands\PruneBackupsCommand;
-use MertAydin\LaravelBackupManager\Console\Commands\RestoreBackupCommand;
-use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
-use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
-use MertAydin\LaravelBackupManager\Database\MySqlDumper;
-use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
-use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
-use MertAydin\LaravelBackupManager\Files\ZipArchiver;
-use MertAydin\LaravelBackupManager\Files\ZipRestorer;
-use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
-use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
+use Illuminate\\Support\\ServiceProvider;
+use MertAydin\\LaravelBackupManager\\Console\\Commands\\DecryptBackupCommand;
+use MertAydin\\LaravelBackupManager\\Console\\Commands\\ListBackupsCommand;
+use MertAydin\\LaravelBackupManager\\Console\\Commands\\PruneBackupsCommand;
+use MertAydin\\LaravelBackupManager\\Console\\Commands\\RestoreBackupCommand;
+use MertAydin\\LaravelBackupManager\\Console\\Commands\\RunBackupCommand;
+use MertAydin\\LaravelBackupManager\\Console\\Commands\\VerifyBackupCommand;
+use MertAydin\\LaravelBackupManager\\Database\\MySqlDumper;
+use MertAydin\\LaravelBackupManager\\Database\\MySqlRestorer;
+use MertAydin\\LaravelBackupManager\\Drivers\\LocalBackupDriver;
+use MertAydin\\LaravelBackupManager\\Files\\ZipArchiver;
+use MertAydin\\LaravelBackupManager\\Files\\ZipRestorer;
+use MertAydin\\LaravelBackupManager\\Http\\Controllers\\DashboardController;
+use MertAydin\\LaravelBackupManager\\Security\\ArtifactEncryptor;
+use MertAydin\\LaravelBackupManager\\Services\\DashboardAuthorizer;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(BackupDeleter::class);
         $this->app->singleton(BackupPruner::class);
         $this->app->singleton(BackupRestorer::class);
+        $this->app->singleton(DashboardAuthorizer::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
             $manager = new BackupManager();
             $manager->extend('local', $app->make(LocalBackupDriver::class));
