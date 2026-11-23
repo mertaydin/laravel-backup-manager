@@ -1,6 +1,13 @@
 # Laravel Backup Manager
 
-Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak depolama paketi.
+[![Latest Version](https://img.shields.io/packagist/v/mertaydin/laravel-backup-manager?label=Packagist)](https://packagist.org/packages/mertaydin/laravel-backup-manager)
+[![Total Downloads](https://img.shields.io/packagist/dt/mertaydin/laravel-backup-manager?label=downloads)](https://packagist.org/packages/mertaydin/laravel-backup-manager)
+[![PHP](https://img.shields.io/packagist/php-v/mertaydin/laravel-backup-manager?label=PHP)](https://packagist.org/packages/mertaydin/laravel-backup-manager)
+[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![CI](https://github.com/mertaydin/laravel-backup-manager/actions/workflows/tests.yml/badge.svg?branch=main&label=CI)](https://github.com/mertaydin/laravel-backup-manager/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+A Laravel package for database and application file backups, compression, encryption, integrity verification, restoration, and remote storage.
 
 ## Features
 
@@ -13,7 +20,8 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 - Verified MySQL and application ZIP restore with `backup:restore`.
 - One-click integrity verification from the dashboard.
 - Configurable retention policy with safe dry-run pruning.
-- Built-in dark administration dashboard.
+- Built-in responsive administration dashboard with six languages (English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic).
+- Light, dark, and system theme preferences, remembered in the browser.
 - Manual backup execution from Artisan or the dashboard.
 - Temporary workspace cleanup and best-effort cleanup of partial uploads.
 
@@ -28,11 +36,11 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 ## Installation
 
 ```bash
-composer require mertaydin/laravel-backup-manager
+composer require mertaydin/laravel-backup-manager:^0.3
 php artisan vendor:publish --tag=backup-manager-config
 ```
 
-The dashboard is available at `/backup-manager`. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
+The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
 
 ```php
 'ui' => [

@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\BackupManager;
+use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use Throwable;
 
 final class DashboardController extends Controller
@@ -43,6 +44,16 @@ final class DashboardController extends Controller
         ]);
     }
 
+
+    public function setLocale(string $locale): RedirectResponse
+    {
+        abort_unless(in_array($locale, SetDashboardLocale::SUPPORTED_LOCALES, true), 404);
+
+        request()->session()->put('backup_manager_locale', $locale);
+
+        return redirect()->back();
+    }
+
     public function run(): RedirectResponse
     {
         $validated = request()->validate([
@@ -51,7 +62,7 @@ final class DashboardController extends Controller
         ]);
 
         if (empty($validated['database']) && empty($validated['files'])) {
-            return back()->with('backup_error', 'En az bir yedekleme bileşeni seçmelisiniz.');
+            return back()->with('backup_error', __('backup-manager::dashboard.choose_component'));
         }
 
         try {
@@ -61,14 +72,14 @@ final class DashboardController extends Controller
             ]);
 
             if (! $result->successful) {
-                return back()->with('backup_error', $result->error ?? 'Yedekleme başarısız oldu.');
+                return back()->with('backup_error', $result->error ?? __('backup-manager::dashboard.backup_failed'));
             }
 
-            return back()->with('backup_success', 'Yedek başarıyla oluşturuldu: '.$result->id);
+            return back()->with('backup_success', __('backup-manager::dashboard.backup_created', ['id' => $result->id]));
         } catch (Throwable $exception) {
             report($exception);
 
-            return back()->with('backup_error', 'Yedekleme sırasında beklenmeyen bir hata oluştu. Ayrıntılar uygulama loglarına kaydedildi.');
+            return back()->with('backup_error', __('backup-manager::dashboard.backup_unexpected'));
         }
     }
 
@@ -85,14 +96,14 @@ final class DashboardController extends Controller
             );
 
             if (! $result['valid']) {
-                return back()->with('backup_error', 'Yedek doğrulaması başarısız: '.implode(' ', $result['errors']));
+                return back()->with('backup_error', __('backup-manager::dashboard.verification_failed', ['errors' => implode(' ', $result['errors'])]));
             }
 
-            return back()->with('backup_success', 'Yedek bütünlüğü doğrulandı: '.$id);
+            return back()->with('backup_success', __('backup-manager::dashboard.verification_success', ['id' => $id]));
         } catch (Throwable $exception) {
             report($exception);
 
-            return back()->with('backup_error', 'Yedek doğrulanamadı. Ayrıntılar uygulama loglarına kaydedildi.');
+            return back()->with('backup_error', __('backup-manager::dashboard.verification_error'));
         }
     }
 }

@@ -49,6 +49,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         ], 'backup-manager-config');
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'backup-manager');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'backup-manager');
 
         if ($this->app['config']->get('backup-manager.ui.enabled', true)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
