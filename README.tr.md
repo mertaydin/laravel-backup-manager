@@ -83,6 +83,24 @@ BackupManager::auth(function (Request $request) {
 
 Bu tanımı uygulamanızın `AppServiceProvider::boot()` metoduna ekleyebilirsiniz. Callback `true` döndürürse erişim verilir; `false` döndürürse HTTP 403 yanıtı verilir. Callback tanımlanmadığında mevcut middleware tabanlı davranış korunur. Paneli herkese açık bırakmayın.
 
+## Veritabanı migration işlemi
+
+**Paketi kurduktan veya v0.6.3 sürümüne yükselttikten sonra migration komutunu mutlaka çalıştırın:**
+
+```bash
+php artisan migrate
+```
+
+Paket migration dosyalarını Service Provider üzerinden otomatik olarak Laravel'e tanıtır. Migration dosyasını ayrıca publish etmeniz gerekmez. Bu komut, Storage Management ekranının şifrelenmiş depolama bilgilerini ve otomatik yedekleme ayarlarını saklamak için kullandığı `backup_manager_storage_settings` tablosunu oluşturur. Bu tablo oluşturulmadıysa panelde MySQL `1146` (`Table doesn't exist`) hatası alırsınız.
+
+Migration'ın çalışıp çalışmadığını kontrol etmek için:
+
+```bash
+php artisan migrate:status
+```
+
+Migration beklemede görünüyorsa uygulamanın kullandığı aynı ortam ve veritabanı bağlantısıyla `php artisan migrate` komutunu çalıştırın. Production ortamında migration öncesinde veritabanı yedeği alın.
+
 ## Kullanım
 
 ```bash
