@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2] - 2026-11-23
+
+- Fix Recent Backups list markup so all records share one list container and separators render correctly.
+- Rebuild backup rows as a consistent responsive grid with metadata, size, and actions on dedicated rows.
+- Improve narrow-screen wrapping for long artifact names and action buttons.
+
+
 All notable changes to this project are documented in this file.
 
 ## [0.6.1] - 2026-11-23

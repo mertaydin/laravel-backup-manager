@@ -45,8 +45,8 @@ final class DashboardBackupActionsTest extends TestCase
 
         $this->get('/backup-manager')
             ->assertOk()
-            ->assertSee('dashboard.css?v=0.6.1')
-            ->assertSee('dashboard.js?v=0.6.1');
+            ->assertSee('dashboard.css?v=0.6.2')
+            ->assertSee('dashboard.js?v=0.6.2');
     }
 
     public function test_delete_removes_backup_from_remote_and_local_disks(): void

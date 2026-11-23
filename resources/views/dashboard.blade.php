@@ -47,8 +47,9 @@
     <section class="content">
         <div class="panel">
             <div class="panel-head"><div><h2>{{ __('backup-manager::dashboard.recent_backups') }}</h2><p>{{ __('backup-manager::dashboard.history_subtitle') }}</p></div><span class="count">{{ $totalBackups }} {{ __('backup-manager::dashboard.records') }}</span></div>
+            <div class="backup-list">
             @forelse($backups->take(12) as $backup)
-                <div class="backup-list"><article class="backup">
+                <article class="backup">
                     <div class="file-icon">▤</div>
                     <div class="backup-main"><div class="backup-title">{{ $backup['id'] }}</div><div class="backup-sub">{{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
                     @if($backup['encrypted'] ?? false)<span class="artifact">{{ __('backup-manager::dashboard.encrypted') }}</span>@endif</div></div>
@@ -66,10 +67,11 @@
                             <button class="delete-button" type="submit">× {{ __('backup-manager::dashboard.delete') }}</button>
                         </form>
                     </div>
-                </article></div>
+                </article>
             @empty
                 <div class="empty"><div class="empty-icon">▤</div><h3>{{ __('backup-manager::dashboard.no_backups') }}</h3><p>{{ __('backup-manager::dashboard.first_backup_hint') }}</p></div>
             @endforelse
+            </div>
         </div>
 
         <aside class="side">
