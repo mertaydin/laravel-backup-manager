@@ -8,6 +8,9 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 - Optional application ZIP archives with conservative default exclusions.
 - Laravel Filesystem disks: local, Amazon S3 and S3-compatible services such as Cloudflare R2.
 - SHA-256 checksums and JSON manifests.
+- Backup history listing with `backup:list`.
+- Streaming SHA-256 and file-size integrity checks with `backup:verify`.
+- One-click integrity verification from the dashboard.
 - Built-in dark administration dashboard.
 - Manual backup execution from Artisan or the dashboard.
 - Temporary workspace cleanup and best-effort cleanup of partial uploads.
@@ -15,7 +18,7 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11 or 12
+- Laravel 11, 12 or 13
 - MySQL client tools (`mysqldump`)
 - PHP `zip` extension when application file backups are enabled
 
@@ -45,6 +48,9 @@ php artisan backup:run
 php artisan backup:run --database
 php artisan backup:run --files
 php artisan backup:run --profile=default --disk=s3
+php artisan backup:list
+php artisan backup:list --disk=s3 --limit=50
+php artisan backup:verify 20261123_120000_aabbccdd
 ```
 
 The default profile backs up the configured MySQL connection. Application files are disabled by default. Enable them in `config/backup-manager.php`:
