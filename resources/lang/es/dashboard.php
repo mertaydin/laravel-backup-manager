@@ -106,4 +106,6 @@ return [
     'download_artifact' => "Descargar archivo",
     'download_manifest' => "Descargar manifiesto",
     'verify_integrity' => "Verificar integridad",
+    'note' => "Nota",
+    'tags' => "Etiquetas",
 ];
