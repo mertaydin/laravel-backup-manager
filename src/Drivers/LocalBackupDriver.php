@@ -187,7 +187,7 @@ final class LocalBackupDriver implements BackupDriver
                 : array_values(array_unique(array_filter(
                     $configuredTargets !== []
                         ? $configuredTargets
-                        : [$disk, ...array_values(array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'))],
+                        : [$disk, (string) ($profile['storage']['local_disk'] ?? 'local'), ...array_values(array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'))],
                     'is_string',
                 )));
             if ($diskNames === []) {
