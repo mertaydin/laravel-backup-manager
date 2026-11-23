@@ -15,6 +15,7 @@ use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupDeleter;
 use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\BackupPreflight;
+use MertAydin\LaravelBackupManager\BackupProtector;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
@@ -26,6 +27,7 @@ final class DashboardController extends Controller
         private readonly BackupInspector $inspector,
         private readonly BackupPreflight $preflight,
         private readonly BackupDeleter $deleter,
+        private readonly BackupProtector $protector,
         private readonly FilesystemFactory $filesystem,
         private readonly ConfigRepository $config,
         private readonly CacheRepository $cache,
@@ -299,6 +301,37 @@ final class DashboardController extends Controller
             report($exception);
 
             return back()->with('backup_error', __('backup-manager::dashboard.backup_delete_failed'));
+        }
+    }
+
+    public function protection(string $id): RedirectResponse
+    {
+        $validated = request()->validate([
+            'unlock' => ['nullable', 'boolean'],
+            'reason' => ['nullable', 'string', 'max:255'],
+            'protected_until' => ['nullable', 'date', 'after:now'],
+        ]);
+
+        $unlock = (bool) ($validated['unlock'] ?? false);
+        if ($unlock && ! empty($validated['protected_until'])) {
+            return back()->withErrors(['protected_until' => __('backup-manager::dashboard.protection_unlock_date_conflict')]);
+        }
+
+        try {
+            $this->protector->update(
+                $id,
+                locked: ! $unlock,
+                protectedUntil: $unlock ? null : ($validated['protected_until'] ?? null),
+                reason: $unlock ? null : ($validated['reason'] ?? null),
+            );
+
+            return back()->with('backup_success', $unlock
+                ? __('backup-manager::dashboard.protection_removed')
+                : __('backup-manager::dashboard.protection_saved'));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('backup_error', __('backup-manager::dashboard.protection_failed'));
         }
     }
 
