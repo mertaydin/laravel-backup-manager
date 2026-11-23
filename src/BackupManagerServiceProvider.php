@@ -8,11 +8,14 @@ use Illuminate\Support\ServiceProvider;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\PruneBackupsCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\RestoreBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
+use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
 use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
+use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 
@@ -23,10 +26,13 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/backup-manager.php', 'backup-manager');
 
         $this->app->singleton(MySqlDumper::class);
+        $this->app->singleton(MySqlRestorer::class);
         $this->app->singleton(ZipArchiver::class);
+        $this->app->singleton(ZipRestorer::class);
         $this->app->singleton(ArtifactEncryptor::class);
         $this->app->singleton(BackupInspector::class);
         $this->app->singleton(BackupPruner::class);
+        $this->app->singleton(BackupRestorer::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
             $manager = new BackupManager();
             $manager->extend('local', $app->make(LocalBackupDriver::class));
@@ -51,6 +57,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RunBackupCommand::class,
+                RestoreBackupCommand::class,
                 DecryptBackupCommand::class,
                 ListBackupsCommand::class,
                 VerifyBackupCommand::class,
