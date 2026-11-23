@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use MertAydin\LaravelBackupManager\BackupManager;
+use RuntimeException;
 use Throwable;
 
 final class CreateBackupJob implements ShouldQueue
@@ -46,7 +47,7 @@ final class CreateBackupJob implements ShouldQueue
             ];
             if (! $result->successful) {
                 $cache->put($key, ['status' => 'retrying', 'backup_id' => $result->id, 'error' => $result->error, 'finished_at' => now()->toIso8601String()], now()->addDay());
-                throw new \\RuntimeException($result->error ?? 'Backup job failed.');
+                throw new RuntimeException($result->error ?? 'Backup job failed.');
             }
             $cache->put($key, $status, now()->addDay());
             $cache->put('backup-manager:last-run', $status, now()->addDays(30));
