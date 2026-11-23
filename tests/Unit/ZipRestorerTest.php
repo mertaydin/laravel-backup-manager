@@ -60,6 +60,20 @@ final class ZipRestorerTest extends TestCase
         }
     }
 
+    public function test_it_rejects_entries_nested_under_a_file_before_extraction(): void
+    {
+        $archive = $this->createArchive([
+            'conflict' => 'file',
+            'conflict/child.txt' => 'child',
+        ]);
+        $target = $this->directory.'/application';
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('beneath a file');
+
+        (new ZipRestorer())->restore($archive, $target);
+    }
+
     public function test_it_refuses_to_restore_environment_files(): void
     {
         $archive = $this->createArchive(['.env' => 'APP_KEY=secret']);
