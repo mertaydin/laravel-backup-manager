@@ -24,6 +24,21 @@
             <div class="storage-row"><span>{{ __('backup-manager::dashboard.encryption') }}</span><strong>{{ ($backup['encrypted'] ?? false) ? 'Enabled' : 'Disabled' }}</strong></div>
             <div class="storage-row"><span>{{ __('backup-manager::dashboard.note') }}</span><strong>{{ $backup['note'] ?: '—' }}</strong></div>
             <div class="storage-row"><span>{{ __('backup-manager::dashboard.tags') }}</span><strong>{{ implode(', ', $backup['tags'] ?? []) ?: '—' }}</strong></div>
+            <div class="storage-row"><span>{{ __('backup-manager::dashboard.protection_status') }}</span><strong>{{ ($backup['protected'] ?? false) ? __('backup-manager::dashboard.protected') : __('backup-manager::dashboard.unprotected') }}</strong></div>
+            @if(!empty($backup['protection_reason']))<div class="storage-row"><span>{{ __('backup-manager::dashboard.protection_reason') }}</span><strong>{{ $backup['protection_reason'] }}</strong></div>@endif
+            @if(!empty($backup['protected_until']))<div class="storage-row"><span>{{ __('backup-manager::dashboard.protection_until') }}</span><strong>{{ $backup['protected_until'] }}</strong></div>@endif
+        </div>
+        <div class="details-actions">
+            @if($backup['protected'] ?? false)
+                <form method="POST" action="{{ route('backup-manager.protection', $backup['id']) }}">@csrf<input type="hidden" name="unlock" value="1"><button class="protection-button protection-button--unlock" type="submit">{{ __('backup-manager::dashboard.unlock_backup') }}</button></form>
+            @else
+                <form class="protection-form" method="POST" action="{{ route('backup-manager.protection', $backup['id']) }}">
+                    @csrf
+                    <input class="protection-input" type="text" name="reason" maxlength="255" placeholder="{{ __('backup-manager::dashboard.protection_reason_placeholder') }}" aria-label="{{ __('backup-manager::dashboard.protection_reason') }}">
+                    <input class="protection-input" type="datetime-local" name="protected_until" aria-label="{{ __('backup-manager::dashboard.protection_until_optional') }}" title="{{ __('backup-manager::dashboard.protection_until_optional') }}">
+                    <button class="protection-button" type="submit">{{ __('backup-manager::dashboard.protect_backup') }}</button>
+                </form>
+            @endif
         </div>
         <h2 class="details-section-title">{{ __('backup-manager::dashboard.artifacts') }}</h2>
         @foreach($backup['artifacts'] as $artifact)
