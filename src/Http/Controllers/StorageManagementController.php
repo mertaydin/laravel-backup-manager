@@ -27,12 +27,14 @@ final class StorageManagementController extends Controller
     {
         $settings = $this->settings->all();
         $disks = array_keys(config('filesystems.disks', []));
-        if (! empty(data_get($settings, 'disks.google-drive.refresh_token'))) {\n            $disks[] = 'google-drive';\n        }\n        $disks = array_values(array_unique($disks));\n        sort($disks);
+        if (! empty(data_get($settings, 'disks.google-drive.refresh_token'))) {
+            $disks[] = 'google-drive';\n        }\n        $disks = array_values(array_unique($disks));\n        sort($disks);
 
         return view('backup-manager::storage', [
             'settings' => $settings,
             'filesystemDisks' => $disks,
-            'googleConnected' => ! empty(data_get($settings, 'disks.google-drive.refresh_token')),\n            'selectedTargets' => $settings['backup_targets'] ?? [data_get(config('backup-manager.profiles.'.config('backup-manager.default', 'default')), 'storage.disk', 'local')],
+            'googleConnected' => ! empty(data_get($settings, 'disks.google-drive.refresh_token')),
+            'selectedTargets' => $settings['backup_targets'] ?? [data_get(config('backup-manager.profiles.'.config('backup-manager.default', 'default')), 'storage.disk', 'local')],
             'callbackUrl' => route('backup-manager.storage.google.callback'),
             'schedule' => $settings['schedule'] ?? ['enabled' => false, 'time' => '02:00', 'timezone' => config('app.timezone', 'UTC'), 'retain_days' => 30],
         ]);
@@ -89,14 +91,16 @@ final class StorageManagementController extends Controller
     {
         $data = $request->validate([
             'client_id' => ['required', 'string', 'max:255'],
-            'client_secret' => ['nullable', 'string', 'max:255'],\n            'root_folder_id' => ['nullable', 'string', 'max:255'],
+            'client_secret' => ['nullable', 'string', 'max:255'],
+            'root_folder_id' => ['nullable', 'string', 'max:255'],
         ]);
 
         $settings = $this->settings->all();
         $existing = $settings['disks']['google-drive'] ?? [];
         $settings['disks']['google-drive'] = array_merge($existing, [
             'client_id' => $data['client_id'],
-            'client_secret' => $data['client_secret'] ?: ($existing['client_secret'] ?? ''),\n            'root_folder_id' => trim((string) ($data['root_folder_id'] ?? '')) ?: 'root',
+            'client_secret' => $data['client_secret'] ?: ($existing['client_secret'] ?? ''),
+            'root_folder_id' => trim((string) ($data['root_folder_id'] ?? '')) ?: 'root',
         ]);
         $this->settings->save($settings);
 
