@@ -103,6 +103,32 @@ final class DashboardBackupActionsTest extends TestCase
         Queue::assertPushed(CreateBackupJob::class);
     }
 
+
+    public function test_backup_details_page_displays_manifest_metadata_and_checksums(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        $checksum = hash('sha256', 'backup');
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode([
+            'id' => self::BACKUP_ID,
+            'created_at' => '2026-11-23T12:00:00+00:00',
+            'profile' => 'default',
+            'label' => 'Before deployment',
+            'note' => 'Release preparation',
+            'tags' => ['production', 'release'],
+            'type' => 'manual',
+            'artifacts' => ['database.sql.gz' => ['size' => 6, 'sha256' => $checksum]],
+        ]));
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/database.sql.gz', 'backup');
+
+        $this->get('/backup-manager/'.self::BACKUP_ID)
+            ->assertOk()
+            ->assertSee('Before deployment')
+            ->assertSee('Release preparation')
+            ->assertSee('production, release')
+            ->assertSee($checksum);
+    }
+
     public function test_download_falls_back_to_local_mirror_when_remote_copy_is_missing(): void
     {
         Storage::fake('s3');
