@@ -108,6 +108,8 @@
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.storage_disk') }}</span><strong>{{ $diskName }}</strong></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.database') }}</span><strong>{{ $databaseEnabled ? __('backup-manager::dashboard.enabled') : __('backup-manager::dashboard.disabled') }}</strong></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.application_files') }}</span><strong>{{ $filesEnabled ? __('backup-manager::dashboard.enabled') : __('backup-manager::dashboard.disabled') }}</strong></div>
+                    <div class="storage-row"><span>Last backup status</span><strong>{{ is_array($lastBackupStatus) ? ucfirst($lastBackupStatus['status'] ?? 'unknown') : 'No recent run' }}</strong></div>
+                    @if(is_array($lastBackupStatus) && !empty($lastBackupStatus['finished_at']))<div class="storage-row"><span>Last run finished</span><strong>{{ \Illuminate\Support\Carbon::parse($lastBackupStatus['finished_at'])->diffForHumans() }}</strong></div>@endif
                     <div class="storage-row"><span>Next scheduled backup</span><strong>{{ $nextScheduledBackup ? $nextScheduledBackup->format('d M Y H:i T') : 'Not scheduled' }}</strong></div>
                     <div class="divider"></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.integrity') }}</span><strong>SHA-256</strong></div>
