@@ -17,6 +17,7 @@ use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Throwable;
 
 final class DashboardController extends Controller
@@ -28,6 +29,7 @@ final class DashboardController extends Controller
         private readonly FilesystemFactory $filesystem,
         private readonly ConfigRepository $config,
         private readonly CacheRepository $cache,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     public function index(): View
@@ -41,6 +43,24 @@ final class DashboardController extends Controller
 
                 return $backup;
             });
+        $schedule = [];
+        try {
+            $schedule = $this->settings->all()['schedule'] ?? [];
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+        $nextScheduledBackup = null;
+        if (($schedule['enabled'] ?? false) && ! empty($schedule['time'])) {
+            try {
+                $timezone = (string) ($schedule['timezone'] ?? config('app.timezone', 'UTC'));
+                $nextScheduledBackup = now($timezone)->setTimeFromTimeString((string) $schedule['time']);
+                if ($nextScheduledBackup->lessThanOrEqualTo(now($timezone))) {
+                    $nextScheduledBackup->addDay();
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
         $filters = request()->validate([
             'q' => ['nullable', 'string', 'max:120'],
             'from' => ['nullable', 'date'],
@@ -71,6 +91,7 @@ final class DashboardController extends Controller
             'totalSize' => $allBackups->sum('size'),
             'latestBackup' => $allBackups->first(),
             'filters' => $filters,
+            'nextScheduledBackup' => $nextScheduledBackup,
             'diskName' => $diskName,
             'profileName' => $profileName,
             'databaseEnabled' => (bool) data_get($profile, 'database.enabled', false),
