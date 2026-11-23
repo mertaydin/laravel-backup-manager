@@ -54,6 +54,8 @@ final class DecryptBackupCommand extends Command
         $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
         $manifestPath = $prefix.'/manifest.json';
 
+        $destinationMayBePartial = false;
+
         try {
             $verification = $inspector->verify($id, $profileName, $diskName);
             if (! $verification['valid']) {
@@ -61,7 +63,7 @@ final class DecryptBackupCommand extends Command
             }
 
             $manifest = json_decode((string) $disk->get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
-            if (($manifest['encryption']['enabled'] ?? false) !== true) {
+            if (! is_array($manifest['encryption'] ?? null) || ($manifest['encryption']['enabled'] ?? false) !== true) {
                 throw new RuntimeException('The selected backup is not marked as encrypted.');
             }
 
@@ -116,6 +118,7 @@ final class DecryptBackupCommand extends Command
                     fclose($target);
                 }
 
+                $destinationMayBePartial = true;
                 $encryptor->decrypt($temporaryArtifact, $destination, $encryptionKey);
             } finally {
                 $files->deleteDirectory($workdir);
@@ -125,7 +128,7 @@ final class DecryptBackupCommand extends Command
 
             return self::SUCCESS;
         } catch (Throwable $exception) {
-            if (isset($destination) && is_file($destination)) {
+            if ($destinationMayBePartial && isset($destination) && is_file($destination)) {
                 @unlink($destination);
             }
 
