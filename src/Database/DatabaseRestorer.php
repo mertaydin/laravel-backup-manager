@@ -20,14 +20,17 @@ final class DatabaseRestorer
         $driver = (string) ($connection['driver'] ?? '');
         if ($driver === 'mysql') {
             $this->mysql->restore($connection, $source, $mysqlBinary);
+
             return;
         }
         if ($driver === 'pgsql') {
             $this->postgres->restore($connection, $source);
+
             return;
         }
         if ($driver === 'sqlite') {
             $this->sqlite->restore($connectionName, $connection, $source);
+
             return;
         }
 
