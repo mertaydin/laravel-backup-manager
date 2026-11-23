@@ -2,12 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [main, develop, "feature/**", "fix/**"]
+    branches: [main, "feature/**"]
   pull_request:
     branches: [main]
-
-permissions:
-  contents: read
 
 jobs:
   tests:
@@ -17,24 +14,20 @@ jobs:
       matrix:
         php: ["8.2", "8.3", "8.4"]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          extensions: mbstring, zip, pdo_mysql
           coverage: none
-          tools: composer:v2
-
-      - name: Validate Composer manifest
-        run: composer validate --strict
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Check formatting
-        run: vendor/bin/pint --test
-
-      - name: Run tests
-        run: vendor/bin/phpunit
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-
+      - run: composer validate --strict
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: vendor/bin/pint --preset=psr12
+      - run: vendor/bin/pint --test --preset=psr12
+      - run: vendor/bin/phpunit

@@ -2,6 +2,10 @@
 
 return [
     'default' => env('BACKUP_MANAGER_PROFILE', 'default'),
+    'default_driver' => 'local',
+    'mysql' => [
+        'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
+    ],
 
     'profiles' => [
         'default' => [
@@ -10,7 +14,7 @@ return [
                 'connection' => env('BACKUP_DB_CONNECTION', env('DB_CONNECTION', 'mysql')),
                 'tables' => [],
                 'exclude_tables' => [],
-                'compression' => 'gzip',
+                'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
             ],
             'files' => [
                 'enabled' => false,
@@ -22,6 +26,7 @@ return [
                     'storage/framework/sessions',
                     'storage/framework/views',
                     'storage/logs',
+                    'storage/app/backup-manager',
                     '.git',
                 ],
                 'include_dotfiles' => false,
