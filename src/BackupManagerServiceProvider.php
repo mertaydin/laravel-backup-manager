@@ -7,6 +7,7 @@ namespace MertAydin\LaravelBackupManager;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem;
@@ -93,6 +94,10 @@ class BackupManagerServiceProvider extends ServiceProvider
 
         $this->app->booted(function (): void {
             try {
+                if (! Schema::hasTable('backup_manager_storage_settings')) {
+                    return;
+                }
+
                 $settings = $this->app->make(StorageSettingsRepository::class)->all();
                 $credentials = (array) data_get($settings, 'disks.google-drive', []);
                 if (! empty($credentials['refresh_token'])) {
