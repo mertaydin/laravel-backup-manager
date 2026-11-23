@@ -111,6 +111,7 @@ final class DashboardController extends Controller
             'filters' => $filters,
             'availableBackupDisks' => $availableBackupDisks,
             'nextScheduledBackup' => $nextScheduledBackup,
+            'lastBackupStatus' => $this->cache->get('backup-manager:last-run'),
             'diskName' => $diskName,
             'profileName' => $profileName,
             'databaseEnabled' => (bool) data_get($profile, 'database.enabled', false),
