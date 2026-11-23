@@ -49,7 +49,11 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
             if (file_put_contents($temporary, $contents) === false) {
                 throw new RuntimeException('Unable to write the temporary Google Drive upload file.');
             }
-            $stream = fopen($temporary, 'rb');\n            if ($stream === false) {\n                throw new RuntimeException('Unable to open the temporary Google Drive upload stream.');\n            }\n            try {\n                $this->writeStream($path, $stream, $config);\n            } finally {\n                fclose($stream);\n            }
+            $stream = fopen($temporary, 'rb');
+            if ($stream === false) {
+                throw new RuntimeException('Unable to open the temporary Google Drive upload stream.');\n            }
+            try {\n                $this->writeStream($path, $stream, $config);\n            } finally {
+                fclose($stream);\n            }
         } finally {
             @unlink($temporary);
         }
