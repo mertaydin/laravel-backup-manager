@@ -19,6 +19,13 @@ return [
         'max_attempts' => (int) env('BACKUP_MANAGER_RETRY_ATTEMPTS', 1),
         'delay_seconds' => (int) env('BACKUP_MANAGER_RETRY_DELAY', 30),
     ],
+    'upload' => [
+        'multipart' => [
+            'enabled' => (bool) env('BACKUP_MANAGER_MULTIPART_ENABLED', true),
+            'threshold_bytes' => (int) env('BACKUP_MANAGER_MULTIPART_THRESHOLD', 67108864),
+            'part_size_bytes' => (int) env('BACKUP_MANAGER_MULTIPART_PART_SIZE', 8388608),
+        ],
+    ],
     'notifications' => [
         'enabled' => (bool) env('BACKUP_MANAGER_NOTIFICATIONS_ENABLED', false),
         'mail_to' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_MANAGER_NOTIFICATION_EMAILS', ''))))),
