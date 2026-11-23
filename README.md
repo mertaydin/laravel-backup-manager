@@ -40,6 +40,15 @@ A Laravel package for database and application file backups, compression, encryp
 - Light, dark, and system theme preferences, remembered in the browser.
 - Manual backup execution from Artisan or the dashboard.
 - Temporary workspace cleanup and best-effort cleanup of partial uploads.
+- Storage health checks for connectivity, listing, write, read, and delete permissions.
+- Preflight checks for MySQL tools, PHP extensions, temporary directory permissions, and storage access.
+- Backup labels, notes, tags, and configurable automatic naming templates.
+- Backup history filters for date, type, storage disk, and manifest status.
+- Detailed backup inspection with artifact sizes and SHA-256 checksums.
+- Automatic post-upload integrity verification (configurable).
+- Backup lifecycle events: `BackupCompleted`, `BackupFailed`, `BackupDeleted`, and `BackupRestored`.
+- Dashboard summary of the next scheduled backup and aggregate storage usage.
+- Explicit confirmation before destructive restore operations.
 
 ## Requirements
 
@@ -52,7 +61,7 @@ A Laravel package for database and application file backups, compression, encryp
 ## Installation
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.6
+composer require mertaydin/laravel-backup-manager:^0.7
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
