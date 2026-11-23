@@ -9,6 +9,16 @@
 
 A Laravel package for database and application file backups, compression, encryption, integrity verification, restoration, and remote storage.
 
+## Dashboard previews
+
+**Dark theme**
+
+![Backup Manager dashboard — dark theme](screenshots/dashboard-dark.svg)
+
+**Light theme**
+
+![Backup Manager dashboard — light theme](screenshots/dashboard-light.svg)
+
 ## Features
 
 - Streaming MySQL backups as compressed `database.sql.gz`.
@@ -38,9 +48,10 @@ A Laravel package for database and application file backups, compression, encryp
 ```bash
 composer require mertaydin/laravel-backup-manager:^0.3
 php artisan vendor:publish --tag=backup-manager-config
+php artisan vendor:publish --tag=backup-manager-assets
 ```
 
-The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
+The dashboard assets are published to `public/vendor/backup-manager`; republish them after package updates with `php artisan vendor:publish --tag=backup-manager-assets --force`. The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
 
 ```php
 'ui' => [
