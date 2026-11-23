@@ -72,7 +72,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(StorageSettingsRepository::class);
         $this->app->singleton(StorageHealthChecker::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
-            $manager = new BackupManager;
+            $manager = new BackupManager();
             $manager->extend('local', $app->make(LocalBackupDriver::class));
 
             return $manager;
@@ -88,11 +88,11 @@ class BackupManagerServiceProvider extends ServiceProvider
             $credentials = $app->make(StorageSettingsRepository::class)->all()['disks']['google-drive'] ?? [];
             foreach (['client_id', 'client_secret', 'refresh_token'] as $key) {
                 if (empty($credentials[$key])) {
-                    throw new \RuntimeException('Google Drive is not connected. Configure and connect it from Backup Manager storage settings.');
+                    throw new RuntimeException('Google Drive is not connected. Configure and connect it from Backup Manager storage settings.');
                 }
             }
 
-            $client = new \Google\Client();
+            $client = new Client();
             $client->setApplicationName((string) config('app.name', 'Laravel Backup Manager'));
             $client->setClientId((string) $credentials['client_id']);
             $client->setClientSecret((string) $credentials['client_secret']);
@@ -100,8 +100,8 @@ class BackupManagerServiceProvider extends ServiceProvider
             $client->setScopes(['https://www.googleapis.com/auth/drive']);
             $client->fetchAccessTokenWithRefreshToken((string) $credentials['refresh_token']);
 
-            $service = new \Google\Service\Drive($client);
-            $adapter = new \Masbug\Flysystem\GoogleDriveAdapter(
+            $service = new Drive($client);
+            $adapter = new GoogleDriveAdapter(
                 $service,
                 (string) ($credentials['root_folder_id'] ?? 'root'),
                 ['useDisplayPaths' => true],
