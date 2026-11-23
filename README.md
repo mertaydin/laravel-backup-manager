@@ -34,6 +34,8 @@ A Laravel package for database and application file backups, compression, encryp
 - One-click integrity verification from the dashboard.
 - Download individual backup artifacts and manifests directly from the dashboard.
 - Delete backup sets from both the configured remote disk and the local mirror.
+- Protect important backups permanently or until a selected date; protected backups cannot be manually deleted or pruned until unlocked or expired.
+- Per-profile concurrency locks prevent overlapping backup runs.
 - Mirror each backup to a configurable local filesystem disk when remote storage is used.
 - Background dashboard backups with job status polling; use a Laravel queue worker for fully independent execution.
 - Configurable retention policy with safe dry-run pruning.
