@@ -103,7 +103,6 @@
             @endforeach
         </ul>
         <p>{{ __('backup-manager::dashboard.test_help') }}</p>
-        <p>{{ __('backup-manager::dashboard.google_unavailable') }}</p>
     </section>
 </div>
 <script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.8') }}-0.8.8" defer></script>
