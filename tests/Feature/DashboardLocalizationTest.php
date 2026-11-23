@@ -16,6 +16,7 @@ final class DashboardLocalizationTest extends TestCase
 
     protected function getEnvironmentSetUp($app): void
     {
+        $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
         $app['config']->set('backup-manager.ui.middleware', ['web']);
     }
 
@@ -39,6 +40,15 @@ final class DashboardLocalizationTest extends TestCase
             ->assertOk()
             ->assertSee('Yedekleme paneli')
             ->assertSee('Toplam yedek');
+    }
+
+    public function test_arabic_dashboard_uses_right_to_left_layout(): void
+    {
+        $this->withSession(['backup_manager_locale' => 'ar'])
+            ->get('/backup-manager')
+            ->assertOk()
+            ->assertSee('dir="rtl"', false)
+            ->assertSee('لوحة النسخ الاحتياطي');
     }
 
     public function test_all_six_dashboard_locales_have_translations(): void
