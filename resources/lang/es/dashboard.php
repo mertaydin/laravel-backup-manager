@@ -67,4 +67,5 @@ return [
     'backup_deleted' => 'Copia eliminada del almacenamiento local y remoto.',
     'backup_delete_failed' => 'No se pudo eliminar la copia.',
     'delete_partial' => 'No se pudo eliminar de todos los discos. Discos con error: :disks',
+    'validation_error' => 'Corrija los siguientes errores:',
 ];

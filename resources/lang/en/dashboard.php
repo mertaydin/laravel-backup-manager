@@ -67,4 +67,5 @@ return [
     'backup_deleted' => 'Backup deleted from local and remote storage.',
     'backup_delete_failed' => 'The backup could not be deleted.',
     'delete_partial' => 'The backup could not be deleted from all storage disks. Failed disks: :disks',
+    'validation_error' => 'Please correct the following errors:',
 ];

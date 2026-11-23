@@ -120,6 +120,34 @@ final class DashboardBackupActionsTest extends TestCase
         Queue::assertPushed(CreateBackupJob::class);
     }
 
+    public function test_dashboard_accepts_backup_without_optional_metadata(): void
+    {
+        Queue::fake();
+        $this->instance(BackupPreflight::class, new class extends BackupPreflight
+        {
+            public function __construct() {}
+
+            public function inspect(array $options = []): array
+            {
+                return ['ready' => true, 'checks' => [], 'errors' => []];
+            }
+        });
+        config(['backup-manager.queue.connection' => 'database']);
+
+        $this->post('/backup-manager/run', [
+            'database' => 1,
+            'label' => '',
+            'note' => '',
+            'tags' => [''],
+        ])->assertRedirect()
+            ->assertSessionHas('backup_job_id')
+            ->assertSessionHasNoErrors();
+
+        Queue::assertPushed(CreateBackupJob::class, static fn (CreateBackupJob $job): bool => ($job->options['label'] ?? null) === null
+            && ($job->options['note'] ?? null) === null
+            && ($job->options['tags'] ?? []) === []);
+    }
+
     public function test_backup_details_page_displays_manifest_metadata_and_checksums(): void
     {
         Storage::fake('s3');

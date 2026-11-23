@@ -135,7 +135,7 @@ final class DashboardController extends Controller
             'label' => ['nullable', 'string', 'max:100'],
             'note' => ['nullable', 'string', 'max:500'],
             'tags' => ['nullable', 'array', 'max:10'],
-            'tags.*' => ['string', 'max:40'],
+            'tags.*' => ['nullable', 'string', 'max:40'],
         ]);
 
         if (empty($validated['database']) && empty($validated['files'])) {

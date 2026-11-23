@@ -36,7 +36,8 @@
     </section>
 
     @if(session('backup_success'))<div class="alert success">✓ &nbsp; {{ session('backup_success') }}</div>@endif
-    @if(session('backup_error'))<div class="alert error">! &nbsp; {{ session('backup_error') }}</div>@endif
+    @if(session('backup_error'))<div class="alert error" role="alert">! &nbsp; {{ session('backup_error') }}</div>@endif
+    @if($errors->any())<div class="alert error" role="alert"><strong>{{ __('backup-manager::dashboard.validation_error') }}</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
     <section class="stats">
         <article class="stat"><div class="stat-head">{{ __('backup-manager::dashboard.total_backups') }} <span class="stat-icon">▤</span></div><div class="stat-value">{{ number_format($totalBackups) }}</div><div class="stat-note">{{ __('backup-manager::dashboard.stored_sets') }}</div></article>
