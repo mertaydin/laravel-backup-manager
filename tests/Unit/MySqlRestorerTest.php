@@ -78,6 +78,21 @@ final class MySqlRestorerTest extends TestCase
         }
     }
 
+    public function test_it_rejects_non_gzip_input_before_starting_the_mysql_client(): void
+    {
+        $dump = $this->directory.'/plain.sql.gz';
+        $marker = $this->directory.'/plain-client-started';
+        file_put_contents($dump, 'SELECT 1;');
+        $binary = $this->createClient('touch '.escapeshellarg($marker));
+
+        try {
+            (new MySqlRestorer())->restore(['database' => 'application'], $dump, $binary);
+            self::fail('Plain SQL input must not be accepted as a gzip backup.');
+        } catch (RuntimeException) {
+            self::assertFileDoesNotExist($marker);
+        }
+    }
+
     public function test_it_requires_a_database_name(): void
     {
         $this->expectException(RuntimeException::class);
