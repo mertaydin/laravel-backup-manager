@@ -38,13 +38,16 @@ final class StorageHealthCheckerTest extends TestCase
 
     public function test_storage_management_page_renders_with_current_stylesheet_and_controls(): void
     {
-        $this->get('/backup-manager/storage')
+        $this->withSession(['backup_manager_locale' => 'tr'])
+            ->get('/backup-manager/storage')
             ->assertOk()
+            ->assertSee('Depolama Yönetimi')
+            ->assertSee('Türkçe')
             ->assertSee('dashboard.css?v=0.8.4-0.8.4')
             ->assertSee('class="shell storage-page"', false)
             ->assertSee('class="storage-card"', false)
-            ->assertSee('OAuth Client ID')
-            ->assertSee('Save automatic backup settings');
+            ->assertSee('OAuth İstemci Kimliği')
+            ->assertSee('Otomatik yedekleme ayarlarını kaydet');
 
         $css = file_get_contents(dirname(__DIR__, 2).'/resources/dist/css/dashboard.css');
 
