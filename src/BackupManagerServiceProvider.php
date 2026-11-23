@@ -75,6 +75,42 @@ class BackupManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Storage::extend('google-drive', function ($app, array $config): FilesystemAdapter {
+            $settings = $app->make(StorageSettingsRepository::class)->all();
+            $credentials = (array) data_get($settings, 'disks.google-drive', []);
+            $adapter = new GoogleDriveFilesystemAdapter(
+                new GoogleDriveClient($credentials),
+                (string) ($config['root_folder_id'] ?? data_get($credentials, 'root_folder_id', 'root')),
+            );
+
+            return new FilesystemAdapter(new Filesystem($adapter), $adapter, $config);
+        });
+
+        $this->app->booted(function (): void {
+            try {
+                $settings = $this->app->make(StorageSettingsRepository::class)->all();
+                $credentials = (array) data_get($settings, 'disks.google-drive', []);
+                if (! empty($credentials['refresh_token'])) {
+                    config(['filesystems.disks.google-drive' => [
+                        'driver' => 'google-drive',
+                        'root_folder_id' => (string) ($credentials['root_folder_id'] ?? 'root'),
+                    ]]);
+                }
+
+                $targets = array_values(array_unique(array_filter((array) ($settings['backup_targets'] ?? []), 'is_string')));
+                if ($targets !== []) {
+                    $profile = (string) config('backup-manager.default', 'default');
+                    config([
+                        'backup-manager.profiles.'.$profile.'.storage.disk' => $targets[0],
+                        'backup-manager.profiles.'.$profile.'.storage.local_disk' => $targets[0],
+                        'backup-manager.profiles.'.$profile.'.storage.disks' => array_slice($targets, 1),
+                    ]);
+                }
+            } catch (\\Throwable $exception) {
+                report($exception);
+            }
+        });
+
         Event::listen([BackupCompleted::class, BackupFailed::class], [SendBackupNotifications::class, 'handle']);
         $this->publishes([
             __DIR__.'/../config/backup-manager.php' => config_path('backup-manager.php'),
