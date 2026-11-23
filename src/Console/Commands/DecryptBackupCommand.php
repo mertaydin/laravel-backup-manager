@@ -35,7 +35,7 @@ final class DecryptBackupCommand extends Command
         $id = (string) $this->argument('id');
         $artifact = (string) $this->argument('artifact');
 
-        if (basename($artifact) !== $artifact || ! str_ends_with($artifact, '.enc')) {
+        if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*\\.enc$/D', $artifact) !== 1) {
             $this->components->error('Artifact must be a filename ending in .enc.');
 
             return self::FAILURE;
