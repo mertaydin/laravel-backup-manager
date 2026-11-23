@@ -195,7 +195,7 @@ final class StorageManagementController extends Controller
             $prefix = (string) data_get(config('backup-manager.profiles.'.$profileName, []), 'storage.path', 'backups');
             $result = $this->healthChecker->check('google-drive', $prefix);
             if (! $result['successful']) {
-                throw new \\RuntimeException('Google Drive read/write/delete verification failed.');
+                throw new \RuntimeException('Google Drive read/write/delete verification failed.');
             }
 
             return back()->with('storage_success', 'Google Drive connection and read/write/delete tests succeeded.');
