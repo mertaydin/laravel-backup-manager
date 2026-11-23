@@ -220,6 +220,40 @@ Geri yükleme öncesinde yedek setinin tamamı manifest üzerinden doğrulanır.
 
 Geri yükleme işlemi transaction tabanlı değildir. Üretimde kullanmadan önce mevcut sistemin ayrı bir yedeğini alın ve geri yüklemeyi staging ortamında test edin.
 
+## Yedek metaverisi, isimlendirme ve event'ler
+
+Panelden oluşturulan yedeklere okunabilir bir ad, açıklama ve en fazla on etiket ekleyebilirsiniz. Bu bilgiler yedek manifest dosyasında saklanır ve paneldeki yedek geçmişinde aranabilir.
+
+Özel bir ad girilmezse `BACKUP_MANAGER_NAME_TEMPLATE` kullanılarak otomatik ad oluşturulur. Varsayılan şablon `:app-:date-:time` şeklindedir. Desteklenen değişkenler:
+
+- `:app` — Laravel uygulama adının slug biçimi.
+- `:date` — `YYYYMMDD` biçiminde tarih.
+- `:time` — `HHMMSS` biçiminde saat.
+- `:id` — tam yedek kimliği.
+
+Paket yedekleme yaşam döngüsünde aşağıdaki Laravel event'lerini tetikler:
+
+- `MertAydin\\LaravelBackupManager\\Events\\BackupCompleted`
+- `MertAydin\\LaravelBackupManager\\Events\\BackupFailed`
+- `MertAydin\\LaravelBackupManager\\Events\\BackupDeleted`
+- `MertAydin\\LaravelBackupManager\\Events\\BackupRestored`
+
+Laravel'in standart event/listener kayıt yöntemlerini kullanabilirsiniz. Tamamlanma ve hata event'lerinde sonuç `$event->result` üzerinden; silme ve geri yükleme event'lerinde `backupId` üzerinden alınabilir. `BackupRestored` ayrıca geri yüklenen bileşeni taşır.
+
+## Depolama sağlığı ve yedekleme öncesi kontroller
+
+**Storage Management → Laravel Filesystem disks → Test connection and permissions** üzerinden disk bağlantısını test edebilirsiniz. Kontrol, yapılandırılmış yedekleme dizini altında geçici bir dosya oluşturur; listeleme, yazma, okuma ve silme işlemlerini dener ve test dosyasını işlem sonunda temizler.
+
+Panelden yedekleme kuyruğa alınmadan önce geçici çalışma dizini, depolama diskleri, MySQL bağlantı türü ve `mysqldump` komutu kontrol edilir. Seçilen özelliklere göre PHP ZIP ve sodium eklentileri de doğrulanır.
+
+## Otomatik bütünlük doğrulaması
+
+Yedek dosyaları depolamaya yüklendikten sonra SHA-256 checksum ve dosya boyutları varsayılan olarak yeniden doğrulanır. Gerekirse bu ek okuma işlemini kapatabilirsiniz:
+
+```dotenv
+BACKUP_MANAGER_VERIFY_AFTER_UPLOAD=false
+```
+
 ## Depolama desteği
 
 Laravel Filesystem diskleri üzerinden local, Amazon S3 ve Cloudflare R2 kullanılabilir. Pakette yerleşik Google Drive OAuth adaptörü henüz bulunmuyor; Google Drive bağlantısı Laravel Filesystem diski olarak ayrıca sağlanmalıdır.
