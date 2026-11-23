@@ -40,7 +40,7 @@ Without component flags, the selected profile's enabled components are used. Whe
 
 The backup engine uses configured Laravel Filesystem disks. Local, Amazon S3, and S3-compatible services such as Cloudflare R2 can be used when their Laravel/Flysystem adapters are installed and configured. A local mirror and additional target disks can be configured in the backup profile.
 
-The package includes Google Drive OAuth account connection and connection testing in Storage Management, but Google Drive is not yet a selectable backup destination. A native Google Drive storage adapter and historical backup operations remain unimplemented.
+Google Drive is registered as a native Laravel Filesystem disk after the account is connected in Storage Management. In the dashboard, open Storage Management, connect Google, enter the destination folder ID (or leave `root`), then select `google-drive` under Backup destinations. Select only Google Drive to avoid a local mirror, or select multiple disks for copies. Upload, inventory, checksum verification, download, restore, and deletion all use the selected Drive destination. The Drive connection test performs listing, write, read, and delete checks.
 
 Large S3 objects use multipart upload when the AWS SDK S3 adapter is available and multipart uploads are enabled.
 
