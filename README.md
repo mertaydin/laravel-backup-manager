@@ -21,6 +21,7 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 - Laravel 11, 12 or 13
 - MySQL client tools (`mysqldump`)
 - PHP `zip` extension when application file backups are enabled
+- PHP `sodium` extension when backup encryption is enabled
 
 ## Installation
 
@@ -51,6 +52,7 @@ php artisan backup:run --profile=default --disk=s3
 php artisan backup:list
 php artisan backup:list --disk=s3 --limit=50
 php artisan backup:verify 20261123_120000_aabbccdd
+php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 ```
 
 The default profile backs up the configured MySQL connection. Application files are disabled by default. Enable them in `config/backup-manager.php`:
@@ -67,13 +69,42 @@ The default profile backs up the configured MySQL connection. Application files 
 
 The database connection is read from Laravel's `database.connections` configuration. The package uses a temporary mode-0600 MySQL option file for credentials; passwords are not passed in process arguments.
 
+### Authenticated backup encryption
+
+Encryption is optional and disabled by default. When enabled, each backup artifact is encrypted locally before it is uploaded. The package uses libsodium XChaCha20-Poly1305 secretstream with authenticated chunks, so large files are processed without loading them fully into memory.
+
+Generate a 32-byte key and store the base64 output in your environment or secret manager (never commit it to source control):
+
+```bash
+php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"
+```
+
+Configure the profile:
+
+```php
+'encryption' => [
+    'enabled' => true,
+    'key' => env('BACKUP_MANAGER_ENCRYPTION_KEY'),
+    'key_id' => env('BACKUP_MANAGER_ENCRYPTION_KEY_ID'),
+],
+```
+
+Encrypted artifacts receive the `.enc` suffix. The manifest records the algorithm and key identifier, but never the key itself. Keep the encryption key safe and available for the lifetime of the backups. To download, verify and decrypt an artifact:
+
+```bash
+php artisan backup:verify 20261123_120000_aabbccdd
+php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
+```
+
+By default, decrypted artifacts are written under `storage/app/backup-manager/decrypted/{backup-id}` with restrictive file permissions. Use `--output=/absolute/path` to choose another destination and `--force` only when intentionally replacing an existing file.
+
 ## Storage support
 
 Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disks. A dedicated Google Drive OAuth adapter is not included yet.
 
 ## Current limitations
 
-Restore, encryption, retention automation, queued execution, backup download/delete actions, and a dedicated Google Drive adapter are not implemented yet. If encryption is enabled in a profile, execution fails safely rather than storing plaintext.
+Full database/application restore, retention automation, queued execution, backup download/delete actions, and a dedicated Google Drive adapter are not implemented yet. If encryption is enabled in a profile, execution fails safely rather than storing plaintext.
 
 ## Security
 
