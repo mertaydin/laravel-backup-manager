@@ -72,7 +72,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(StorageSettingsRepository::class);
         $this->app->singleton(StorageHealthChecker::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
-            $manager = new BackupManager();
+            $manager = new BackupManager;
             $manager->extend('local', $app->make(LocalBackupDriver::class));
 
             return $manager;
