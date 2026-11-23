@@ -53,7 +53,7 @@ final class RestoreBackupCommand extends Command
 
             $artifactNames = array_keys($verification['artifacts']);
             $expectedArtifacts = $component === 'database'
-                ? ['database.sql.gz', 'database.sql.gz.enc']
+                ? ['database.sql.gz', 'database.sql.gz.enc', 'database.sqlite.gz', 'database.sqlite.gz.enc']
                 : ['application.zip', 'application.zip.enc'];
 
             if (array_intersect($expectedArtifacts, $artifactNames) === []) {
