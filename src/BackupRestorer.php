@@ -7,7 +7,7 @@ namespace MertAydin\LaravelBackupManager;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Filesystem\Filesystem;
-use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
+use MertAydin\LaravelBackupManager\Database\DatabaseRestorer;
 use MertAydin\LaravelBackupManager\Events\BackupRestored;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
@@ -21,7 +21,7 @@ final class BackupRestorer
         private readonly Filesystem $files,
         private readonly BackupInspector $inspector,
         private readonly ArtifactEncryptor $encryptor,
-        private readonly MySqlRestorer $mysql,
+        private readonly DatabaseRestorer $databaseRestorer,
         private readonly ZipRestorer $zip,
     ) {}
 
@@ -107,7 +107,7 @@ final class BackupRestorer
                 }
 
                 $binary = (string) ($database['restore_binary'] ?? $this->config->get('backup-manager.mysql.restore_binary', 'mysql'));
-                $this->mysql->restore($connection, $restorePath, $binary);
+                $this->databaseRestorer->restore((string) $connectionName, $connection, $restorePath, $binary);
             } else {
                 $restoredFiles = $this->zip->restore($restorePath, $target, true);
             }
