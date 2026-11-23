@@ -62,8 +62,8 @@ final class DashboardBackupActionsTest extends TestCase
 
         $this->get('/backup-manager')
             ->assertOk()
-            ->assertSee('dashboard.css?v=0.8.2-0.8.2')
-            ->assertSee('dashboard.js?v=0.8.2-0.8.2');
+            ->assertSee('dashboard.css?v=0.8.4-0.8.4')
+            ->assertSee('dashboard.js?v=0.8.4-0.8.4');
     }
 
     public function test_delete_removes_backup_from_remote_and_local_disks(): void
@@ -167,6 +167,9 @@ final class DashboardBackupActionsTest extends TestCase
 
         $this->get('/backup-manager/'.self::BACKUP_ID)
             ->assertOk()
+            ->assertSee('dashboard.css?v=0.8.4-0.8.4')
+            ->assertSee('details-panel')
+            ->assertSee('details-checksum')
             ->assertSee('Before deployment')
             ->assertSee('Release preparation')
             ->assertSee('production, release')
