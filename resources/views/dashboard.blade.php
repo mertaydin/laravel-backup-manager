@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Backup Manager · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.7.0') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.1') }}">
 </head>
 <body>
 <div class="shell">
@@ -48,7 +48,7 @@
     <section class="content">
         <div class="panel">
             <div class="panel-head"><div><h2>{{ __('backup-manager::dashboard.recent_backups') }}</h2><p>{{ __('backup-manager::dashboard.history_subtitle') }}</p></div><span class="count">{{ $totalBackups }} {{ __('backup-manager::dashboard.records') }}</span></div>
-            <form method="GET" action="{{ route('backup-manager.dashboard') }}" class="backup-filters" style="display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--border)">
+            <form method="GET" action="{{ route('backup-manager.dashboard') }}" class="backup-filters">
                 <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Search ID, label, note or tag" aria-label="Search backups">
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
@@ -120,6 +120,6 @@
     </section>
     <footer class="footer"><span>Laravel Backup Manager</span><span>{{ __('backup-manager::dashboard.protect') }}</span></footer>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.7.0') }}" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.1') }}" defer></script>
 </body>
 </html>

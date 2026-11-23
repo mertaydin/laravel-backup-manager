@@ -244,3 +244,125 @@ html[data-theme="light"] .backup-actions .delete-button {
     .backup-list > .backup { grid-template-columns: 32px minmax(0, 1fr); column-gap: 8px; }
     .backup-list > .backup > .file-icon { width: 32px; height: 36px; }
 }
+
+
+/* Dashboard form controls: shared, theme-aware styling for labels, notes,
+   tags and recent-backup filters. */
+.storage-field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    margin: 16px 0;
+    color: var(--text);
+    font-size: 12px;
+}
+.storage-field > strong {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 650;
+}
+.storage-field input:not([type="checkbox"]),
+.storage-field select,
+.storage-field textarea,
+.backup-filters input,
+.backup-filters select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    outline: none;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.45;
+    box-shadow: none;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.storage-field textarea {
+    min-height: 76px;
+    resize: vertical;
+}
+.storage-field input::placeholder,
+.storage-field textarea::placeholder,
+.backup-filters input::placeholder {
+    color: var(--muted);
+    opacity: .8;
+}
+.storage-field input:focus,
+.storage-field select:focus,
+.storage-field textarea:focus,
+.backup-filters input:focus,
+.backup-filters select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 18%, transparent);
+}
+.storage-field input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--blue);
+}
+.storage-field small {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+.backup-filters {
+    display: grid !important;
+    grid-template-columns: minmax(180px, 2fr) repeat(2, minmax(135px, 1fr)) repeat(3, minmax(120px, 1fr)) auto auto;
+    align-items: center;
+    gap: 9px !important;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line) !important;
+}
+.backup-filters input,
+.backup-filters select {
+    min-height: 38px;
+    padding: 8px 10px;
+}
+.backup-filters .action-button {
+    min-height: 38px;
+    padding: 8px 12px;
+    white-space: nowrap;
+}
+html[data-theme="light"] .storage-field input:not([type="checkbox"]),
+html[data-theme="light"] .storage-field select,
+html[data-theme="light"] .storage-field textarea,
+html[data-theme="light"] .backup-filters input,
+html[data-theme="light"] .backup-filters select {
+    background: #fff;
+}
+@media (max-width: 1100px) {
+    .backup-filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .backup-filters input[type="search"] {
+        grid-column: 1 / -1;
+    }
+}
+@media (max-width: 650px) {
+    .backup-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important;
+        padding: 14px;
+    }
+    .backup-filters input[type="search"] {
+        grid-column: 1 / -1;
+    }
+    .backup-filters .action-button {
+        justify-content: center;
+        text-align: center;
+    }
+}
+@media (max-width: 380px) {
+    .backup-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .backup-filters input[type="search"] {
+        grid-column: auto;
+    }
+}
