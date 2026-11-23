@@ -29,8 +29,11 @@ class BackupPreflight
         $errors = [];
 
         $temporary = (string) config('backup-manager.temporary_directory');
-        $temporaryParent = dirname($temporary);
-        $checks['temporary_directory'] = is_dir($temporary) ? is_writable($temporary) : is_dir($temporaryParent) && is_writable($temporaryParent);
+        $writableParent = $temporary;
+        while (! is_dir($writableParent) && dirname($writableParent) !== $writableParent) {
+            $writableParent = dirname($writableParent);
+        }
+        $checks['temporary_directory'] = is_dir($temporary) ? is_writable($temporary) : is_dir($writableParent) && is_writable($writableParent);
         if (! $checks['temporary_directory']) {
             $errors[] = 'The backup temporary directory is not writable.';
         }
