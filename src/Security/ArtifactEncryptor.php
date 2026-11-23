@@ -136,11 +136,12 @@ final class ArtifactEncryptor
                 }
 
                 $ciphertext = $this->readExact($input, $frameLength);
-                [$plaintext, $tag] = sodium_crypto_secretstream_xchacha20poly1305_pull($state, $ciphertext);
-
-                if ($tag === false) {
+                $decrypted = sodium_crypto_secretstream_xchacha20poly1305_pull($state, $ciphertext);
+                if ($decrypted === false) {
                     throw new RuntimeException('Encrypted artifact authentication failed.');
                 }
+
+                [$plaintext, $tag] = $decrypted;
 
                 if ($finalSeen) {
                     throw new RuntimeException('Encrypted artifact contains data after its final frame.');
