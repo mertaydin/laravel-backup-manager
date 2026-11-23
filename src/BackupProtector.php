@@ -53,6 +53,7 @@ final class BackupProtector
         }
         $disks = array_values(array_unique($targets !== [] ? $targets : array_filter([
             (string) ($storage['disk'] ?? 'local'),
+            (string) ($storage['local_disk'] ?? 'local'),
             ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
         ])));
 
