@@ -118,7 +118,14 @@ final class BackupInspector
 
         $profileName ??= (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->profile($profileName);
-        $diskName ??= (string) ($profile['storage']['disk'] ?? 'local');
+        if ($diskName === null) {
+            try {
+                $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
+            } catch (Throwable) {
+                $targets = [];
+            }
+            $diskName = (string) ($targets[0] ?? $profile['storage']['disk'] ?? 'local');
+        }
         $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
         $disk = $this->filesystem->disk($diskName);
         $manifestPath = $prefix.'/manifest.json';
