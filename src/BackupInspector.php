@@ -223,19 +223,34 @@ final class BackupInspector
 
         try {
             if (in_array($name, ['database.sql.gz', 'database.sqlite.gz'], true)) {
-                $gzip = @gzopen($temporary, 'rb');
-                if ($gzip === false) {
+                $input = fopen($temporary, 'rb');
+                $inflater = @inflate_init(ZLIB_ENCODING_GZIP);
+                if ($input === false || $inflater === false) {
+                    if (is_resource($input)) {
+                        fclose($input);
+                    }
+
                     return 'Database artifact is not a valid GZIP stream.';
                 }
 
                 try {
-                    while (! gzeof($gzip)) {
-                        if (@gzread($gzip, 1024 * 1024) === false) {
+                    while (! feof($input)) {
+                        $chunk = fread($input, 16 * 1024);
+                        if ($chunk === false) {
+                            return 'Unable to read the database GZIP stream.';
+                        }
+                        if ($chunk !== '' && @inflate_add($inflater, $chunk, ZLIB_SYNC_FLUSH) === false) {
                             return 'Database GZIP stream is corrupted.';
                         }
                     }
+
+                    if (@inflate_add($inflater, '', ZLIB_FINISH) === false
+                        || inflate_get_status($inflater) !== ZLIB_STREAM_END
+                        || inflate_get_read_len($inflater) !== (int) filesize($temporary)) {
+                        return 'Database GZIP stream failed its integrity check.';
+                    }
                 } finally {
-                    gzclose($gzip);
+                    fclose($input);
                 }
             } else {
                 if (! class_exists(\ZipArchive::class)) {
