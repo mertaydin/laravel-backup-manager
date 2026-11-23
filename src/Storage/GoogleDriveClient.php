@@ -123,7 +123,6 @@ final class GoogleDriveClient
         }
     }
 
-
     public function createFolder(string $name, string $parentId): string
     {
         $response = Http::withToken($this->accessToken())->post(self::API.'/files?fields=id', [
