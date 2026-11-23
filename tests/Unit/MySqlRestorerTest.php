@@ -64,7 +64,10 @@ final class MySqlRestorerTest extends TestCase
     {
         $dump = $this->directory.'/corrupt.sql.gz';
         $marker = $this->directory.'/client-started';
-        file_put_contents($dump, 'not a gzip stream');
+        $this->writeGzip($dump, 'valid SQL payload');
+        $corrupt = file_get_contents($dump);
+        $corrupt[strlen($corrupt) - 1] = chr(ord($corrupt[strlen($corrupt) - 1]) ^ 1);
+        file_put_contents($dump, $corrupt);
         $binary = $this->createClient('touch '.escapeshellarg($marker));
 
         try {
