@@ -38,8 +38,6 @@ use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveClient;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveFilesystemAdapter;
-use MertAydin\LaravelBackupManager\Storage\GoogleDriveClient;
-use MertAydin\LaravelBackupManager\Storage\GoogleDriveFilesystemAdapter;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 
@@ -113,7 +111,7 @@ class BackupManagerServiceProvider extends ServiceProvider
                         'backup-manager.profiles.'.$profile.'.storage.disks' => array_slice($targets, 1),
                     ]);
                 }
-            } catch (\\Throwable $exception) {
+            } catch (\Throwable $exception) {
                 report($exception);
             }
         });
