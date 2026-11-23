@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
+use MertAydin\LaravelBackupManager\Http\Controllers\StorageManagementController;
 use MertAydin\LaravelBackupManager\Http\Middleware\AuthorizeDashboard;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 
@@ -13,6 +14,12 @@ Route::middleware(array_merge(
     ->name('backup-manager.')
     ->group(function (): void {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/storage', [StorageManagementController::class, 'index'])->name('storage');
+        Route::post('/storage/schedule', [StorageManagementController::class, 'saveSchedule'])->name('storage.schedule');
+        Route::post('/storage/google/credentials', [StorageManagementController::class, 'saveGoogleCredentials'])->name('storage.google.credentials');
+        Route::post('/storage/google/connect', [StorageManagementController::class, 'connectGoogle'])->name('storage.google.connect');
+        Route::get('/storage/google/callback', [StorageManagementController::class, 'googleCallback'])->name('storage.google.callback');
+        Route::post('/storage/google/test', [StorageManagementController::class, 'testGoogle'])->name('storage.google.test');
         Route::get('/locale/{locale}', [DashboardController::class, 'setLocale'])
             ->whereIn('locale', SetDashboardLocale::SUPPORTED_LOCALES)
             ->name('locale');

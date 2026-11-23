@@ -175,6 +175,18 @@ Saklama politikası varsayılan olarak kapalıdır. Etkinleştirmek için:
 Schedule::command('backup:prune --execute')->daily();
 ```
 
+### Panelden otomatik yedekleme
+
+Panelde **Backup Manager → Storage Management → Automatic backups** bölümünden otomatik yedeklemeyi açıp kapatabilirsiniz. Günlük çalışma saatini, saat dilimini ve kaç günden eski yedeklerin silineceğini belirleyebilirsiniz. Eski yedeklerin temizliği yalnızca zamanlanmış yedek başarıyla tamamlandıktan sonra çalışır ve belirlenen günden eski yedek setlerini kalıcı olarak siler.
+
+Sunucuda Laravel Scheduler her dakika çalıştırılmalıdır. Crontab'a bir kez aşağıdaki satırı ekleyin:
+
+```cron
+* * * * * cd /uygulama/dizini && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Panelden otomatik yedeklemeyi pasife almak zamanlanmış çalışmaları durdurur; manuel yedekleme kullanılmaya devam eder. Varsayılan olarak otomatik yedekleme kapalıdır.
+
 ### Geri yükleme
 
 Geri yükleme öncesinde yedek setinin tamamı manifest üzerinden doğrulanır. `--force` kullanılmadığında komut yalnızca önizleme yapar. Veritabanı geri yüklemesi sıkıştırılmış SQL'i akış halinde MySQL istemcisine aktarır. Dosya geri yüklemesi path traversal, sembolik bağlantılar, yinelenen yollar ve `.env` dosyalarına karşı kontroller uygular. Var olan dosyalar yalnızca `--force` ile üzerine yazılır.

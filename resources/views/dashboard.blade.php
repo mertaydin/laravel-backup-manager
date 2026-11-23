@@ -16,6 +16,7 @@
             <span><strong>Backup Manager</strong><span>{{ __('backup-manager::dashboard.brand_subtitle') }}</span></span>
         </a>
         <div class="top-actions">
+            <a class="theme-button" href="{{ route('backup-manager.storage') }}">Storage Management</a>
             <div class="top-meta"><i class="pulse"></i> {{ __('backup-manager::dashboard.control_panel') }} <span>·</span> {{ now()->format('d M Y') }}</div>
             <form method="GET" action="{{ route('backup-manager.locale', ['locale' => app()->getLocale()]) }}" id="language-form">
                 <label for="dashboard-language" class="sr-only">{{ __('backup-manager::dashboard.language') }}</label>

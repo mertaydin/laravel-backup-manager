@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\PruneBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RestoreBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\ScheduledBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
@@ -18,6 +20,7 @@ use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
@@ -35,6 +38,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(BackupPruner::class);
         $this->app->singleton(BackupRestorer::class);
         $this->app->singleton(DashboardAuthorizer::class);
+        $this->app->singleton(StorageSettingsRepository::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
             $manager = new BackupManager;
             $manager->extend('local', $app->make(LocalBackupDriver::class));
@@ -56,6 +60,14 @@ class BackupManagerServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'backup-manager');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'backup-manager');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+        $this->app->booted(function (): void {
+            $this->app->make(Schedule::class)
+                ->command('backup:scheduled-run')
+                ->everyMinute()
+                ->withoutOverlapping();
+        });
 
         if ($this->app['config']->get('backup-manager.ui.enabled', true)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
@@ -64,6 +76,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RunBackupCommand::class,
+                ScheduledBackupCommand::class,
                 RestoreBackupCommand::class,
                 DecryptBackupCommand::class,
                 ListBackupsCommand::class,

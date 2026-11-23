@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.3] - 2026-11-23
+
+### Added
+- Dashboard controls for enabling or pausing daily automatic backups, configuring the execution time and timezone, and setting age-based backup retention.
+- Package scheduler command with overlap protection and retention cleanup after a successful scheduled backup.
+- Encrypted persistent storage settings and initial native Google OAuth 2.0 / Drive API connection management without an external Google Drive Composer package. Google Drive is not yet a selectable backup destination in this release.
+
+### Notes
+- The host application must run Laravel's scheduler every minute for dashboard-configured automatic backups.
+
+
 ## [0.6.2] - 2026-11-23
 
 Release: v0.6.2
