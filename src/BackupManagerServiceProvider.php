@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager;
 
+use Google\Client;
+use Google\Service\Drive;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Filesystem\FilesystemAdapter;
-use League\Flysystem\Filesystem as Flysystem;
-use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Illuminate\Support\ServiceProvider;
+use League\Flysystem\Filesystem as Flysystem;
+use Masbug\Flysystem\GoogleDriveAdapter;
+use RuntimeException;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use MertAydin\LaravelBackupManager\Console\Commands\CompareBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
@@ -68,7 +72,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(StorageSettingsRepository::class);
         $this->app->singleton(StorageHealthChecker::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
-            $manager = new BackupManager;
+            $manager = new BackupManager();
             $manager->extend('local', $app->make(LocalBackupDriver::class));
 
             return $manager;
