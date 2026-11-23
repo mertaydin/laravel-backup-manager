@@ -13,7 +13,7 @@
         <a class="theme-button" href="{{ route('backup-manager.dashboard') }}">← Back to dashboard</a>
     </header>
     <section class="hero">
-        <div><div class="eyebrow">Backup details</div><h1>{{ $backup['label'] ?: $backup['id'] }}</h1><p>{{ $backup['id'] }} · {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y H:i:s T') : 'Date unavailable' }}</p></div>
+        <div><div class="eyebrow">Backup details</div><h1>{{ ($backup['label'] ?? '') ?: $backup['id'] }}</h1><p>{{ $backup['id'] }} · {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y H:i:s T') : 'Date unavailable' }}</p></div>
         <div class="profile-pill">{{ $backup['disk'] }} · {{ number_format(($backup['total_size'] ?? 0) / 1048576, 2) }} MB</div>
     </section>
     <section class="panel" style="padding:24px;margin-top:24px">
