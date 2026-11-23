@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
-use MertAydin\LaravelBackupManager\BackupManager;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
-use Mockery;
 use Orchestra\Testbench\TestCase;
 
 final class ScheduledBackupCommandTest extends TestCase
@@ -19,13 +19,17 @@ final class ScheduledBackupCommandTest extends TestCase
 
     public function test_disabled_schedule_does_not_run_a_backup(): void
     {
-        $settings = Mockery::mock(StorageSettingsRepository::class);
-        $settings->shouldReceive('all')->once()->andReturn(['schedule' => ['enabled' => false]]);
-        $manager = Mockery::mock(BackupManager::class);
-        $manager->shouldNotReceive('run');
+        Schema::create('backup_manager_storage_settings', function (Blueprint $table): void {
+            $table->string('key')->primary();
+            $table->longText('value');
+            $table->timestamps();
+        });
 
-        $this->app->instance(StorageSettingsRepository::class, $settings);
-        $this->app->instance(BackupManager::class, $manager);
+        app(StorageSettingsRepository::class)->save([
+            'active_disk' => 'local',
+            'disks' => [],
+            'schedule' => ['enabled' => false],
+        ]);
 
         $this->artisan('backup:scheduled-run')->assertExitCode(0);
     }
