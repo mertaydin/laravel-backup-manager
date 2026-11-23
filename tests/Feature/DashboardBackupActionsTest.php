@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
+use MertAydin\LaravelBackupManager\Facades\BackupManager as BackupManagerFacade;
 use Orchestra\Testbench\TestCase;
 
 final class DashboardBackupActionsTest extends TestCase
