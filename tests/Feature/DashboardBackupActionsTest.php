@@ -319,7 +319,7 @@ final class DashboardBackupActionsTest extends TestCase
         ])->assertRedirect()
             ->assertSessionHas('storage_success');
 
-        self::assertSame(['s3'], app(\\MertAydin\\LaravelBackupManager\\Storage\\StorageSettingsRepository::class)->all()['backup_targets']);
+        self::assertSame(['s3'], app(\MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository::class)->all()['backup_targets']);
     }
 
 }
