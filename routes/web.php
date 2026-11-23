@@ -15,7 +15,7 @@ Route::middleware(array_merge(
     ->group(function (): void {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/storage', [StorageManagementController::class, 'index'])->name('storage');
-        Route::post('/storage/schedule', [StorageManagementController::class, 'saveSchedule'])->name('storage.schedule');
+        Route::post('/storage/schedule', [StorageManagementController::class, 'saveSchedule'])->name('storage.schedule');\n        Route::post('/storage/targets', [StorageManagementController::class, 'saveTargets'])->name('storage.targets');
         Route::post('/storage/test', [StorageManagementController::class, 'testDisk'])->name('storage.test');
         Route::post('/storage/google/credentials', [StorageManagementController::class, 'saveGoogleCredentials'])->name('storage.google.credentials');
         Route::post('/storage/google/connect', [StorageManagementController::class, 'connectGoogle'])->name('storage.google.connect');
