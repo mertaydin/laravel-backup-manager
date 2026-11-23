@@ -11,6 +11,7 @@ use MertAydin\LaravelBackupManager\Database\DatabaseRestorer;
 use MertAydin\LaravelBackupManager\Events\BackupRestored;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use RuntimeException;
 
 final class BackupRestorer
@@ -46,7 +47,7 @@ final class BackupRestorer
         $targets = [];
         try {
             $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             // Fall back to the profile disk before settings are installed.
         }
         $diskName = (string) ($options['disk'] ?? $targets[0] ?? $profile['storage']['disk'] ?? 'local');
