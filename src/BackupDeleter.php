@@ -40,7 +40,7 @@ final class BackupDeleter
         $manifest = json_decode((string) $primary->get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
         $locked = (bool) data_get($manifest, 'protection.locked', false);
         $protectedUntil = data_get($manifest, 'protection.protected_until');
-        if ($locked || ($protectedUntil && now()->lt(\\Illuminate\\Support\\Carbon::parse($protectedUntil)))) {
+        if ($locked || ($protectedUntil && now()->lt(Carbon::parse($protectedUntil)))) {
             $reason = trim((string) data_get($manifest, 'protection.reason', ''));
             throw new RuntimeException('This backup is protected from deletion.'.($reason !== '' ? ' Reason: '.$reason : ''));
         }
