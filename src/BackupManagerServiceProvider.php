@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\ServiceProvider;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\PruneBackupsCommand;
