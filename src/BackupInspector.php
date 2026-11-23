@@ -48,6 +48,7 @@ final class BackupInspector
                     'note' => (string) ($manifest['note'] ?? ''),
                     'tags' => is_array($manifest['tags'] ?? null) ? $manifest['tags'] : [],
                     'type' => (string) ($manifest['type'] ?? 'manual'),
+                    'status' => 'available',
                     'encrypted' => (bool) (data_get($manifest, 'encryption.enabled', false)),
                     'artifacts' => collect($manifest['artifacts'])
                         ->filter(static fn (mixed $artifact): bool => is_array($artifact))
@@ -72,6 +73,7 @@ final class BackupInspector
                     'manifest_path' => $path,
                     'disk' => $diskName,
                     'total_size' => 0,
+                    'status' => 'invalid',
                     'error' => 'Invalid manifest: '.$exception->getMessage(),
                 ];
             }
