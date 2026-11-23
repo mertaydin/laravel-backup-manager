@@ -48,7 +48,7 @@
     <section class="content">
         <div class="panel">
             <div class="panel-head"><div><h2>{{ __('backup-manager::dashboard.recent_backups') }}</h2><p>{{ __('backup-manager::dashboard.history_subtitle') }}</p></div><span class="count">{{ $totalBackups }} {{ __('backup-manager::dashboard.records') }}</span></div>
-            <form method="GET" action="{{ route('backup-manager.dashboard') }}" class="backup-filters" style="display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--border)">
+            <form method="GET" action="{{ route('backup-manager.dashboard') }}" class="backup-filters">
                 <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Search ID, label, note or tag" aria-label="Search backups">
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
