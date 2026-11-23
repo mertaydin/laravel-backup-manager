@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
+use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\Facades\BackupManager as BackupManagerFacade;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use Orchestra\Testbench\TestCase;
@@ -84,6 +85,14 @@ final class DashboardBackupActionsTest extends TestCase
     public function test_dashboard_dispatches_backup_job_to_configured_queue(): void
     {
         Queue::fake();
+        $this->instance(BackupPreflight::class, new class extends BackupPreflight {
+            public function __construct() {}
+
+            public function inspect(array $options = []): array
+            {
+                return ['ready' => true, 'checks' => [], 'errors' => []];
+            }
+        });
         config(['backup-manager.queue.connection' => 'database']);
 
         $this->withSession([])
