@@ -122,6 +122,7 @@ final class BackupPruner
         if ($execute) {
             $diskNames = array_values(array_unique($targets !== [] ? $targets : [
                 $diskName,
+                (string) ($profile['storage']['local_disk'] ?? 'local'),
                 ...array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'),
             ]));
             foreach ($candidates as $backup) {
