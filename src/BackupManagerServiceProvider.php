@@ -12,6 +12,7 @@ use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
+use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,7 @@ class BackupManagerServiceProvider extends ServiceProvider
 
         $this->app->singleton(MySqlDumper::class);
         $this->app->singleton(ZipArchiver::class);
+        $this->app->singleton(ArtifactEncryptor::class);
         $this->app->singleton(BackupInspector::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
             $manager = new BackupManager();
