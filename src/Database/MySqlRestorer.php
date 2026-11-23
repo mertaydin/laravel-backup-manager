@@ -16,6 +16,8 @@ final class MySqlRestorer
             throw new RuntimeException('The configured MySQL connection has no database name.');
         }
 
+        $this->validateCompressedDump($compressedDump);
+
         $directory = dirname($compressedDump);
         $credentialsFile = tempnam($directory, '.mysql-restore-');
         $stdoutFile = tempnam($directory, '.mysql-stdout-');
@@ -104,6 +106,25 @@ final class MySqlRestorer
             @unlink($credentialsFile);
             @unlink($stdoutFile);
             @unlink($stderrFile);
+        }
+    }
+
+
+    private function validateCompressedDump(string $path): void
+    {
+        $input = gzopen($path, 'rb');
+        if ($input === false) {
+            throw new RuntimeException('Unable to open the compressed SQL backup.');
+        }
+
+        try {
+            while (! gzeof($input)) {
+                if (gzread($input, 1024 * 1024) === false) {
+                    throw new RuntimeException('The compressed SQL backup is corrupt or incomplete.');
+                }
+            }
+        } finally {
+            gzclose($input);
         }
     }
 
