@@ -34,6 +34,8 @@ A Laravel package for database and application file backups, compression, encryp
 - One-click integrity verification from the dashboard.
 - Download individual backup artifacts and manifests directly from the dashboard.
 - Delete backup sets from both the configured remote disk and the local mirror.
+- Protect important backups permanently or until a selected date; protected backups cannot be manually deleted or pruned until unlocked or expired.
+- Per-profile concurrency locks prevent overlapping backup runs.
 - Mirror each backup to a configurable local filesystem disk when remote storage is used.
 - Background dashboard backups with job status polling; use a Laravel queue worker for fully independent execution.
 - Configurable retention policy with safe dry-run pruning.
@@ -70,7 +72,7 @@ php artisan vendor:publish --tag=backup-manager-assets
 ```
 
 The dashboard assets are published to `public/vendor/backup-manager`; republish them after package updates with `php artisan vendor:publish --tag=backup-manager-assets --force
-php artisan optimize:clear`. This release updates the JavaScript locale switcher; republishing assets is required. CSS and JavaScript URLs include the configurable `backup-manager.ui.asset_version` query parameter (default `0.8.6`) to prevent stale browser caches. You can override it with `BACKUP_MANAGER_ASSET_VERSION`. The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
+php artisan optimize:clear`. Republish assets after package updates to receive the latest dashboard interface. CSS and JavaScript URLs include the configurable `backup-manager.ui.asset_version` query parameter (default `0.8.7`) to prevent stale browser caches. You can override it with `BACKUP_MANAGER_ASSET_VERSION`. The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
 
 ```php
 'ui' => [
@@ -191,6 +193,20 @@ php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 ```
 
 By default, decrypted artifacts are written under `storage/app/backup-manager/decrypted/{backup-id}` with restrictive file permissions. Use `--output=/absolute/path` to choose another destination and `--force` only when intentionally replacing an existing file.
+
+### Deletion protection
+
+Protect an important backup from both manual deletion and retention pruning. In the dashboard, use **Lock backup**, optionally enter a reason and expiry date, or leave the expiry empty for permanent protection. Use **Unlock backup** to remove the protection. The delete action is hidden while protection is active.
+
+The equivalent Artisan commands are:
+
+```bash
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Compliance retention"
+php artisan backup:protect 20261123_120000_aabbccdd --until="2027-01-01T00:00:00+03:00" --reason="Legal hold"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
+```
+
+Each profile also has a cache-backed concurrency lock. A second backup for the same profile is rejected while one is running. Configure the lock lifetime with BACKUP_MANAGER_LOCK_SECONDS (default: 21600 seconds); use a shared cache backend when multiple application servers can start backups.
 
 ### Retention policy
 

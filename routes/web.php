@@ -38,4 +38,7 @@ Route::middleware(array_merge(
         Route::post('/{id}/verify', [DashboardController::class, 'verify'])
             ->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')
             ->name('verify');
+        Route::post('/{id}/protection', [DashboardController::class, 'protection'])
+            ->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')
+            ->name('protection');
     });

@@ -15,6 +15,7 @@ use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupDeleter;
 use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\BackupPreflight;
+use MertAydin\LaravelBackupManager\BackupProtector;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
@@ -26,6 +27,7 @@ final class DashboardController extends Controller
         private readonly BackupInspector $inspector,
         private readonly BackupPreflight $preflight,
         private readonly BackupDeleter $deleter,
+        private readonly BackupProtector $protector,
         private readonly FilesystemFactory $filesystem,
         private readonly ConfigRepository $config,
         private readonly CacheRepository $cache,
@@ -37,10 +39,11 @@ final class DashboardController extends Controller
         $profileName = (string) config('backup-manager.default', 'default');
         $profile = config('backup-manager.profiles.'.$profileName, []);
         $diskName = (string) data_get($profile, 'storage.disk', 'local');
-        $availableBackupDisks = array_values(array_unique([
+        $availableBackupDisks = array_values(array_unique(array_filter([
             $diskName,
             (string) data_get($profile, 'storage.local_disk', 'local'),
-        ]));
+            ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
+        ])));
         $allBackups = collect();
         foreach ($availableBackupDisks as $backupDisk) {
             try {
@@ -212,10 +215,11 @@ final class DashboardController extends Controller
 
         $storage = $profile['storage'] ?? [];
         $prefix = trim((string) ($storage['path'] ?? 'backups'), '/').'/'.$id;
-        $diskNames = array_values(array_unique([
+        $diskNames = array_values(array_unique(array_filter([
             (string) ($storage['disk'] ?? 'local'),
             (string) ($storage['local_disk'] ?? 'local'),
-        ]));
+            ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
+        ])));
 
         $selectedDisk = null;
         $manifest = null;
@@ -227,7 +231,13 @@ final class DashboardController extends Controller
                 }
 
                 $candidate = json_decode((string) $disk->get($prefix.'/manifest.json'), true);
-                if (is_array($candidate) && ($candidate['id'] ?? null) === $id) {
+                $allowedArtifact = $artifact === 'manifest.json'
+                    || $artifact === 'checksums.sha256'
+                    || (is_array($candidate) && isset($candidate['artifacts'][$artifact]));
+                if (is_array($candidate)
+                    && ($candidate['id'] ?? null) === $id
+                    && $allowedArtifact
+                    && $disk->exists($prefix.'/'.$artifact)) {
                     $selectedDisk = $disk;
                     $manifest = $candidate;
                     break;
@@ -263,10 +273,11 @@ final class DashboardController extends Controller
 
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
-        $diskNames = array_values(array_unique([
+        $diskNames = array_values(array_unique(array_filter([
             (string) data_get($profile, 'storage.disk', 'local'),
             (string) data_get($profile, 'storage.local_disk', 'local'),
-        ]));
+            ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
+        ])));
         $backup = null;
         foreach ($diskNames as $diskName) {
             try {
@@ -302,39 +313,82 @@ final class DashboardController extends Controller
         }
     }
 
+    public function protection(string $id): RedirectResponse
+    {
+        $validated = request()->validate([
+            'unlock' => ['nullable', 'boolean'],
+            'reason' => ['nullable', 'string', 'max:255'],
+            'protected_until' => ['nullable', 'date', 'after:now'],
+        ]);
+
+        $unlock = (bool) ($validated['unlock'] ?? false);
+        if ($unlock && ! empty($validated['protected_until'])) {
+            return back()->withErrors(['protected_until' => __('backup-manager::dashboard.protection_unlock_date_conflict')]);
+        }
+
+        try {
+            $this->protector->update(
+                $id,
+                locked: ! $unlock,
+                protectedUntil: $unlock ? null : ($validated['protected_until'] ?? null),
+                reason: $unlock ? null : ($validated['reason'] ?? null),
+            );
+
+            return back()->with('backup_success', $unlock
+                ? __('backup-manager::dashboard.protection_removed')
+                : __('backup-manager::dashboard.protection_saved'));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('backup_error', __('backup-manager::dashboard.protection_failed'));
+        }
+    }
+
     public function verify(string $id): RedirectResponse
     {
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
-
-        $diskNames = array_values(array_unique([
+        $storagePath = trim((string) data_get($profile, 'storage.path', 'backups'), '/');
+        $backupPath = ($storagePath === '' ? '' : $storagePath.'/').$id.'/manifest.json';
+        $diskNames = array_values(array_unique(array_filter([
             (string) data_get($profile, 'storage.disk', 'local'),
             (string) data_get($profile, 'storage.local_disk', 'local'),
-        ]));
+            ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
+        ])));
 
-        try {
-            $errors = [];
-            foreach ($diskNames as $diskName) {
-                try {
-                    $result = $this->inspector->verify($id, $profileName, $diskName);
-                    if ($result['valid']) {
-                        return back()->with('backup_success', __('backup-manager::dashboard.verification_success', ['id' => $id]));
-                    }
-                    $errors = array_merge($errors, $result['errors']);
-                } catch (Throwable $exception) {
-                    report($exception);
+        $verifiedDisks = [];
+        $errors = [];
+        foreach ($diskNames as $diskName) {
+            try {
+                $disk = $this->filesystem->disk($diskName);
+                if (! $disk->exists($backupPath)) {
+                    continue;
                 }
+
+                $result = $this->inspector->verify($id, $profileName, $diskName);
+                if ($result['valid']) {
+                    $verifiedDisks[] = $diskName;
+                } else {
+                    $errors[] = $diskName.': '.implode(' ', $result['errors']);
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+                $errors[] = $diskName.': '.$exception->getMessage();
             }
-
-            if ($errors !== []) {
-                return back()->with('backup_error', __('backup-manager::dashboard.verification_failed', ['errors' => implode(' ', $errors)]));
-            }
-
-            return back()->with('backup_error', __('backup-manager::dashboard.verification_error'));
-        } catch (Throwable $exception) {
-            report($exception);
-
-            return back()->with('backup_error', __('backup-manager::dashboard.verification_error'));
         }
+
+        if ($errors !== []) {
+            return back()->with('backup_error', __('backup-manager::dashboard.verification_failed', [
+                'errors' => implode(' ', $errors),
+            ]));
+        }
+
+        if ($verifiedDisks !== []) {
+            return back()->with('backup_success', __('backup-manager::dashboard.verification_success', [
+                'id' => $id.' ('.implode(', ', $verifiedDisks).')',
+            ]));
+        }
+
+        return back()->with('backup_error', __('backup-manager::dashboard.verification_error'));
     }
 }

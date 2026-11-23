@@ -1,14 +1,16 @@
 # Backup engine
 
-The initial engine uses Laravel filesystem disks for artifact storage and MySQL's `mysqldump` executable for consistent, streaming database exports.
+The package creates database and optional application-file backups, stores them on Laravel Filesystem disks, verifies the uploaded artifacts, and can restore verified backup sets.
 
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11 or 12
-- MySQL client tools (`mysqldump`)
-- PHP Zip extension when application file backups are enabled
-- A Laravel filesystem disk configured for the target (local, S3, or an S3-compatible endpoint such as Cloudflare R2)
+- Laravel 11, 12, or 13
+- MySQL client tools (mysqldump and mysql) for MySQL connections
+- PostgreSQL client tools (pg_dump and psql) for PostgreSQL connections
+- PDO SQLite and a file-backed SQLite database for SQLite connections
+- PHP ZIP extension when application file backups are enabled
+- PHP sodium extension when encryption is enabled
 
 ## Run
 
@@ -17,27 +19,53 @@ php artisan backup:run
 php artisan backup:run --database
 php artisan backup:run --files
 php artisan backup:run --profile=default --disk=s3
+php artisan backup:list
+php artisan backup:verify 20261123_120000_aabbccdd
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Compliance"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
+php artisan backup:prune
+php artisan backup:prune --execute
 ```
 
-Without component flags, the selected profile's enabled components are used. When either `--database` or `--files` is supplied, the flags select exactly which components to include.
+Without component flags, the selected profile's enabled components are used. When either component flag is supplied, the flags select which components to include.
 
-## Output
+## Database and application artifacts
 
-Each backup is stored under `{storage.path}/{backup-id}/`:
+- MySQL and PostgreSQL dumps are streamed through GZIP compression.
+- SQLite uses a consistent snapshot created with VACUUM INTO, then compressed.
+- Application files are archived as ZIP, with configured include/exclude rules.
+- Dotfiles and .env files are excluded by default. Symlinks and paths outside the application root are not archived.
 
-- `database.sql.gz` when database backup is enabled
-- `application.zip` when file backup is enabled
-- `checksums.sha256` with SHA-256 hashes for generated payload artifacts
-- `manifest.json` with backup identity, profile, artifact sizes, and hashes
+## Storage
 
-## Security and failure handling
+The backup engine uses configured Laravel Filesystem disks. Local, Amazon S3, and S3-compatible services such as Cloudflare R2 can be used when their Laravel/Flysystem adapters are installed and configured. A local mirror and additional target disks can be configured in the backup profile.
 
-- MySQL credentials are written only to a short-lived mode-0600 option file; passwords are not passed in process arguments.
-- Database output is streamed through gzip; it is not buffered in PHP memory.
-- Application archives skip symlinks and paths outside the application root.
-- `.env` and hidden files are excluded by default.
-- The backup is reported successful only after all storage writes succeed. Previously uploaded artifacts are deleted best-effort if a later upload fails.
-- Temporary workspaces are removed after success or failure.
-- If encryption is enabled before the encryption engine is implemented, backup execution fails safely instead of storing plaintext.
+The package includes Google Drive OAuth account connection and connection testing in Storage Management, but Google Drive is not yet a selectable backup destination. A native Google Drive storage adapter and historical backup operations remain unimplemented.
 
-Google Drive requires a dedicated adapter and OAuth credential lifecycle; it is not supported by this filesystem-disk implementation yet.
+Large S3 objects use multipart upload when the AWS SDK S3 adapter is available and multipart uploads are enabled.
+
+## Integrity and encryption
+
+Each backup set contains a manifest with artifact sizes and SHA-256 hashes, plus a checksums.sha256 file. After upload, the package can read back each configured destination and verify the artifact size, SHA-256 hash, and supported GZIP/ZIP structure. This behavior is enabled by default and can be disabled with BACKUP_MANAGER_VERIFY_AFTER_UPLOAD.
+
+When encryption is enabled, artifacts are encrypted locally using libsodium XChaCha20-Poly1305 secretstream before upload. The manifest records the algorithm and key identifier, not the secret key. Encrypted artifacts are checksum-verified as stored; archive-format validation is performed after decryption during restore.
+
+## Concurrency, retries, and failure handling
+
+A cache-backed lock prevents overlapping backup runs for the same profile. Configure its lifetime with BACKUP_MANAGER_LOCK_SECONDS (default 21600 seconds). Multi-server deployments must use a shared cache backend so all workers coordinate through the same lock store.
+
+Manual and scheduled Artisan commands support configured retry attempts. Dashboard jobs use Laravel queue retries when a queue connection is configured; otherwise Laravel dispatches the job after the HTTP response. Failed and completed lifecycle events can trigger optional email and Slack notifications.
+
+A backup is not reported as successful until all configured storage writes and enabled post-upload verification checks succeed. Previously uploaded objects are cleaned up on a best-effort basis if a later upload fails. Temporary workspaces are removed after success or failure.
+
+## Deletion protection and retention
+
+Backups can be protected permanently or until a specified date. Protection metadata is written to the manifests on configured destinations. Manual deletion and retention pruning skip protected backups. Use backup:protect with --unlock to remove protection.
+
+Retention is disabled by default. backup:prune previews candidates unless --execute is supplied. Invalid manifests are skipped rather than deleted.
+
+## Restore safety
+
+Restore verifies the backup set before processing. The command is a dry run unless --force is supplied. Database restore streams decompressed SQL to the configured client. Application restore rejects path traversal, symbolic links, duplicate paths, and .env files, and refuses to extract through symbolic links already present in the target directory.
+
+Restore is not transactional for MySQL or PostgreSQL. Keep a separate current backup and test restores in a staging environment before production use.

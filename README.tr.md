@@ -30,6 +30,8 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - Artisan komutlarıyla yedek listeleme, doğrulama, şifre çözme ve geri yükleme.
 - Yönetim panelinden yedek başlatma, durumunu takip etme ve dosyaları indirme.
 - Yedek silindiğinde hem uzak depodan hem yerel kopyadan kaldırma.
+- Önemli yedekleri kalıcı olarak veya belirli bir tarihe kadar silinmeye karşı kilitleme; kilitli yedekler açılmadan ya da süreleri dolmadan silinemez.
+- Profil başına eşzamanlılık kilidiyle aynı profilin çakışan yedeklemelerini engelleme.
 - Uzak depoya gönderilen yedekleri ayrıca yerel diske kopyalama.
 - Kuyruk bağlantısı tanımlandığında gerçek Laravel queue job kullanma.
 - Saklama politikası ve güvenli önizleme (dry-run) ile eski yedekleri temizleme.
@@ -64,7 +66,7 @@ php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
 
-Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.8.2`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
+Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.8.7`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
 
 ```bash
 php artisan vendor:publish --tag=backup-manager-assets --force
@@ -191,6 +193,20 @@ Anahtarı kaynak koduna eklemeyin; ortam değişkeni veya secret manager kullan�
 ```
 
 Manifest algoritma ve anahtar kimliğini tutar; anahtarın kendisini içermez. Anahtarı yedeklerin saklama süresi boyunca güvenli biçimde muhafaza edin.
+
+### Yedek silinme koruması
+
+Önemli bir yedeği hem panelden manuel silinmeye hem de retention temizliğine karşı koruyabilirsiniz. Panelde **Yedeği kilitle** seçeneğini kullanın; isteğe bağlı olarak neden ve bitiş tarihi girin. Bitiş tarihini boş bırakırsanız koruma kalıcı olur. **Kilidi kaldır** ile korumayı sonlandırabilirsiniz. Koruma etkin olduğu sürece silme işlemi panelde gösterilmez.
+
+Artisan komutları:
+
+```bash
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Mevzuat saklama"
+php artisan backup:protect 20261123_120000_aabbccdd --until="2027-01-01T00:00:00+03:00" --reason="Yasal saklama"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
+```
+
+Her yedekleme profili cache tabanlı eşzamanlılık kilidine sahiptir. Aynı profil için başka bir yedekleme çalışırken ikinci işlem reddedilir. Kilit süresi BACKUP_MANAGER_LOCK_SECONDS ile ayarlanır (varsayılan 21600 saniye). Birden fazla uygulama sunucusu yedekleme başlatabiliyorsa ortak cache altyapısı kullanın.
 
 ### Saklama politikası
 

@@ -468,3 +468,17 @@ html[data-theme="light"] .details-actions .verify-button { border-color:#c7d2f0;
 .storage-page .alert { margin:14px 0; }
 html[data-theme="light"] .storage-card .storage-field input:not([type="checkbox"]), html[data-theme="light"] .storage-card .storage-field select, html[data-theme="light"] .storage-card .storage-field textarea { background:#fff; color:#17233b; }
 @media(max-width:650px) { .storage-page { width:calc(100% - 30px); padding:22px 0 38px; } .storage-card { padding:17px; border-radius:13px; } .storage-actions { align-items:stretch; } .storage-actions form, .storage-actions button { max-width:100%; } .storage-card li { align-items:flex-start; } .details-panel { padding:17px; } .details-actions { align-items:stretch; } }
+
+
+/* Backup deletion protection controls */
+.protection-form{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0}
+.protection-input{box-sizing:border-box;min-width:130px;max-width:180px;min-height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font:inherit;font-size:10px}
+.protection-input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 18%,transparent)}
+.protection-button{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:6px 10px;border:1px solid #3c527e;border-radius:8px;background:#1a2944;color:#b8caff;font:inherit;font-size:11px;font-weight:650;cursor:pointer}
+.protection-button:hover{border-color:var(--blue)}
+.protection-button--unlock{border-color:#286c5c;background:#153d35;color:#a6f2d7}
+.protection-badge{border-color:#286c5c;background:#153d35;color:#a6f2d7}
+html[data-theme="light"] .protection-input{background:#fff;color:#17233b}
+html[data-theme="light"] .protection-button{border-color:#c7d2f0;background:#edf2ff;color:#405bbd}
+html[data-theme="light"] .protection-button--unlock,html[data-theme="light"] .protection-badge{border-color:#a8d9c9;background:#eaf8f2;color:#176b50}
+@media(max-width:650px){.protection-form{width:100%}.protection-input{flex:1 1 140px;max-width:none}}

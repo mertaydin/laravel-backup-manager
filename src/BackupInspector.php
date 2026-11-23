@@ -6,6 +6,7 @@ namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Support\Carbon;
 use RuntimeException;
 use Throwable;
 
@@ -40,6 +41,16 @@ final class BackupInspector
                     throw new RuntimeException('Manifest is missing required fields.');
                 }
 
+                $protectedUntil = data_get($manifest, 'protection.protected_until');
+                $isProtected = (bool) data_get($manifest, 'protection.locked', false);
+                if ($protectedUntil !== null) {
+                    try {
+                        $isProtected = $isProtected || now()->lt(Carbon::parse($protectedUntil));
+                    } catch (Throwable) {
+                        $isProtected = true;
+                    }
+                }
+
                 $backups[] = [
                     'id' => (string) $manifest['id'],
                     'profile' => (string) ($manifest['profile'] ?? $profileName),
@@ -49,7 +60,8 @@ final class BackupInspector
                     'tags' => is_array($manifest['tags'] ?? null) ? $manifest['tags'] : [],
                     'type' => (string) ($manifest['type'] ?? 'manual'),
                     'locked' => (bool) data_get($manifest, 'protection.locked', false),
-                    'protected_until' => data_get($manifest, 'protection.protected_until'),
+                    'protected' => $isProtected,
+                    'protected_until' => $protectedUntil,
                     'protection_reason' => data_get($manifest, 'protection.reason'),
                     'status' => 'available',
                     'encrypted' => (bool) (data_get($manifest, 'encryption.enabled', false)),
