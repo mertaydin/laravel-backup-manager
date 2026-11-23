@@ -15,8 +15,8 @@ final class DatabaseDumper
     ) {}
 
     /** @param array<string, mixed> $connection
-     * @param list<string> $includeTables
-     * @param list<string> $excludeTables
+     * @param  list<string>  $includeTables
+     * @param  list<string>  $excludeTables
      */
     public function dump(array $connection, string $destination, array $includeTables = [], array $excludeTables = []): void
     {
