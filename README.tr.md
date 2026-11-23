@@ -23,10 +23,10 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 
 ## Özellikler
 
-- MySQL veritabanını akış halinde `database.sql.gz` olarak yedekleme.
+- MySQL ve PostgreSQL veritabanlarını sıkıştırılmış SQL arşivlerine, SQLite veritabanlarını tutarlı sıkıştırılmış snapshot dosyalarına yedekleme.
 - İsteğe bağlı uygulama dosyalarını ZIP arşivine alma.
 - Laravel Filesystem diskleri: local, Amazon S3 ve Cloudflare R2 gibi S3 uyumlu servisler.
-- SHA-256 checksum ve JSON manifest oluşturma.
+- SHA-256 checksum, JSON manifest ve GZIP/ZIP arşiv yapısı doğrulaması.
 - Artisan komutlarıyla yedek listeleme, doğrulama, şifre çözme ve geri yükleme.
 - Yönetim panelinden yedek başlatma, durumunu takip etme ve dosyaları indirme.
 - Yedek silindiğinde hem uzak depodan hem yerel kopyadan kaldırma.
@@ -50,7 +50,9 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 
 - PHP 8.2+
 - Laravel 11, 12 veya 13
-- MySQL istemci araçları (`mysqldump` ve `mysql`)
+- MySQL bağlantıları için istemci araçları (`mysqldump` ve `mysql`)
+- PostgreSQL bağlantıları için istemci araçları (`pg_dump` ve `psql`)
+- SQLite bağlantıları için PHP `pdo_sqlite` eklentisi ve dosya tabanlı veritabanı
 - Uygulama dosyalarını yedeklemek için PHP `zip` eklentisi
 - Yedek şifreleme etkinleştirilecekse PHP `sodium` eklentisi
 
@@ -122,6 +124,9 @@ php artisan backup:list --disk=s3 --limit=50
 php artisan backup:verify 20261123_120000_aabbccdd
 php artisan backup:compare 20261123_120000_aabbccdd 20261124_120000_ccddeeff
 php artisan backup:report --json
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Mevzuat saklama"
+php artisan backup:protect 20261123_120000_aabbccdd --until="2027-01-01T00:00:00Z"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
 php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 php artisan backup:prune
 php artisan backup:prune --execute
@@ -321,7 +326,7 @@ Aynı yedek setini birden fazla Laravel Filesystem diskine göndermek için:
 BACKUP_MANAGER_TARGET_DISKS=s3,r2
 ```
 
-Birincil disk ve yerel ayna hedefleri korunur; yinelenen disk adları tekilleştirilir. Bütün hedefler yedekleme öncesi bağlantı/izin kontrolünden geçirilir.
+Birincil disk ve yerel ayna hedefleri korunur; yinelenen disk adları tekilleştirilir. Bütün hedefler yedekleme öncesi ve yükleme sonrası bütünlük kontrollerinden geçirilir. Flysystem AWS S3 adaptörü ve AWS SDK multipart uploader kuruluysa 64 MiB üzerindeki dosyalar varsayılan olarak 8 MiB parçalarla yüklenir.
 
 E-posta ve Slack bildirimleri isteğe bağlıdır:
 
@@ -332,6 +337,16 @@ BACKUP_MANAGER_SLACK_WEBHOOK=https://hooks.slack.com/services/REDACTED
 ```
 
 Slack webhook adresini secret manager veya ortam değişkeninde saklayın; kaynak koduna eklemeyin. Tamamlanan ve başarısız olan yedeklemeler için bildirim gönderilir.
+
+MySQL için tablo dahil etme/dışlama filtreleri desteklenir. PostgreSQL ve SQLite yedeklemesi seçilen veritabanının tamamını kapsar. SQLite `:memory:` bağlantıları kalıcı veritabanı dosyası olmadığı için desteklenmez.
+
+Bir yedeği kalıcı olarak veya belirli bir tarihe kadar korumaya alabilirsiniz. Korunan yedekler manuel silme ve retention temizliği tarafından silinmez:
+
+```bash
+php artisan backup:protect YEDEK_ID --reason="Mevzuat saklama"
+php artisan backup:protect YEDEK_ID --until="2027-01-01T00:00:00Z"
+php artisan backup:protect YEDEK_ID --unlock
+```
 
 İki yedeğin manifest ve dosya boyutlarını karşılaştırın:
 
