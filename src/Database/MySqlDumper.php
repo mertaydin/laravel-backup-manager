@@ -96,8 +96,8 @@ final class MySqlDumper
                     if ($chunk === false) {
                         throw new RuntimeException('Unable to read mysqldump output.');
                     }
-                    if ($chunk !== '' && gzwrite($output, $chunk) === false) {
-                        throw new RuntimeException('Unable to write compressed database backup data.');
+                    if ($chunk !== '' && gzwrite($output, $chunk) !== strlen($chunk)) {
+                        throw new RuntimeException('Unable to write the complete compressed database backup chunk.');
                     }
                 }
             } finally {
@@ -130,6 +130,7 @@ final class MySqlDumper
             'password' => (string) ($connection['password'] ?? ''),
             'host' => (string) ($connection['host'] ?? '127.0.0.1'),
             'port' => (string) ($connection['port'] ?? '3306'),
+            'socket' => (string) ($connection['unix_socket'] ?? ''),
         ];
 
         $content = "[client]\n";
