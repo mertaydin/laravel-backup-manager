@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Services;
+namespace MertAydin\LaravelBackupManager\Services;
 
 use Closure;
-use Illuminate\\Http\\Request;
+use Illuminate\Http\Request;
 
 final class DashboardAuthorizer
 {
