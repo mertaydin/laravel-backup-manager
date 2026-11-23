@@ -119,4 +119,6 @@ return [
     'protection_removed' => 'Backup deletion protection removed.',
     'protection_failed' => 'Could not update backup protection.',
     'protection_unlock_date_conflict' => 'An expiry date cannot be set while unlocking a backup.',
+    'protection_status' => 'Deletion protection',
+    'unprotected' => 'Not protected',
 ];
