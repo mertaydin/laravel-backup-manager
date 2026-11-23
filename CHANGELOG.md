@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Improved
+- Reworked the backup destination selector into responsive, accessible destination cards with clear storage-type descriptions and live selection count.
+- Clarified that destination changes apply to future backups and added a visible save action.
+- Bumped dashboard asset cache version to 0.8.10.
+
 ## [0.8.8] - 2026-11-23
 
 ### Added
