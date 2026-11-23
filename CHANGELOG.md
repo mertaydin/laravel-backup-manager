@@ -2,6 +2,9 @@
 
 ## [0.6.3] - 2026-11-23
 
+### Documentation
+- Document the required `php artisan migrate` step and the `backup_manager_storage_settings` table used by Storage Management.
+
 Release: v0.6.3
 
 ### Added
