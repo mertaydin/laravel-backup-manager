@@ -42,8 +42,18 @@ final class LaravelFilesystemStorage implements BackupStorage
         $enabled = (bool) config('backup-manager.upload.multipart.enabled', true);
         $minimumBytes = max(5 * 1024 * 1024, (int) config('backup-manager.upload.multipart.threshold_bytes', 64 * 1024 * 1024));
         $partSize = max(5 * 1024 * 1024, (int) config('backup-manager.upload.multipart.part_size_bytes', 8 * 1024 * 1024));
-        if (! $enabled || ! is_file($sourcePath) || (int) filesize($sourcePath) < $minimumBytes) {
+        if (! $enabled || ! is_file($sourcePath)) {
             return false;
+        }
+
+        $fileSize = (int) filesize($sourcePath);
+        if ($fileSize < $minimumBytes) {
+            return false;
+        }
+
+        $partSize = (int) (ceil(max($partSize, (int) ceil($fileSize / 10000)) / (1024 * 1024)) * 1024 * 1024);
+        if ($partSize > 5 * 1024 * 1024 * 1024) {
+            throw new RuntimeException('The backup artifact exceeds the maximum S3 multipart object size.');
         }
 
         $filesystem = $this->filesystem->disk($this->disk);
