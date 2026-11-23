@@ -191,8 +191,14 @@ final class StorageManagementController extends Controller
         try {
             $credentials = data_get($this->settings->all(), 'disks.google-drive', []);
             (new GoogleDriveClient($credentials))->testConnection();
+            $profileName = (string) config('backup-manager.default', 'default');
+            $prefix = (string) data_get(config('backup-manager.profiles.'.$profileName, []), 'storage.path', 'backups');
+            $result = $this->healthChecker->check('google-drive', $prefix);
+            if (! $result['successful']) {
+                throw new \\RuntimeException('Google Drive read/write/delete verification failed.');
+            }
 
-            return back()->with('storage_success', 'Google Drive connection test succeeded.');
+            return back()->with('storage_success', 'Google Drive connection and read/write/delete tests succeeded.');
         } catch (Throwable $exception) {
             report($exception);
 
