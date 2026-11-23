@@ -45,6 +45,7 @@ final class BackupInspector
                     'id' => (string) $manifest['id'],
                     'profile' => (string) ($manifest['profile'] ?? $profileName),
                     'created_at' => (string) $manifest['created_at'],
+                    'encrypted' => (bool) (data_get($manifest, 'encryption.enabled', false)),
                     'artifacts' => collect($manifest['artifacts'])
                         ->filter(static fn (mixed $artifact): bool => is_array($artifact))
                         ->map(static fn (array $artifact, string $name): array => [
