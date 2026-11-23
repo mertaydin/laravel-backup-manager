@@ -16,8 +16,16 @@ final class StorageHealthCheckerTest extends TestCase
         return [BackupManagerServiceProvider::class];
     }
 
+    protected function getEnvironmentSetUp($app): void
+    {
+        $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
+        $app['config']->set('backup-manager.ui.middleware', ['web']);
+        $app['config']->set('backup-manager.profiles.default.storage.path', 'backups');
+    }
+
     public function test_it_checks_connection_listing_write_read_and_delete_permissions(): void
     {
+        config(['filesystems.disks.health-check' => ['driver' => 'local', 'root' => storage_path('framework/testing/disks/health-check')]]);
         Storage::fake('health-check');
 
         $result = app(StorageHealthChecker::class)->check('health-check');
