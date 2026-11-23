@@ -93,10 +93,12 @@
                                 <button class="protection-button" type="submit">{{ __('backup-manager::dashboard.protect_backup') }}</button>
                             </form>
                         @endif
-                        <form class="delete-form" method="POST" action="{{ route('backup-manager.delete', $backup['id']) }}" data-confirm="{{ __('backup-manager::dashboard.confirm_delete') }}">
-                            @csrf @method('DELETE')
-                            <button class="delete-button" type="submit">× {{ __('backup-manager::dashboard.delete') }}</button>
-                        </form>
+                        @unless($backup['protected'] ?? false)
+                            <form class="delete-form" method="POST" action="{{ route('backup-manager.delete', $backup['id']) }}" data-confirm="{{ __('backup-manager::dashboard.confirm_delete') }}">
+                                @csrf @method('DELETE')
+                                <button class="delete-button" type="submit">× {{ __('backup-manager::dashboard.delete') }}</button>
+                            </form>
+                        @endunless
                     </div>
                 </article>
             @empty
