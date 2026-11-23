@@ -45,7 +45,13 @@ final class BackupInspector
                     'id' => (string) $manifest['id'],
                     'profile' => (string) ($manifest['profile'] ?? $profileName),
                     'created_at' => (string) $manifest['created_at'],
-                    'artifacts' => $manifest['artifacts'],
+                    'artifacts' => collect($manifest['artifacts'])
+                        ->filter(static fn (mixed $artifact): bool => is_array($artifact))
+                        ->map(static fn (array $artifact, string $name): array => [
+                            'name' => $name,
+                            'size' => (int) ($artifact['size'] ?? 0),
+                            'sha256' => (string) ($artifact['sha256'] ?? ''),
+                        ])->values()->all(),
                     'manifest_path' => $path,
                     'disk' => $diskName,
                     'total_size' => array_sum(array_map(
@@ -122,7 +128,10 @@ final class BackupInspector
 
             $context = hash_init('sha256');
             try {
-                $bytes = hash_update_stream($context, $stream);
+                 $bytes = hash_update_stream($context, $stream);
+                if ($bytes === false) {
+                    throw new RuntimeException("Unable to hash artifact [{$name}].");
+                }
             } finally {
                 fclose($stream);
             }
