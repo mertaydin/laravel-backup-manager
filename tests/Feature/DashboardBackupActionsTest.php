@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
-use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use MertAydin\LaravelBackupManager\Facades\BackupManager as BackupManagerFacade;
+use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use Orchestra\Testbench\TestCase;
 
 final class DashboardBackupActionsTest extends TestCase
@@ -29,7 +29,6 @@ final class DashboardBackupActionsTest extends TestCase
         $app['config']->set('backup-manager.profiles.default.storage.local_disk', 'local');
         $app['config']->set('backup-manager.profiles.default.storage.path', 'backups');
     }
-
 
     public function test_dashboard_authorization_callback_can_deny_access(): void
     {
