@@ -237,6 +237,22 @@ final class DashboardController extends Controller
         }, $artifact, ['Content-Type' => 'application/octet-stream']);
     }
 
+
+    public function show(string $id): View
+    {
+        abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
+
+        $profileName = (string) $this->config->get('backup-manager.default', 'default');
+        $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
+        $diskName = (string) data_get($profile, 'storage.disk', 'local');
+        $backup = collect($this->inspector->list($profileName, $diskName, 500))
+            ->firstWhere('id', $id);
+
+        abort_unless(is_array($backup), 404);
+
+        return view('backup-manager::details', ['backup' => $backup]);
+    }
+
     public function delete(string $id): RedirectResponse
     {
         try {
