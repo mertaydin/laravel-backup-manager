@@ -45,9 +45,23 @@ final class RunBackupCommand extends Command
             return self::FAILURE;
         }
 
-        $result = $manager->run($options);
+        $maxAttempts = max(1, (int) config('backup-manager.retry.max_attempts', 1));
+        $retryDelay = max(0, (int) config('backup-manager.retry.delay_seconds', 30));
+        $result = null;
 
-        if (! $result->successful) {
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $result = $manager->run($options);
+            if ($result->successful || $attempt === $maxAttempts) {
+                break;
+            }
+
+            $this->components->warn("Backup attempt {$attempt}/{$maxAttempts} failed. Retrying in {$retryDelay} seconds...");
+            if ($retryDelay > 0) {
+                sleep($retryDelay);
+            }
+        }
+
+        if (! $result?->successful) {
             $cache->put('backup-manager:last-run', ['status' => 'failed', 'backup_id' => $result->id, 'error' => $result->error, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
             $this->components->error($result->error ?? 'Backup failed.');
 
