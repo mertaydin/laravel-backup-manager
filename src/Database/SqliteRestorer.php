@@ -69,10 +69,25 @@ final class SqliteRestorer
             }
 
             DB::purge($connectionName);
+            $previous = null;
+            if (is_file($database)) {
+                $previous = $database.'.backup-'.bin2hex(random_bytes(4));
+                if (! @rename($database, $previous)) {
+                    throw new RuntimeException('Unable to stage the existing SQLite database before restore.');
+                }
+            }
+
+            if (! @rename($temporary, $database)) {
+                if ($previous !== null) {
+                    @rename($previous, $database);
+                }
+                throw new RuntimeException('Unable to atomically replace the configured SQLite database file.');
+            }
+
             @unlink($database.'-wal');
             @unlink($database.'-shm');
-            if (! @rename($temporary, $database)) {
-                throw new RuntimeException('Unable to atomically replace the configured SQLite database file.');
+            if ($previous !== null) {
+                @unlink($previous);
             }
             @chmod($database, 0600);
             DB::purge($connectionName);
