@@ -72,7 +72,7 @@ class BackupPreflight
 
             if ($driver === 'mysql' || $driver === 'pgsql') {
                 $binary = $driver === 'pgsql'
-                    ? (string) data_get($profile, 'database.dump_binary', config('backup-manager.postgresql.dump_binary', 'pg_dump'))
+                    ? (string) data_get($profile, 'database.postgres_dump_binary', config('backup-manager.postgresql.dump_binary', 'pg_dump'))
                     : (string) data_get($profile, 'database.dump_binary', config('backup-manager.mysql.dump_binary', 'mysqldump'));
                 $checks['database_dump_binary'] = $this->executables->find($binary) !== null;
                 if (! $checks['database_dump_binary']) {
