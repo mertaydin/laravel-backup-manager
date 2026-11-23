@@ -66,6 +66,7 @@ final class DashboardController extends Controller
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
             'type' => ['nullable', 'in:manual,scheduled'],
+            'status' => ['nullable', 'in:available,invalid'],
         ]);
         $backups = $allBackups
             ->when($filters['q'] ?? null, static fn ($items, string $query) => $items->filter(
@@ -83,6 +84,7 @@ final class DashboardController extends Controller
                 static fn (array $backup): bool => ($backup['created_at'] ?? '') <= $date.'T23:59:59'
             ))
             ->when($filters['type'] ?? null, static fn ($items, string $type) => $items->where('type', $type))
+            ->when($filters['status'] ?? null, static fn ($items, string $status) => $items->where('status', $status))
             ->values();
 
         return view('backup-manager::dashboard', [
