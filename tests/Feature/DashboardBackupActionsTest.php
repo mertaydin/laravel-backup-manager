@@ -27,7 +27,7 @@ final class DashboardBackupActionsTest extends TestCase
     {
         parent::setUp();
 
-        if (!Schema::hasTable('backup_manager_storage_settings')) {
+        if (! Schema::hasTable('backup_manager_storage_settings')) {
             $this->artisan('migrate', [
                 '--path' => dirname(__DIR__, 2).'/database/migrations',
                 '--realpath' => true,
