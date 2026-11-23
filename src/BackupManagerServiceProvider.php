@@ -19,6 +19,12 @@ use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
 use MertAydin\LaravelBackupManager\Events\BackupCompleted;
 use MertAydin\LaravelBackupManager\Events\BackupFailed;
 use MertAydin\LaravelBackupManager\Listeners\SendBackupNotifications;
+use MertAydin\LaravelBackupManager\Database\DatabaseDumper;
+use MertAydin\LaravelBackupManager\Database\DatabaseRestorer;
+use MertAydin\LaravelBackupManager\Database\PostgreSqlDumper;
+use MertAydin\LaravelBackupManager\Database\PostgreSqlRestorer;
+use MertAydin\LaravelBackupManager\Database\SqliteDumper;
+use MertAydin\LaravelBackupManager\Database\SqliteRestorer;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
 use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
@@ -37,6 +43,12 @@ class BackupManagerServiceProvider extends ServiceProvider
 
         $this->app->singleton(MySqlDumper::class);
         $this->app->singleton(MySqlRestorer::class);
+        $this->app->singleton(PostgreSqlDumper::class);
+        $this->app->singleton(PostgreSqlRestorer::class);
+        $this->app->singleton(SqliteDumper::class);
+        $this->app->singleton(SqliteRestorer::class);
+        $this->app->singleton(DatabaseDumper::class);
+        $this->app->singleton(DatabaseRestorer::class);
         $this->app->singleton(ZipArchiver::class);
         $this->app->singleton(ZipRestorer::class);
         $this->app->singleton(ArtifactEncryptor::class);
