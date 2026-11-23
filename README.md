@@ -194,6 +194,20 @@ php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 
 By default, decrypted artifacts are written under `storage/app/backup-manager/decrypted/{backup-id}` with restrictive file permissions. Use `--output=/absolute/path` to choose another destination and `--force` only when intentionally replacing an existing file.
 
+### Deletion protection
+
+Protect an important backup from both manual deletion and retention pruning. In the dashboard, use **Lock backup**, optionally enter a reason and expiry date, or leave the expiry empty for permanent protection. Use **Unlock backup** to remove the protection. The delete action is hidden while protection is active.
+
+The equivalent Artisan commands are:
+
+```bash
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Compliance retention"
+php artisan backup:protect 20261123_120000_aabbccdd --until="2027-01-01T00:00:00+03:00" --reason="Legal hold"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
+```
+
+Each profile also has a cache-backed concurrency lock. A second backup for the same profile is rejected while one is running. Configure the lock lifetime with BACKUP_MANAGER_LOCK_SECONDS (default: 21600 seconds); use a shared cache backend when multiple application servers can start backups.
+
 ### Retention policy
 
 Retention is disabled by default. Enable it in the selected profile:
