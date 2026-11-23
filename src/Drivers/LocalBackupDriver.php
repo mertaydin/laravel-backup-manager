@@ -158,7 +158,8 @@ final class LocalBackupDriver implements BackupDriver
 
             $disk = (string) ($options['disk'] ?? $profile['storage']['disk'] ?? 'local');
             $localDisk = (string) ($profile['storage']['local_disk'] ?? 'local');
-            $diskNames = array_values(array_unique([$localDisk, $disk]));
+            $additionalDisks = array_values(array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'));
+            $diskNames = array_values(array_unique(array_filter([$localDisk, $disk, ...$additionalDisks])));
             $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
 
             foreach ($diskNames as $diskName) {
