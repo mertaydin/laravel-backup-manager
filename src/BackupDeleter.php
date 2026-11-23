@@ -8,6 +8,7 @@ use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Support\Carbon;
 use MertAydin\LaravelBackupManager\Events\BackupDeleted;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use RuntimeException;
 
 final class BackupDeleter
@@ -51,7 +52,7 @@ final class BackupDeleter
         $targets = [];
         try {
             $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             // Fall back to profile configuration before settings are installed.
         }
         $disks = array_values(array_unique($targets !== [] ? $targets : [
