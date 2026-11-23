@@ -67,7 +67,7 @@ final class DashboardLocalizationTest extends TestCase
         $this->withSession(['backup_manager_locale' => 'tr'])
             ->get('/backup-manager/storage')
             ->assertOk()
-            ->assertSee('Depolama yönetimi')
+            ->assertSee('Depolama Yönetimi')
             ->assertSee('data-locale-switcher', false)
             ->assertDontSee('onchange=', false)
             ->assertSee('dashboard.js?v=0.8.6-0.8.6');
