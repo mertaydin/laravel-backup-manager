@@ -171,9 +171,11 @@ final class LocalBackupDriver implements BackupDriver
 
             $verification = null;
             if ((bool) $this->config->get('backup-manager.integrity.verify_after_upload', true)) {
-                $verification = $this->inspector->verify($id, $profileName, $disk);
-                if (! $verification['valid']) {
-                    throw new RuntimeException('Post-upload integrity verification failed: '.implode(' ', $verification['errors']));
+                foreach ($diskNames as $targetDiskName) {
+                    $verification = $this->inspector->verify($id, $profileName, $targetDiskName);
+                    if (! $verification['valid']) {
+                        throw new RuntimeException("Post-upload integrity verification failed on disk [{$targetDiskName}]: ".implode(' ', $verification['errors']));
+                    }
                 }
             }
 
