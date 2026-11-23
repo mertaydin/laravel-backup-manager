@@ -40,6 +40,7 @@ class BackupPreflight
         $storageDisks = array_values(array_unique([
             $diskName,
             (string) data_get($profile, 'storage.local_disk', 'local'),
+            ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
         ]));
         foreach ($storageDisks as $storageDisk) {
             try {
