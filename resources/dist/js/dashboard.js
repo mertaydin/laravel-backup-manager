@@ -79,3 +79,11 @@
     }
     poll();
 })();
+
+(function () {
+    document.querySelectorAll('[data-locale-switcher]').forEach(function (select) {
+        select.addEventListener('change', function () {
+            if (select.value) window.location.assign(select.value);
+        });
+    });
+})();
