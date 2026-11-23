@@ -11,8 +11,8 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveClient;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveOAuth;
-use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Throwable;
 
 final class StorageManagementController extends Controller
