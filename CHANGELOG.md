@@ -3,8 +3,22 @@
 ## [Unreleased]
 
 ### Added
+- Google Drive is available as a real Laravel Filesystem destination for backup upload, inventory, checksum verification, download, restore, and deletion.
+- The storage dashboard can select one or multiple backup destinations, including Google Drive-only mode without a local mirror, and configure the target Drive folder ID.
+- Google Drive destination checks verify listing, write, read, and delete permissions.
+
+## [0.8.7] - 2026-11-23
+
+### Added
 - Dashboard and backup-details controls for permanent or time-limited deletion protection, with reason, status, and unlock actions in all six locales.
 - Per-profile cache locks that reject overlapping backup runs; configurable lock lifetime through BACKUP_MANAGER_LOCK_SECONDS.
+
+### Improved
+- Dashboard history, downloads, details, and integrity verification now include all configured backup destination disks.
+- Downloads fall back to another configured copy when the selected disk is missing the requested artifact.
+- Dashboard asset cache version defaults to 0.8.7.
+
+### Existing backup engine features
 - Manifest-based deletion protection honored by manual deletion and retention pruning.
 - Configurable retry attempts for manual and scheduled backup commands.
 - Multiple additional Laravel Filesystem destinations with preflight checks.
@@ -15,7 +29,6 @@
 - S3 multipart upload for large artifacts when supported by the AWS SDK adapter.
 - PostgreSQL and SQLite database dump/restore support alongside MySQL.
 - Dashboard queue retries and the `backup:protect` command for permanent or time-limited deletion protection.
-
 
 ## [0.7.0] - 2026-11-23
 
