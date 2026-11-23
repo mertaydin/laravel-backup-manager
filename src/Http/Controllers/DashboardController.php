@@ -17,7 +17,6 @@ use MertAydin\\LaravelBackupManager\\BackupInspector;
 use MertAydin\\LaravelBackupManager\\BackupManager;
 use MertAydin\\LaravelBackupManager\\Http\\Middleware\\SetDashboardLocale;
 use MertAydin\\LaravelBackupManager\\Jobs\\CreateBackupJob;
-use RuntimeException;
 use Throwable;
 
 final class DashboardController extends Controller
