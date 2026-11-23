@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.6.0] - 2026-11-23
+
+### Added
+- Turkish README documentation with the same installation, configuration, usage, storage, queue, encryption, restore, and security guidance as the English README.
+- Request-based dashboard authorization callback through the `BackupManager` facade.
+- Laravel Pint configuration using the Laravel preset.
+- Barryvdh Laravel IDE Helper as a development dependency, with Composer generation scripts.
+- Composer dependency audit in CI.
+- Regression tests for dashboard authorization and MySQL database identifier validation.
+
+### Security
+- Reject MySQL database identifiers that could be interpreted as command-line options by `mysqldump` or `mysql`.
+
 ## [0.3.0] - 2026-11-23
 
 ### Added
