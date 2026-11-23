@@ -33,18 +33,42 @@ final class DashboardController extends Controller
         $profileName = (string) config('backup-manager.default', 'default');
         $profile = config('backup-manager.profiles.'.$profileName, []);
         $diskName = (string) data_get($profile, 'storage.disk', 'local');
-        $backups = collect($this->inspector->list($profileName, $diskName, 100))
+        $allBackups = collect($this->inspector->list($profileName, $diskName, 500))
             ->map(static function (array $backup): array {
                 $backup['size'] = (int) ($backup['total_size'] ?? 0);
 
                 return $backup;
             });
+        $filters = request()->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'type' => ['nullable', 'in:manual,scheduled'],
+        ]);
+        $backups = $allBackups
+            ->when($filters['q'] ?? null, static fn ($items, string $query) => $items->filter(
+                static fn (array $backup): bool => str_contains(strtolower(implode(' ', [
+                    $backup['id'] ?? '',
+                    $backup['label'] ?? '',
+                    $backup['note'] ?? '',
+                    implode(' ', $backup['tags'] ?? []),
+                ])), strtolower($query))
+            ))
+            ->when($filters['from'] ?? null, static fn ($items, string $date) => $items->filter(
+                static fn (array $backup): bool => ($backup['created_at'] ?? '') >= $date
+            ))
+            ->when($filters['to'] ?? null, static fn ($items, string $date) => $items->filter(
+                static fn (array $backup): bool => ($backup['created_at'] ?? '') <= $date.'T23:59:59'
+            ))
+            ->when($filters['type'] ?? null, static fn ($items, string $type) => $items->where('type', $type))
+            ->values();
 
         return view('backup-manager::dashboard', [
             'backups' => $backups,
-            'totalBackups' => $backups->count(),
-            'totalSize' => $backups->sum('size'),
-            'latestBackup' => $backups->first(),
+            'totalBackups' => $allBackups->count(),
+            'totalSize' => $allBackups->sum('size'),
+            'latestBackup' => $allBackups->first(),
+            'filters' => $filters,
             'diskName' => $diskName,
             'profileName' => $profileName,
             'databaseEnabled' => (bool) data_get($profile, 'database.enabled', false),
@@ -65,6 +89,10 @@ final class DashboardController extends Controller
         $validated = request()->validate([
             'database' => ['nullable', 'boolean'],
             'files' => ['nullable', 'boolean'],
+            'label' => ['nullable', 'string', 'max:100'],
+            'note' => ['nullable', 'string', 'max:500'],
+            'tags' => ['nullable', 'array', 'max:10'],
+            'tags.*' => ['string', 'max:40'],
         ]);
 
         if (empty($validated['database']) && empty($validated['files'])) {
@@ -78,6 +106,10 @@ final class DashboardController extends Controller
         $job = new CreateBackupJob($jobId, [
             'database' => (bool) ($validated['database'] ?? false),
             'files' => (bool) ($validated['files'] ?? false),
+            'label' => $validated['label'] ?? null,
+            'note' => $validated['note'] ?? null,
+            'tags' => array_values(array_filter(array_map('trim', $validated['tags'] ?? []))),
+            'type' => 'manual',
         ]);
 
         $connection = $this->config->get('backup-manager.queue.connection');
