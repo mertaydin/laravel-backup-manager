@@ -302,5 +302,4 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertSee('Compliance')
             ->assertSee('/backup-manager/'.self::BACKUP_ID.'/protection');
     }
-
 }
