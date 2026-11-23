@@ -15,6 +15,7 @@ final class BackupPruner
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
         private readonly BackupInspector $inspector,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     /**
@@ -46,7 +47,13 @@ final class BackupPruner
             throw new RuntimeException('Retention must keep at least one day of backups or a positive number of recent backups.');
         }
 
-        $diskName ??= (string) ($profile['storage']['disk'] ?? 'local');
+        $targets = [];
+        try {
+            $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        } catch (\\Throwable) {
+            // Fall back to the profile destination before settings are installed.
+        }
+        $diskName ??= (string) ($targets[0] ?? $profile['storage']['disk'] ?? 'local');
         $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/');
         $backupRoot = $prefix === '' ? '' : $prefix.'/';
         $backups = $this->inspector->list($profileName, $diskName, PHP_INT_MAX);
@@ -112,8 +119,10 @@ final class BackupPruner
         $deleted = [];
         $failed = [];
         if ($execute) {
-            $localDiskName = (string) ($profile['storage']['local_disk'] ?? 'local');
-            $diskNames = array_values(array_unique([$diskName, $localDiskName, ...array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string')]));
+            $diskNames = array_values(array_unique($targets !== [] ? $targets : [
+                $diskName,
+                ...array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'),
+            ]));
             foreach ($candidates as $backup) {
                 $id = (string) $backup['id'];
                 $allDeleted = true;
