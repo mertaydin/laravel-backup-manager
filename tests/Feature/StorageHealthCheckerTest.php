@@ -23,6 +23,25 @@ final class StorageHealthCheckerTest extends TestCase
         $app['config']->set('backup-manager.profiles.default.storage.path', 'backups');
     }
 
+
+    public function test_storage_management_page_renders_with_current_stylesheet_and_controls(): void
+    {
+        $this->get('/backup-manager/storage')
+            ->assertOk()
+            ->assertSee('dashboard.css?v=0.8.4-0.8.4')
+            ->assertSee('class="storage-page"', false)
+            ->assertSee('class="storage-card"', false)
+            ->assertSee('OAuth Client ID')
+            ->assertSee('Save automatic backup settings');
+
+        $css = file_get_contents(dirname(__DIR__, 2).'/resources/dist/css/dashboard.css');
+
+        $this->assertIsString($css);
+        $this->assertStringContainsString('.storage-card', $css);
+        $this->assertStringContainsString('.storage-actions', $css);
+        $this->assertStringContainsString('@media(max-width:650px)', $css);
+    }
+
     public function test_it_checks_connection_listing_write_read_and_delete_permissions(): void
     {
         config(['filesystems.disks.health-check' => ['driver' => 'local', 'root' => storage_path('framework/testing/disks/health-check')]]);
