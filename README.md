@@ -120,6 +120,8 @@ php artisan backup:run --profile=default --disk=s3
 php artisan backup:list
 php artisan backup:list --disk=s3 --limit=50
 php artisan backup:verify 20261123_120000_aabbccdd
+php artisan backup:compare 20261123_120000_aabbccdd 20261124_120000_ccddeeff
+php artisan backup:report --json
 php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 php artisan backup:prune
 php artisan backup:prune --execute
@@ -301,3 +303,54 @@ Generated IDE Helper files are excluded from version control.
 ## License
 
 MIT
+
+
+### Backup protection, retry, destinations, reports and comparison
+
+A backup can be protected from manual deletion and retention pruning by passing protection metadata to the backup manager:
+
+```php
+app(\\MertAydin\\LaravelBackupManager\\BackupManager::class)->run([
+    'locked' => true,
+    'protection_reason' => 'Monthly compliance snapshot',
+]);
+```
+
+A time-limited protection can be set with `protected_until` (an ISO-8601 date/time). Both the delete action and retention pruning respect these manifest values.
+
+Retry behavior is configurable. The attempt count includes the initial attempt:
+
+```dotenv
+BACKUP_MANAGER_RETRY_ATTEMPTS=3
+BACKUP_MANAGER_RETRY_DELAY=30
+```
+
+To send each backup set to more than one additional Laravel Filesystem disk, configure a comma-separated list:
+
+```dotenv
+BACKUP_MANAGER_TARGET_DISKS=s3,r2
+```
+
+The configured primary disk and local mirror are still included; duplicate disk names are removed. All destinations are checked during preflight.
+
+Email and Slack notifications are opt-in:
+
+```dotenv
+BACKUP_MANAGER_NOTIFICATIONS_ENABLED=true
+BACKUP_MANAGER_NOTIFICATION_EMAILS=ops@example.com,admin@example.com
+BACKUP_MANAGER_SLACK_WEBHOOK=https://hooks.slack.com/services/REDACTED
+```
+
+Configure a real Slack incoming webhook URL in your secret manager; never commit it to source control. Notifications are sent for completed and failed backups.
+
+Compare two verified backup manifests and their artifact sizes:
+
+```bash
+php artisan backup:compare BACKUP_ID_1 BACKUP_ID_2 --disk=s3
+```
+
+Generate an inventory report, including invalid manifests and total verified artifact bytes:
+
+```bash
+php artisan backup:report --json
+```
