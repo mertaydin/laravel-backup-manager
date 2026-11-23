@@ -6,6 +6,7 @@ namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
 use MertAydin\LaravelBackupManager\Console\Commands\CompareBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ReportBackupsCommand;
@@ -15,6 +16,9 @@ use MertAydin\LaravelBackupManager\Console\Commands\RestoreBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ScheduledBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
+use MertAydin\LaravelBackupManager\Events\BackupCompleted;
+use MertAydin\LaravelBackupManager\Events\BackupFailed;
+use MertAydin\LaravelBackupManager\Listeners\SendBackupNotifications;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
 use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
@@ -57,6 +61,7 @@ class BackupManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Event::listen([BackupCompleted::class, BackupFailed::class], [SendBackupNotifications::class, 'handle']);
         $this->publishes([
             __DIR__.'/../config/backup-manager.php' => config_path('backup-manager.php'),
         ], 'backup-manager-config');
