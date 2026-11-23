@@ -9,4 +9,5 @@ Route::middleware(config('backup-manager.ui.middleware', ['web', 'auth']))
     ->group(function (): void {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('/run', [DashboardController::class, 'run'])->name('run');
+        Route::post('/{id}/verify', [DashboardController::class, 'verify'])->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')->name('verify');
     });
