@@ -316,7 +316,7 @@ MIT
 A backup can be protected from manual deletion and retention pruning by passing protection metadata to the backup manager:
 
 ```php
-app(\\MertAydin\\LaravelBackupManager\\BackupManager::class)->run([
+app(\MertAydin\LaravelBackupManager\BackupManager::class)->run([
     'locked' => true,
     'protection_reason' => 'Monthly compliance snapshot',
 ]);
