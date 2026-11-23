@@ -114,7 +114,7 @@ final class BackupRestorer
             if ($component === 'database') {
                 $database = $profile['database'] ?? [];
                 if (($connection['driver'] ?? null) === 'pgsql') {
-                    $connection['restore_binary'] = $database['restore_binary'] ?? $this->config->get('backup-manager.postgresql.restore_binary', 'psql');
+                    $connection['restore_binary'] = $database['postgres_restore_binary'] ?? $this->config->get('backup-manager.postgresql.restore_binary', 'psql');
                 }
                 $binary = (string) ($database['restore_binary'] ?? $this->config->get('backup-manager.mysql.restore_binary', 'mysql'));
                 $this->databaseRestorer->restore((string) $connectionName, $connection, $restorePath, $binary);
