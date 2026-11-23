@@ -114,10 +114,11 @@ final class ZipRestorer
                     throw new RuntimeException("Unable to read ZIP entry [{$entry['relative']}].");
                 }
 
-                $output = fopen($destination, $overwrite ? 'wb' : 'xb');
+                $temporaryDestination = dirname($destination).DIRECTORY_SEPARATOR.'.restore-'.bin2hex(random_bytes(6));
+                $output = fopen($temporaryDestination, 'xb');
                 if ($output === false) {
                     fclose($source);
-                    throw new RuntimeException("Unable to create restored file [{$entry['relative']}].");
+                    throw new RuntimeException("Unable to create a temporary restored file [{$entry['relative']}].");
                 }
 
                 try {
@@ -128,15 +129,19 @@ final class ZipRestorer
                     if (! fflush($output)) {
                         throw new RuntimeException("Unable to flush restored file [{$entry['relative']}].");
                     }
-                } catch (\Throwable $exception) {
-                    @unlink($destination);
+                } catch (\\Throwable $exception) {
+                    @unlink($temporaryDestination);
                     throw $exception;
                 } finally {
                     fclose($source);
                     fclose($output);
                 }
 
-                @chmod($destination, 0640);
+                @chmod($temporaryDestination, 0640);
+                if (! @rename($temporaryDestination, $destination)) {
+                    @unlink($temporaryDestination);
+                    throw new RuntimeException("Unable to publish restored file [{$entry['relative']}].");
+                }
                 $restored++;
             }
 
