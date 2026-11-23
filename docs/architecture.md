@@ -7,17 +7,18 @@
 - **BackupStorage** abstracts persistence independently from archive creation.
 - **BackupResult** is the immutable result returned by a backup run.
 
-## Planned pipeline
+## Backup pipeline
 
-1. Resolve and validate a named profile.
-2. Acquire a per-profile lock to prevent overlapping runs.
-3. Export the selected database connection to a temporary stream/file.
+1. Resolve and validate the selected profile.
+2. Acquire a cache-backed per-profile lock to prevent overlapping runs.
+3. Export MySQL/PostgreSQL SQL or create a consistent SQLite snapshot.
 4. Optionally create an application ZIP archive using include/exclude rules.
-5. Build a manifest and SHA-256 checksums for every artifact.
+5. Build a manifest and SHA-256 checksums for each payload artifact.
 6. Optionally encrypt artifacts before upload.
-7. Upload artifacts to the configured storage adapter.
-8. Verify remote object size and checksum where the provider supports it.
-9. Persist history, release temporary files, and apply retention rules.
+7. Upload artifacts to the configured Laravel Filesystem disks, including a local mirror when configured.
+8. Verify uploaded artifact sizes, checksums, and supported archive formats.
+9. Publish lifecycle events, update the last-run cache status, release temporary files and the profile lock.
+10. Apply retention cleanup through the pruning service.
 
 ## Safety requirements
 
