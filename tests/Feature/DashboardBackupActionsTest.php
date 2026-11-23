@@ -7,6 +7,7 @@ namespace MertAydin\LaravelBackupManager\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\BackupPreflight;
@@ -19,6 +20,18 @@ final class DashboardBackupActionsTest extends TestCase
     use RefreshDatabase;
 
     private const BACKUP_ID = '20261123_120000_a1b2c3d4';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (! Schema::hasTable('backup_manager_storage_settings')) {
+            $this->artisan('migrate', [
+                '--path' => dirname(__DIR__, 2).'/database/migrations',
+                '--realpath' => true,
+            ])->assertExitCode(0);
+        }
+    }
 
     protected function getPackageProviders($app): array
     {
@@ -49,8 +62,8 @@ final class DashboardBackupActionsTest extends TestCase
 
         $this->get('/backup-manager')
             ->assertOk()
-            ->assertSee('dashboard.css?v=0.8.1')
-            ->assertSee('dashboard.js?v=0.8.1');
+            ->assertSee('dashboard.css?v=0.8.2-0.8.2')
+            ->assertSee('dashboard.js?v=0.8.2-0.8.2');
     }
 
     public function test_delete_removes_backup_from_remote_and_local_disks(): void
