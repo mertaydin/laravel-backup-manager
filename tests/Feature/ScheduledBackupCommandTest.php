@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
 use MertAydin\LaravelBackupManager\BackupManager;
-use MertAydin\LaravelBackupManager\BackupPruner;
-use MertAydin\LaravelBackupManager\Data\BackupResult;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Mockery;
 use Orchestra\Testbench\TestCase;
@@ -30,13 +27,6 @@ final class ScheduledBackupCommandTest extends TestCase
         $this->app->instance(StorageSettingsRepository::class, $settings);
         $this->app->instance(BackupManager::class, $manager);
 
-        Artisan::call('backup:scheduled-run');
-
-        $this->assertSame(0, Artisan::output() === '' ? 0 : 0);
-    }
-
-    public function test_schedule_command_is_registered(): void
-    {
-        $this->assertTrue(Artisan::all()['backup:scheduled-run'] ?? false ? true : isset(Artisan::all()['backup:scheduled-run']));
+        $this->artisan('backup:scheduled-run')->assertExitCode(0);
     }
 }
