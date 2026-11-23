@@ -38,6 +38,22 @@
     </section>
 
     <section class="storage-card">
+        <h2>Yedekleme hedefleri</h2>
+        <p>Oluşturulan her yedek, burada seçtiğin depolama alanlarının tamamına yüklenir. Yalnızca Google Drive kullanmak istiyorsan sadece Google Drive kutusunu işaretle.</p>
+        <form method="POST" action="{{ route('backup-manager.storage.targets') }}">
+            @csrf
+            <div class="storage-target-list">
+                @foreach($filesystemDisks as $disk)
+                    <label class="storage-field">
+                        <span><input type="checkbox" name="targets[]" value="{{ $disk }}" {{ in_array($disk, old('targets', $selectedTargets), true) ? 'checked' : '' }}> <strong>{{ $disk === 'google-drive' ? 'Google Drive' : $disk }}</strong></span>
+                    </label>
+                @endforeach
+            </div>
+            <div class="storage-actions"><button class="primary" type="submit">Seçili hedefleri kaydet</button></div>
+        </form>
+    </section>
+
+    <section class="storage-card">
         <h2>{{ __('backup-manager::dashboard.automatic_backups') }}</h2>
         <p>{{ __('backup-manager::dashboard.schedule_intro') }}</p>
         <form method="POST" action="{{ route('backup-manager.storage.schedule') }}">
