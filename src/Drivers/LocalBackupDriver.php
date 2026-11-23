@@ -8,6 +8,7 @@ use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Filesystem\Filesystem;
 use MertAydin\LaravelBackupManager\Contracts\BackupDriver;
+use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\Data\BackupResult;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
@@ -25,6 +26,7 @@ final class LocalBackupDriver implements BackupDriver
         private readonly ZipArchiver $archiver,
         private readonly Filesystem $files,
         private readonly ArtifactEncryptor $encryptor,
+        private readonly BackupInspector $inspector,
     ) {}
 
     public function run(array $options = []): BackupResult
@@ -144,12 +146,21 @@ final class LocalBackupDriver implements BackupDriver
                 }
             }
 
+            $verification = null;
+            if ((bool) $this->config->get('backup-manager.integrity.verify_after_upload', true)) {
+                $verification = $this->inspector->verify($id, $profileName, $disk);
+                if (! $verification['valid']) {
+                    throw new RuntimeException('Post-upload integrity verification failed: '.implode(' ', $verification['errors']));
+                }
+            }
+
             return BackupResult::success($id, $uploaded[$disk] ?? [], [
                 'profile' => $profileName,
                 'disk' => $disk,
                 'storage_disks' => $diskNames,
                 'checksums' => $manifest['artifacts'],
                 'encryption' => $encryptionMetadata,
+                'verification' => $verification,
             ]);
         } catch (Throwable $exception) {
             foreach ($uploaded as $diskName => $paths) {
