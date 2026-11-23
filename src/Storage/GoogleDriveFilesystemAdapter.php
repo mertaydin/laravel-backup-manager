@@ -65,7 +65,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
 
     public function writeStream(string $path, $contents, Config $config): void
     {
-        if (! is_resource($contents)) {
+        if (!is_resource($contents)) {
             throw new RuntimeException('Invalid Google Drive upload stream.');
         }
 
@@ -283,7 +283,7 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
                 $parent = (string) $matches[0]['id'];
                 continue;
             }
-            if (! $create) {
+            if (!$create) {
                 throw new RuntimeException("Google Drive folder [{$path}] was not found.");
             }
             $parent = $this->client->createFolder($part, $parent);
