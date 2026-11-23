@@ -6,6 +6,7 @@ namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Support\Carbon;
 use MertAydin\LaravelBackupManager\Events\BackupDeleted;
 use RuntimeException;
 
@@ -49,6 +50,7 @@ final class BackupDeleter
         $disks = array_values(array_unique([
             (string) ($storage['disk'] ?? 'local'),
             (string) ($storage['local_disk'] ?? 'local'),
+            ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
         ]));
 
         $deleted = [];
