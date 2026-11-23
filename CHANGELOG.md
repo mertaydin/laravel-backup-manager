@@ -2,6 +2,8 @@
 
 ## [0.6.2] - 2026-11-23
 
+Release: v0.6.2
+
 - Fix Recent Backups list markup so all records share one list container and separators render correctly.
 - Rebuild backup rows as a consistent responsive grid with metadata, size, and actions on dedicated rows.
 - Improve narrow-screen wrapping for long artifact names and action buttons.
