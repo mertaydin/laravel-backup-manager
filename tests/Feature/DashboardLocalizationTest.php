@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
+use Illuminate\Support\Facades\Schema;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use Orchestra\Testbench\TestCase;
 
@@ -52,6 +53,24 @@ final class DashboardLocalizationTest extends TestCase
             ->assertOk()
             ->assertSee('Yedekleme paneli')
             ->assertSee('Toplam yedek');
+    }
+
+    public function test_storage_page_renders_translated_language_switcher_and_external_script(): void
+    {
+        if (! Schema::hasTable('backup_manager_storage_settings')) {
+            $this->artisan('migrate', [
+                '--path' => dirname(__DIR__, 2).'/database/migrations',
+                '--realpath' => true,
+            ])->assertExitCode(0);
+        }
+
+        $this->withSession(['backup_manager_locale' => 'tr'])
+            ->get('/backup-manager/storage')
+            ->assertOk()
+            ->assertSee('Depolama yönetimi')
+            ->assertSee('data-locale-switcher', false)
+            ->assertDontSee('onchange=', false)
+            ->assertSee('dashboard.js?v=0.8.6-0.8.6');
     }
 
     public function test_language_switcher_uses_external_javascript_compatible_with_strict_csp(): void
