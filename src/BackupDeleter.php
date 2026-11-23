@@ -33,7 +33,13 @@ final class BackupDeleter
         }
 
         $storage = $profile['storage'] ?? [];
-        $primaryDisk = (string) ($storage['disk'] ?? 'local');
+        $targets = [];
+        try {
+            $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        } catch (\\Throwable) {
+            // Fall back to profile configuration before settings are installed.
+        }
+        $primaryDisk = (string) ($targets[0] ?? $storage['disk'] ?? 'local');
         $manifestPath = trim((string) ($storage['path'] ?? 'backups'), '/').'/'.$id.'/manifest.json';
         $primary = $this->filesystem->disk($primaryDisk);
         if (! $primary->exists($manifestPath)) {
