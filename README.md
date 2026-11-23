@@ -174,6 +174,18 @@ The pruning command is a dry run unless `--execute` is supplied. It preserves ba
 Schedule::command('backup:prune --execute')->daily();
 ```
 
+### Dashboard-managed automatic backups
+
+The dashboard includes an automatic backup switch, daily run time, timezone, and age-based cleanup. Save these settings under **Backup Manager → Storage Management → Automatic backups**. The cleanup runs only after a successful scheduled backup and permanently deletes backup sets older than the configured number of days.
+
+The host must invoke Laravel's scheduler every minute (add this once to the server crontab):
+
+```cron
+* * * * * cd /path/to/application && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Disabling automatic backups in the dashboard pauses package-created scheduled runs; manual backups remain available. The default schedule is disabled.
+
 ### Restore
 
 The restore command always verifies the complete backup set against its manifest before proceeding. It is a dry run unless `--force` is supplied:
