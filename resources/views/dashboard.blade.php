@@ -40,7 +40,7 @@
         <article class="stat"><div class="stat-head">Total backups <span class="stat-icon">▤</span></div><div class="stat-value">{{ number_format($totalBackups) }}</div><div class="stat-note">Stored backup sets</div></article>
         <article class="stat"><div class="stat-head">Total storage <span class="stat-icon">◫</span></div><div class="stat-value">{{ number_format($totalSize / 1048576, 1) }} <small style="font-size:13px;color:var(--muted)">MB</small></div><div class="stat-note">Across listed backup artifacts</div></article>
         <article class="stat"><div class="stat-head">Latest backup <span class="stat-icon">◷</span></div><div class="stat-value" style="font-size:20px">{{ $latestBackup && $latestBackup['created_at'] ? \Illuminate\Support\Carbon::parse($latestBackup['created_at'])->diffForHumans() : '—' }}</div><div class="stat-note">Most recent completed set</div></article>
-        <article class="stat"><div class="stat-head">Storage status <span class="stat-icon">⌁</span></div><div class="stat-value" style="font-size:20px"><span class="status">Connected</span></div><div class="stat-note">{{ $diskName }} filesystem disk</div></article>
+        <article class="stat"><div class="stat-head">Storage status <span class="stat-icon">⌁</span></div><div class="stat-value" style="font-size:20px"><span class="status">Configured</span></div><div class="stat-note">{{ $diskName }} configured filesystem disk</div></article>
     </section>
 
     <section class="content">
