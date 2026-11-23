@@ -12,6 +12,7 @@ use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ReportBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\PruneBackupsCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\ProtectBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RestoreBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ScheduledBackupCommand;
@@ -53,6 +54,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(ZipRestorer::class);
         $this->app->singleton(ArtifactEncryptor::class);
         $this->app->singleton(BackupInspector::class);
+        $this->app->singleton(BackupProtector::class);
         $this->app->singleton(BackupComparator::class);
         $this->app->singleton(BackupReporter::class);
         $this->app->singleton(BackupPreflight::class);
@@ -108,6 +110,7 @@ class BackupManagerServiceProvider extends ServiceProvider
                 ListBackupsCommand::class,
                 VerifyBackupCommand::class,
                 PruneBackupsCommand::class,
+                ProtectBackupCommand::class,
             ]);
         }
     }
