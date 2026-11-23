@@ -119,4 +119,6 @@ return [
     'protection_removed' => 'Yedeğin silinme koruması kaldırıldı.',
     'protection_failed' => 'Yedek koruma durumu güncellenemedi.',
     'protection_unlock_date_conflict' => 'Yedeğin kilidi açılırken bitiş tarihi belirlenemez.',
+    'protection_status' => 'Silinme koruması',
+    'unprotected' => 'Korumasız',
 ];
