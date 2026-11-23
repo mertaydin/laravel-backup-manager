@@ -39,11 +39,19 @@ final class DashboardController extends Controller
         $profileName = (string) config('backup-manager.default', 'default');
         $profile = config('backup-manager.profiles.'.$profileName, []);
         $diskName = (string) data_get($profile, 'storage.disk', 'local');
-        $availableBackupDisks = array_values(array_unique(array_filter([
-            $diskName,
-            (string) data_get($profile, 'storage.local_disk', 'local'),
-            ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
-        ])));
+        $configuredTargets = [];
+        try {
+            $configuredTargets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+        $availableBackupDisks = array_values(array_unique(array_filter(
+            $configuredTargets !== [] ? $configuredTargets : [
+                $diskName,
+                ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
+            ],
+            'is_string',
+        )));
         $allBackups = collect();
         foreach ($availableBackupDisks as $backupDisk) {
             try {
@@ -215,11 +223,14 @@ final class DashboardController extends Controller
 
         $storage = $profile['storage'] ?? [];
         $prefix = trim((string) ($storage['path'] ?? 'backups'), '/').'/'.$id;
-        $diskNames = array_values(array_unique(array_filter([
-            (string) ($storage['disk'] ?? 'local'),
-            (string) ($storage['local_disk'] ?? 'local'),
-            ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
-        ])));
+        $configuredTargets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        $diskNames = array_values(array_unique(array_filter(
+            $configuredTargets !== [] ? $configuredTargets : [
+                (string) ($storage['disk'] ?? 'local'),
+                ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
+            ],
+            'is_string',
+        )));
 
         $selectedDisk = null;
         $manifest = null;
