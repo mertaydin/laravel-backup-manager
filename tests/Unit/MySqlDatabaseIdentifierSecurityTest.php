@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Tests\\Unit;
+namespace MertAydin\LaravelBackupManager\Tests\Unit;
 
-use MertAydin\\LaravelBackupManager\\Database\\MySqlDumper;
-use MertAydin\\LaravelBackupManager\\Database\\MySqlRestorer;
-use PHPUnit\\Framework\\TestCase;
+use MertAydin\LaravelBackupManager\Database\MySqlDumper;
+use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 final class MySqlDatabaseIdentifierSecurityTest extends TestCase
