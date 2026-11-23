@@ -148,7 +148,7 @@ Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disk
 
 ## Current limitations
 
-Queued execution, backup download actions, and a dedicated Google Drive adapter are not implemented yet. If encryption is enabled in a profile, execution fails safely rather than storing plaintext.
+Queued execution, backup download actions, and a dedicated Google Drive adapter are not implemented yet.
 
 ## Security
 
