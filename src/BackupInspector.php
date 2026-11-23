@@ -244,8 +244,7 @@ final class BackupInspector
                         }
                     }
 
-                    if (@inflate_add($inflater, '', ZLIB_FINISH) === false
-                        || inflate_get_status($inflater) !== ZLIB_STREAM_END
+                    if (inflate_get_status($inflater) !== ZLIB_STREAM_END
                         || inflate_get_read_len($inflater) !== (int) filesize($temporary)) {
                         return 'Database GZIP stream failed its integrity check.';
                     }
