@@ -36,7 +36,7 @@ A Laravel package for database and application file backups, compression, encryp
 ## Installation
 
 ```bash
-composer require mertaydin/laravel-backup-manager
+composer require mertaydin/laravel-backup-manager:^0.3
 php artisan vendor:publish --tag=backup-manager-config
 ```
 
