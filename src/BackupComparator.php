@@ -44,6 +44,7 @@ final class BackupComparator
             if (! is_array($manifest) || ! is_array($manifest['artifacts'] ?? null)) {
                 throw new RuntimeException("Backup manifest [{$id}] is invalid.");
             }
+
             return $manifest;
         };
 
