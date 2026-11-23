@@ -16,7 +16,7 @@ final class MySqlDatabaseIdentifierSecurityTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Invalid MySQL database or table identifier');
 
-        (new MySqlDumper())->dump(
+        (new MySqlDumper)->dump(
             ['database' => '--help'],
             sys_get_temp_dir().'/backup-manager-security-test.sql.gz'
         );
@@ -27,7 +27,7 @@ final class MySqlDatabaseIdentifierSecurityTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Invalid MySQL database identifier');
 
-        (new MySqlRestorer())->restore(
+        (new MySqlRestorer)->restore(
             ['database' => '--help'],
             sys_get_temp_dir().'/backup-manager-security-test.sql.gz'
         );

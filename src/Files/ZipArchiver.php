@@ -24,7 +24,7 @@ final class ZipArchiver
             throw new RuntimeException('The application base path does not exist.');
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($destination, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             throw new RuntimeException('Unable to create the application ZIP archive.');
         }

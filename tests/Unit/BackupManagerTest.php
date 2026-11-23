@@ -13,8 +13,8 @@ final class BackupManagerTest extends TestCase
 {
     public function test_it_registers_and_resolves_a_driver(): void
     {
-        $manager = new BackupManager();
-        $driver = new FakeBackupDriver();
+        $manager = new BackupManager;
+        $driver = new FakeBackupDriver;
 
         $manager->extend('fake', $driver);
 
@@ -24,8 +24,8 @@ final class BackupManagerTest extends TestCase
 
     public function test_it_delegates_backup_execution_to_the_selected_driver(): void
     {
-        $manager = new BackupManager();
-        $manager->extend('fake', new FakeBackupDriver());
+        $manager = new BackupManager;
+        $manager->extend('fake', new FakeBackupDriver);
 
         $result = $manager->run(['database' => true], 'fake');
 

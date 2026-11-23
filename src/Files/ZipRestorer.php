@@ -16,7 +16,7 @@ final class ZipRestorer
         }
 
         $root = $this->prepareRoot($target);
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($archive) !== true) {
             throw new RuntimeException('Unable to open the application backup ZIP archive.');
         }
@@ -87,6 +87,7 @@ final class ZipRestorer
                 $destination = $root.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, $entry['segments']);
                 if ($entry['directory']) {
                     $this->ensureDirectory($root, $entry['segments']);
+
                     continue;
                 }
 
@@ -170,7 +171,7 @@ final class ZipRestorer
     }
 
     /**
-     * @param list<string> $segments
+     * @param  list<string>  $segments
      */
     private function ensureDirectory(string $root, array $segments): void
     {

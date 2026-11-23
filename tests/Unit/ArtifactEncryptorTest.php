@@ -41,7 +41,7 @@ final class ArtifactEncryptorTest extends TestCase
         $decrypted = $this->directory.'/decrypted.bin';
         file_put_contents($source, $contents);
 
-        $encryptor = new ArtifactEncryptor();
+        $encryptor = new ArtifactEncryptor;
         $metadata = $encryptor->encrypt($source, $encrypted, $this->key);
         $encryptor->decrypt($encrypted, $decrypted, $this->key);
 
@@ -57,7 +57,7 @@ final class ArtifactEncryptorTest extends TestCase
         $decrypted = $this->directory.'/empty-restored.bin';
         file_put_contents($source, '');
 
-        $encryptor = new ArtifactEncryptor();
+        $encryptor = new ArtifactEncryptor;
         $encryptor->encrypt($source, $encrypted, $this->key);
         $encryptor->decrypt($encrypted, $decrypted, $this->key);
 
@@ -71,7 +71,7 @@ final class ArtifactEncryptorTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        (new ArtifactEncryptor())->encrypt($source, $this->directory.'/encrypted.bin', 'not-a-valid-key');
+        (new ArtifactEncryptor)->encrypt($source, $this->directory.'/encrypted.bin', 'not-a-valid-key');
     }
 
     public function test_it_rejects_tampered_ciphertext(): void
@@ -81,7 +81,7 @@ final class ArtifactEncryptorTest extends TestCase
         $decrypted = $this->directory.'/decrypted.bin';
         file_put_contents($source, 'sensitive backup content');
 
-        $encryptor = new ArtifactEncryptor();
+        $encryptor = new ArtifactEncryptor;
         $encryptor->encrypt($source, $encrypted, $this->key);
         $ciphertext = file_get_contents($encrypted);
         $ciphertext[strlen($ciphertext) - 1] = chr(ord($ciphertext[strlen($ciphertext) - 1]) ^ 1);

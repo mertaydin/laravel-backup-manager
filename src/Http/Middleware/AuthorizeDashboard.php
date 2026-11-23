@@ -11,9 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class AuthorizeDashboard
 {
-    public function __construct(private readonly DashboardAuthorizer $authorizer)
-    {
-    }
+    public function __construct(private readonly DashboardAuthorizer $authorizer) {}
 
     public function handle(Request $request, Closure $next): Response
     {

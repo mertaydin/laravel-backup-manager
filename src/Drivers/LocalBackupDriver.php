@@ -11,8 +11,8 @@ use MertAydin\LaravelBackupManager\Contracts\BackupDriver;
 use MertAydin\LaravelBackupManager\Data\BackupResult;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
-use MertAydin\LaravelBackupManager\Storage\LaravelFilesystemStorage;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
+use MertAydin\LaravelBackupManager\Storage\LaravelFilesystemStorage;
 use RuntimeException;
 use Throwable;
 
@@ -25,8 +25,7 @@ final class LocalBackupDriver implements BackupDriver
         private readonly ZipArchiver $archiver,
         private readonly Filesystem $files,
         private readonly ArtifactEncryptor $encryptor,
-    ) {
-    }
+    ) {}
 
     public function run(array $options = []): BackupResult
     {

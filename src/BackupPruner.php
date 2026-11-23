@@ -15,8 +15,7 @@ final class BackupPruner
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
         private readonly BackupInspector $inspector,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -71,6 +70,7 @@ final class BackupPruner
                 || $manifestDirectory !== $id
                 || empty($backup['created_at'])) {
                 $invalidCount++;
+
                 continue;
             }
 
@@ -78,6 +78,7 @@ final class BackupPruner
                 $createdAt = Carbon::parse((string) $backup['created_at']);
             } catch (\Throwable) {
                 $invalidCount++;
+
                 continue;
             }
 
@@ -86,6 +87,7 @@ final class BackupPruner
 
             if ($withinAge || $withinCount) {
                 $protectedCount++;
+
                 continue;
             }
 

@@ -54,7 +54,7 @@ final class BackupRestorerTest extends TestCase
     {
         $archive = $this->createArchive();
         $encryptedPath = $archive.'.enc';
-        (new ArtifactEncryptor())->encrypt($archive, $encryptedPath, $this->key);
+        (new ArtifactEncryptor)->encrypt($archive, $encryptedPath, $this->key);
         $encrypted = file_get_contents($encryptedPath);
         $this->storeManifest('application.zip.enc', $encrypted, true);
 
@@ -87,7 +87,7 @@ final class BackupRestorerTest extends TestCase
     private function createArchive(): string
     {
         $path = $this->directory.'/application.zip';
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         self::assertTrue($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true);
         $zip->addFromString('config/app.php', '<?php return "restored";');
         $zip->close();

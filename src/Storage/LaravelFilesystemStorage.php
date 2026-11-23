@@ -11,9 +11,7 @@ use RuntimeException;
 
 final class LaravelFilesystemStorage implements BackupStorage
 {
-    public function __construct(private readonly FilesystemFactory $filesystem, private readonly string $disk = 'local')
-    {
-    }
+    public function __construct(private readonly FilesystemFactory $filesystem, private readonly string $disk = 'local') {}
 
     public function put(string $sourcePath, string $destination): string
     {

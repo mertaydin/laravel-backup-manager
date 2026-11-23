@@ -14,7 +14,6 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupDeleter;
 use MertAydin\LaravelBackupManager\BackupInspector;
-use MertAydin\LaravelBackupManager\BackupManager;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use Throwable;
@@ -27,8 +26,7 @@ final class DashboardController extends Controller
         private readonly FilesystemFactory $filesystem,
         private readonly ConfigRepository $config,
         private readonly CacheRepository $cache,
-    ) {
-    }
+    ) {}
 
     public function index(): View
     {

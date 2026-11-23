@@ -146,7 +146,7 @@ final class MySqlDumper
 
     private function escapeOptionValue(string $value): string
     {
-        return str_replace(["\\", '"', "\n", "\r"], ["\\\\", '\\"', '\\n', '\\r'], $value);
+        return str_replace(['\\', '"', "\n", "\r"], ['\\\\', '\\"', '\\n', '\\r'], $value);
     }
 
     private function validateIdentifier(string $identifier): void
