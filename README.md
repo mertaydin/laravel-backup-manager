@@ -231,6 +231,40 @@ php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my
 
 Select exactly one component per command. Database restore streams the decompressed SQL into the configured `mysql` client and validates the gzip stream before executing SQL. File restore rejects path traversal, symbolic links, duplicate paths and environment files, and refuses to extract through symbolic links already present in the target. Existing files are overwritten only when `--force` is explicitly supplied. Restore is not transactional: keep a separate current backup and test restores in a staging environment before production use.
 
+## Backup metadata, naming, and events
+
+Dashboard-created backups can include a human-readable label, a note, and up to ten tags. These values are stored in the backup manifest and are searchable from the dashboard history.
+
+When no custom label is supplied, the package generates one using `BACKUP_MANAGER_NAME_TEMPLATE`. The default is `:app-:date-:time`. Supported placeholders are:
+
+- `:app` — slugged Laravel application name.
+- `:date` — backup date in `YYYYMMDD` format.
+- `:time` — backup time in `HHMMSS` format.
+- `:id` — complete backup identifier.
+
+The package dispatches Laravel events after backup lifecycle operations:
+
+- `MertAydin\\LaravelBackupManager\\Events\\BackupCompleted`
+- `MertAydin\\LaravelBackupManager\\Events\\BackupFailed`
+- `MertAydin\\LaravelBackupManager\\Events\\BackupDeleted`
+- `MertAydin\\LaravelBackupManager\\Events\\BackupRestored`
+
+Listen to these events using Laravel's standard event/listener registration. The backup result is available as `$event->result` for completion and failure events; deletion and restore events expose `backupId`, with the restored component on `BackupRestored`.
+
+## Storage health and preflight checks
+
+Use **Storage Management → Laravel Filesystem disks → Test connection and permissions** to verify a disk. The check performs temporary listing, write, read, and delete operations under the configured backup path and removes its probe file afterward.
+
+Before a dashboard backup is queued, the package checks the temporary workspace, configured storage disks, MySQL connection type and `mysqldump` executable, and the ZIP or sodium PHP extensions when those features are selected.
+
+## Automatic integrity verification
+
+After uploading a backup, the package verifies artifact SHA-256 checksums and file sizes by default. Disable this extra read pass when necessary:
+
+```dotenv
+BACKUP_MANAGER_VERIFY_AFTER_UPLOAD=false
+```
+
 ## Storage support
 
 Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disks. A dedicated Google Drive OAuth adapter is not included yet.
