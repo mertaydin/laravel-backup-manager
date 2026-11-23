@@ -23,13 +23,14 @@ A Laravel package for database and application file backups, compression, encryp
 
 ## Features
 
-- Streaming MySQL backups as compressed `database.sql.gz`.
+- Streaming MySQL and PostgreSQL backups as compressed SQL archives; consistent SQLite snapshots as compressed database files.
 - Optional application ZIP archives with conservative default exclusions.
-- Laravel Filesystem disks: local, Amazon S3 and S3-compatible services such as Cloudflare R2.
-- SHA-256 checksums and JSON manifests.
+- Multiple Laravel Filesystem destinations, including local, Amazon S3 and S3-compatible services such as Cloudflare R2.
+- Automatic S3 multipart uploads for large artifacts when the AWS SDK adapter is available.
+- SHA-256 checksums, JSON manifests, and GZIP/ZIP structure validation.
 - Backup history listing with `backup:list`.
 - Streaming SHA-256 and file-size integrity checks with `backup:verify`.
-- Verified MySQL and application ZIP restore with `backup:restore`.
+- Verified MySQL, PostgreSQL, SQLite and application ZIP restore with `backup:restore`.
 - One-click integrity verification from the dashboard.
 - Download individual backup artifacts and manifests directly from the dashboard.
 - Delete backup sets from both the configured remote disk and the local mirror.
@@ -54,7 +55,9 @@ A Laravel package for database and application file backups, compression, encryp
 
 - PHP 8.2+
 - Laravel 11, 12 or 13
-- MySQL client tools (`mysqldump` and `mysql`)
+- MySQL client tools (`mysqldump` and `mysql`) for MySQL connections
+- PostgreSQL client tools (`pg_dump` and `psql`) for PostgreSQL connections
+- PHP `pdo_sqlite` extension and a file-backed SQLite database for SQLite connections
 - PHP `zip` extension when application file backups are enabled
 - PHP `sodium` extension when backup encryption is enabled
 
@@ -120,6 +123,11 @@ php artisan backup:run --profile=default --disk=s3
 php artisan backup:list
 php artisan backup:list --disk=s3 --limit=50
 php artisan backup:verify 20261123_120000_aabbccdd
+php artisan backup:compare 20261123_120000_aabbccdd 20261124_120000_ccddeeff
+php artisan backup:report --json
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Compliance retention"
+php artisan backup:protect 20261123_120000_aabbccdd --until="2027-01-01T00:00:00Z"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
 php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 php artisan backup:prune
 php artisan backup:prune --execute
@@ -255,7 +263,7 @@ Listen to these events using Laravel's standard event/listener registration. The
 
 Use **Storage Management → Laravel Filesystem disks → Test connection and permissions** to verify a disk. The check performs temporary listing, write, read, and delete operations under the configured backup path and removes its probe file afterward.
 
-Before a dashboard backup is queued, the package checks the temporary workspace, configured storage disks, MySQL connection type and `mysqldump` executable, and the ZIP or sodium PHP extensions when those features are selected.
+Before a dashboard backup is queued, the package checks the temporary workspace, every configured storage disk, the selected MySQL/PostgreSQL/SQLite connection and its dump tooling, and the ZIP or sodium PHP extensions when those features are selected.
 
 ## Automatic integrity verification
 
@@ -301,3 +309,64 @@ Generated IDE Helper files are excluded from version control.
 ## License
 
 MIT
+
+
+### Backup protection, retry, destinations, reports and comparison
+
+A backup can be protected from manual deletion and retention pruning by passing protection metadata to the backup manager:
+
+```php
+app(\MertAydin\LaravelBackupManager\BackupManager::class)->run([
+    'locked' => true,
+    'protection_reason' => 'Monthly compliance snapshot',
+]);
+```
+
+A time-limited protection can be set with `protected_until` (an ISO-8601 date/time). Both the delete action and retention pruning respect these manifest values.
+
+Retry behavior is configurable. The attempt count includes the initial attempt:
+
+```dotenv
+BACKUP_MANAGER_RETRY_ATTEMPTS=3
+BACKUP_MANAGER_RETRY_DELAY=30
+```
+
+To send each backup set to more than one additional Laravel Filesystem disk, configure a comma-separated list:
+
+```dotenv
+BACKUP_MANAGER_TARGET_DISKS=s3,r2
+```
+
+The configured primary disk and local mirror are still included; duplicate disk names are removed. All destinations are checked during preflight and post-upload integrity verification. S3-compatible disks use multipart upload for large artifacts when the Flysystem AWS S3 adapter and AWS SDK multipart uploader are installed. The default threshold is 64 MiB and the default part size is 8 MiB.
+
+Email and Slack notifications are opt-in:
+
+```dotenv
+BACKUP_MANAGER_NOTIFICATIONS_ENABLED=true
+BACKUP_MANAGER_NOTIFICATION_EMAILS=ops@example.com,admin@example.com
+BACKUP_MANAGER_SLACK_WEBHOOK=https://hooks.slack.com/services/REDACTED
+```
+
+Configure a real Slack incoming webhook URL in your secret manager; never commit it to source control. Notifications are sent for completed and failed backups.
+
+For MySQL, table include/exclude filters are supported. PostgreSQL and SQLite currently back up the complete configured database. SQLite `:memory:` connections are not supported because they do not have a persistent database file.
+
+Protect a backup permanently or until a specified date. Protected backups are excluded from manual deletion and retention cleanup:
+
+```bash
+php artisan backup:protect BACKUP_ID --reason="Compliance retention"
+php artisan backup:protect BACKUP_ID --until="2027-01-01T00:00:00Z"
+php artisan backup:protect BACKUP_ID --unlock
+```
+
+Compare two verified backup manifests and their artifact sizes:
+
+```bash
+php artisan backup:compare BACKUP_ID_1 BACKUP_ID_2 --disk=s3
+```
+
+Generate an inventory report, including invalid manifests and total verified artifact bytes:
+
+```bash
+php artisan backup:report --json
+```
