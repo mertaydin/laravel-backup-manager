@@ -32,7 +32,29 @@ final class StorageManagementController extends Controller
             'filesystemDisks' => $disks,
             'googleConnected' => ! empty(data_get($settings, 'disks.google-drive.refresh_token')),
             'callbackUrl' => route('backup-manager.storage.google.callback'),
+            'schedule' => $settings['schedule'] ?? ['enabled' => false, 'time' => '02:00', 'timezone' => config('app.timezone', 'UTC'), 'retain_days' => 30],
         ]);
+    }
+
+    public function saveSchedule(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'enabled' => ['nullable', 'boolean'],
+            'time' => ['required', 'date_format:H:i'],
+            'timezone' => ['required', 'timezone'],
+            'retain_days' => ['required', 'integer', 'min:1', 'max:3650'],
+        ]);
+
+        $settings = $this->settings->all();
+        $settings['schedule'] = [
+            'enabled' => $request->boolean('enabled'),
+            'time' => $data['time'],
+            'timezone' => $data['timezone'],
+            'retain_days' => (int) $data['retain_days'],
+        ];
+        $this->settings->save($settings);
+
+        return back()->with('storage_success', 'Automatic backup schedule saved.');
     }
 
     public function saveGoogleCredentials(Request $request): RedirectResponse
