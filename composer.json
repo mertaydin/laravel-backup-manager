@@ -34,21 +34,21 @@
     },
     "autoload": {
         "psr-4": {
-            "MertAydin\\\\LaravelBackupManager\\\\": "src/"
+            "MertAydin\\LaravelBackupManager\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "MertAydin\\\\LaravelBackupManager\\\\Tests\\\\": "tests/"
+            "MertAydin\\LaravelBackupManager\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "MertAydin\\\\LaravelBackupManager\\\\BackupManagerServiceProvider"
+                "MertAydin\\LaravelBackupManager\\BackupManagerServiceProvider"
             ],
             "aliases": {
-                "Backup": "MertAydin\\\\LaravelBackupManager\\\\Facades\\\\Backup"
+                "Backup": "MertAydin\\LaravelBackupManager\\Facades\\Backup"
             }
         }
     },
