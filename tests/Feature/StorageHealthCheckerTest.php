@@ -30,7 +30,7 @@ final class StorageHealthCheckerTest extends TestCase
             'read' => true,
             'delete' => true,
         ], $result['checks']);
-        $this->assertSame([], Storage::disk('health-check')->allFiles('.backup-manager-health'));
+        $this->assertSame([], Storage::disk('health-check')->allFiles('backups/.backup-manager-health'));
     }
 
     public function test_dashboard_exposes_storage_health_check_endpoint(): void
