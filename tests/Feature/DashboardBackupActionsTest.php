@@ -321,5 +321,4 @@ final class DashboardBackupActionsTest extends TestCase
 
         self::assertSame(['s3'], app(\MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository::class)->all()['backup_targets']);
     }
-
 }
