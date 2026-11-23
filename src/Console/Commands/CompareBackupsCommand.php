@@ -11,6 +11,7 @@ use Throwable;
 final class CompareBackupsCommand extends Command
 {
     protected $signature = 'backup:compare {left : Older backup ID} {right : Newer backup ID} {--profile=} {--disk=}';
+
     protected $description = 'Compare two verified backup manifests and artifact sizes';
 
     public function handle(BackupComparator $comparator): int
