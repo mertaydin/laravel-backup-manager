@@ -79,7 +79,7 @@ class BackupPreflight
                     $errors[] = "The {$binary} executable for the selected database driver could not be found in the PHP process PATH.";
                 }
             } elseif ($driver === 'sqlite') {
-                $checks['pdo_sqlite'] = in_array('sqlite', \\PDO::getAvailableDrivers(), true);
+                $checks['pdo_sqlite'] = in_array('sqlite', \PDO::getAvailableDrivers(), true);
                 if (! $checks['pdo_sqlite']) {
                     $errors[] = 'The PDO SQLite extension is required for SQLite backups.';
                 }
