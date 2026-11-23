@@ -10,6 +10,7 @@ use RuntimeException;
 final class GoogleDriveOAuth
 {
     private const AUTHORIZE_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+
     private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
     public function authorizationUrl(string $clientId, string $redirectUri, string $state): string
@@ -41,7 +42,7 @@ final class GoogleDriveOAuth
             'grant_type' => 'authorization_code',
         ]);
 
-        if (! $response->successful() || ! is_string($response->json('access_token'))) {
+        if (! $response->successful() || !is_string($response->json('access_token'))) {
             throw new RuntimeException('Google OAuth authorization failed: '.$response->body());
         }
 
