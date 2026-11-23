@@ -15,6 +15,7 @@ final class BackupDeleter
     public function __construct(
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     /** @return array{deleted: list<string>, failed: list<string>} */
@@ -47,9 +48,14 @@ final class BackupDeleter
 
         $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
         $path = ($prefix === '' ? '' : $prefix.'/').$id;
-        $disks = array_values(array_unique([
+        $targets = [];
+        try {
+            $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        } catch (\\Throwable) {
+            // Fall back to profile configuration before settings are installed.
+        }
+        $disks = array_values(array_unique($targets !== [] ? $targets : [
             (string) ($storage['disk'] ?? 'local'),
-            (string) ($storage['local_disk'] ?? 'local'),
             ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
         ]));
 
