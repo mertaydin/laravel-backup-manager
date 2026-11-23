@@ -104,6 +104,10 @@ final class LocalBackupDriver implements BackupDriver
                 'id' => $id,
                 'created_at' => now()->toIso8601String(),
                 'profile' => $profileName,
+                'label' => trim((string) ($options['label'] ?? '')) ?: null,
+                'note' => trim((string) ($options['note'] ?? '')) ?: null,
+                'tags' => array_values(array_unique(array_filter((array) ($options['tags'] ?? []), 'is_string'))),
+                'type' => (string) ($options['type'] ?? 'manual'),
                 'artifacts' => [],
             ];
             if ($encryptionMetadata !== null) {
