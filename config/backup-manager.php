@@ -9,6 +9,9 @@ return [
         'asset_version' => env('BACKUP_MANAGER_ASSET_VERSION', '0.6.3'),
         'middleware' => ['web', 'auth'],
     ],
+    'integrity' => [
+        'verify_after_upload' => env('BACKUP_MANAGER_VERIFY_AFTER_UPLOAD', true),
+    ],
     'mysql' => [
         'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
         'restore_binary' => env('BACKUP_MANAGER_MYSQL_BINARY', 'mysql'),
