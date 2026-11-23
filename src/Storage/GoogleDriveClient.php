@@ -157,6 +157,6 @@ final class GoogleDriveClient
 
     private function escapeQuery(string $value): string
     {
-        return str_replace(["\\", "'"], ["\\\\", "\\'"], $value);
+        return addcslashes($value, "\\'");
     }
 }
