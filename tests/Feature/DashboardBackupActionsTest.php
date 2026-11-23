@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,8 @@ use Orchestra\Testbench\TestCase;
 
 final class DashboardBackupActionsTest extends TestCase
 {
+    use RefreshDatabase;
+
     private const BACKUP_ID = '20261123_120000_a1b2c3d4';
 
     protected function getPackageProviders($app): array
