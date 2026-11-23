@@ -71,6 +71,7 @@ final class MySqlRestorer
                 throw new RuntimeException('Unable to open the compressed SQL backup.');
             }
 
+            $streamFailure = null;
             try {
                 while (! gzeof($input)) {
                     $chunk = gzread($input, 1024 * 1024);
@@ -81,15 +82,20 @@ final class MySqlRestorer
                         $this->writeAll($pipes[0], $chunk);
                     }
                 }
-            } catch (\Throwable $exception) {
+            } catch (\\Throwable $exception) {
+                $streamFailure = $exception;
                 proc_terminate($process);
-                throw $exception;
             } finally {
                 gzclose($input);
-                fclose($pipes[0]);
+                if (is_resource($pipes[0])) {
+                    fclose($pipes[0]);
+                }
             }
 
             $exitCode = proc_close($process);
+            if ($streamFailure !== null) {
+                throw $streamFailure;
+            }
             if ($exitCode !== 0) {
                 $message = trim((string) file_get_contents($stderrFile));
                 throw new RuntimeException('mysql restore failed with exit code '.$exitCode.($message !== '' ? ': '.$message : '.'));
