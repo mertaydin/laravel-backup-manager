@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupDeleter;
 use MertAydin\LaravelBackupManager\BackupInspector;
+use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use Throwable;
@@ -22,6 +23,7 @@ final class DashboardController extends Controller
 {
     public function __construct(
         private readonly BackupInspector $inspector,
+        private readonly BackupPreflight $preflight,
         private readonly BackupDeleter $deleter,
         private readonly FilesystemFactory $filesystem,
         private readonly ConfigRepository $config,
@@ -97,6 +99,14 @@ final class DashboardController extends Controller
 
         if (empty($validated['database']) && empty($validated['files'])) {
             return back()->with('backup_error', __('backup-manager::dashboard.choose_component'));
+        }
+
+        $preflight = $this->preflight->inspect([
+            'database' => (bool) ($validated['database'] ?? false),
+            'files' => (bool) ($validated['files'] ?? false),
+        ]);
+        if (! $preflight['ready']) {
+            return back()->with('backup_error', implode(' ', $preflight['errors']));
         }
 
         $jobId = (string) Str::uuid();
