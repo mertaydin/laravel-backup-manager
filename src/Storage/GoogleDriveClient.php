@@ -123,6 +123,53 @@ final class GoogleDriveClient
         }
     }
 
+
+    public function createFolder(string $name, string $parentId): string
+    {
+        $response = Http::withToken($this->accessToken())->post(self::API.'/files?fields=id', [
+            'name' => $name,
+            'mimeType' => 'application/vnd.google-apps.folder',
+            'parents' => [$parentId],
+        ]);
+
+        if (! $response->successful() || ! is_string($response->json('id'))) {
+            throw new RuntimeException('Unable to create a Google Drive folder: '.$response->body());
+        }
+
+        return $response->json('id');
+    }
+
+    public function move(string $fileId, string $parentId, string $name): void
+    {
+        $file = Http::withToken($this->accessToken())->get(self::API.'/files/'.rawurlencode($fileId), ['fields' => 'parents']);
+        if (! $file->successful()) {
+            throw new RuntimeException('Unable to inspect the Google Drive file before moving it.');
+        }
+
+        $parents = implode(',', (array) $file->json('parents', []));
+        $response = Http::withToken($this->accessToken())->patch(self::API.'/files/'.rawurlencode($fileId), [
+            'name' => $name,
+            'addParents' => $parentId,
+            'removeParents' => $parents,
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Unable to move the Google Drive file: '.$response->body());
+        }
+    }
+
+    public function copy(string $fileId, string $parentId, string $name): void
+    {
+        $response = Http::withToken($this->accessToken())->post(self::API.'/files/'.rawurlencode($fileId).'/copy', [
+            'name' => $name,
+            'parents' => [$parentId],
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Unable to copy the Google Drive file: '.$response->body());
+        }
+    }
+
     private function accessToken(): string
     {
         $token = (string) ($this->credentials['access_token'] ?? '');
