@@ -30,7 +30,7 @@ A Laravel package for database and application file backups, compression, encryp
 - SHA-256 checksums, JSON manifests, and GZIP/ZIP structure validation.
 - Backup history listing with `backup:list`.
 - Streaming SHA-256 and file-size integrity checks with `backup:verify`.
-- Verified MySQL and application ZIP restore with `backup:restore`.
+- Verified MySQL, PostgreSQL, SQLite and application ZIP restore with `backup:restore`.
 - One-click integrity verification from the dashboard.
 - Download individual backup artifacts and manifests directly from the dashboard.
 - Delete backup sets from both the configured remote disk and the local mirror.
@@ -263,7 +263,7 @@ Listen to these events using Laravel's standard event/listener registration. The
 
 Use **Storage Management → Laravel Filesystem disks → Test connection and permissions** to verify a disk. The check performs temporary listing, write, read, and delete operations under the configured backup path and removes its probe file afterward.
 
-Before a dashboard backup is queued, the package checks the temporary workspace, configured storage disks, MySQL connection type and `mysqldump` executable, and the ZIP or sodium PHP extensions when those features are selected.
+Before a dashboard backup is queued, the package checks the temporary workspace, every configured storage disk, the selected MySQL/PostgreSQL/SQLite connection and its dump tooling, and the ZIP or sodium PHP extensions when those features are selected.
 
 ## Automatic integrity verification
 
