@@ -27,7 +27,7 @@ final class StorageManagementController extends Controller
     {
         $settings = $this->settings->all();
         $disks = array_keys(config('filesystems.disks', []));
-        if (!empty(data_get($settings, 'disks.google-drive.refresh_token'))) {
+        if (! empty(data_get($settings, 'disks.google-drive.refresh_token'))) {
             $disks[] = 'google-drive';
         }
         $disks = array_values(array_unique($disks));
@@ -36,7 +36,7 @@ final class StorageManagementController extends Controller
         return view('backup-manager::storage', [
             'settings' => $settings,
             'filesystemDisks' => $disks,
-            'googleConnected' => !empty(data_get($settings, 'disks.google-drive.refresh_token')),
+            'googleConnected' => ! empty(data_get($settings, 'disks.google-drive.refresh_token')),
             'selectedTargets' => $settings['backup_targets'] ?? [data_get(config('backup-manager.profiles.'.config('backup-manager.default', 'default')), 'storage.disk', 'local')],
             'callbackUrl' => route('backup-manager.storage.google.callback'),
             'schedule' => $settings['schedule'] ?? ['enabled' => false, 'time' => '02:00', 'timezone' => config('app.timezone', 'UTC'), 'retain_days' => 30],
@@ -51,12 +51,12 @@ final class StorageManagementController extends Controller
         ]);
 
         $available = array_keys(config('filesystems.disks', []));
-        if (!empty(data_get($this->settings->all(), 'disks.google-drive.refresh_token'))) {
+        if (! empty(data_get($this->settings->all(), 'disks.google-drive.refresh_token'))) {
             $available[] = 'google-drive';
         }
         $targets = array_values(array_unique($data['targets']));
         foreach ($targets as $target) {
-            if (!in_array($target, $available, true)) {
+            if (! in_array($target, $available, true)) {
                 return back()->withErrors(['targets' => "Storage target [{$target}] is not configured or connected."]);
             }
         }
@@ -112,7 +112,7 @@ final class StorageManagementController extends Controller
     public function connectGoogle(Request $request): RedirectResponse
     {
         $credentials = data_get($this->settings->all(), 'disks.google-drive', []);
-        abort_unless(!empty($credentials['client_id']) && !empty($credentials['client_secret']), 422);
+        abort_unless(! empty($credentials['client_id']) && ! empty($credentials['client_secret']), 422);
 
         $state = Str::random(64);
         $request->session()->put('backup_manager_google_oauth_state', $state);
@@ -135,7 +135,7 @@ final class StorageManagementController extends Controller
         }
 
         $credentials = data_get($this->settings->all(), 'disks.google-drive', []);
-        abort_unless(!empty($credentials['client_id']) && !empty($credentials['client_secret']), 422);
+        abort_unless(! empty($credentials['client_id']) && ! empty($credentials['client_secret']), 422);
 
         try {
             $tokens = $this->oauth->exchangeCode(
@@ -145,7 +145,7 @@ final class StorageManagementController extends Controller
                 route('backup-manager.storage.google.callback'),
             );
 
-            if (empty($tokens['refresh_token']) && !empty($credentials['refresh_token'])) {
+            if (empty($tokens['refresh_token']) && ! empty($credentials['refresh_token'])) {
                 $tokens['refresh_token'] = $credentials['refresh_token'];
             }
 
