@@ -36,7 +36,6 @@ final class StorageHealthCheckerTest extends TestCase
         $app['config']->set('backup-manager.profiles.default.storage.path', 'backups');
     }
 
-
     public function test_storage_management_page_renders_with_current_stylesheet_and_controls(): void
     {
         $this->get('/backup-manager/storage')
