@@ -119,4 +119,6 @@ return [
     'protection_removed' => '已取消备份删除保护。',
     'protection_failed' => '无法更新备份保护状态。',
     'protection_unlock_date_conflict' => '解除备份锁定时不能设置到期时间。',
+    'protection_status' => '删除保护',
+    'unprotected' => '未受保护',
 ];
