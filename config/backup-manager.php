@@ -15,6 +15,7 @@ return [
     'integrity' => [
         'verify_after_upload' => env('BACKUP_MANAGER_VERIFY_AFTER_UPLOAD', true),
     ],
+    'lock_seconds' => (int) env('BACKUP_MANAGER_LOCK_SECONDS', 21600),
     'retry' => [
         'max_attempts' => (int) env('BACKUP_MANAGER_RETRY_ATTEMPTS', 1),
         'delay_seconds' => (int) env('BACKUP_MANAGER_RETRY_DELAY', 30),
