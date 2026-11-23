@@ -237,4 +237,70 @@ final class DashboardBackupActionsTest extends TestCase
         $this->get('/backup-manager/'.self::BACKUP_ID.'/download/.env')
             ->assertNotFound();
     }
+
+    public function test_dashboard_can_lock_and_unlock_a_backup_from_all_configured_disks(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        $manifest = [
+            'id' => self::BACKUP_ID,
+            'created_at' => now()->toIso8601String(),
+            'artifacts' => [],
+        ];
+        foreach (['s3', 'local'] as $disk) {
+            Storage::disk($disk)->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode($manifest, JSON_THROW_ON_ERROR));
+        }
+
+        $this->post('/backup-manager/'.self::BACKUP_ID.'/protection', [
+            'reason' => 'Legal retention',
+        ])->assertRedirect()
+            ->assertSessionHas('backup_success');
+
+        foreach (['s3', 'local'] as $disk) {
+            $stored = json_decode(Storage::disk($disk)->get('backups/'.self::BACKUP_ID.'/manifest.json'), true);
+            self::assertTrue($stored['protection']['locked']);
+            self::assertSame('Legal retention', $stored['protection']['reason']);
+        }
+
+        $this->delete('/backup-manager/'.self::BACKUP_ID)
+            ->assertRedirect()
+            ->assertSessionHas('backup_error');
+        Storage::disk('s3')->assertExists('backups/'.self::BACKUP_ID.'/manifest.json');
+        Storage::disk('local')->assertExists('backups/'.self::BACKUP_ID.'/manifest.json');
+
+        $this->post('/backup-manager/'.self::BACKUP_ID.'/protection', ['unlock' => 1])
+            ->assertRedirect()
+            ->assertSessionHas('backup_success');
+
+        foreach (['s3', 'local'] as $disk) {
+            $stored = json_decode(Storage::disk($disk)->get('backups/'.self::BACKUP_ID.'/manifest.json'), true);
+            self::assertFalse($stored['protection']['locked']);
+        }
+
+        $this->delete('/backup-manager/'.self::BACKUP_ID)
+            ->assertRedirect()
+            ->assertSessionHas('backup_success');
+        Storage::disk('s3')->assertMissing('backups/'.self::BACKUP_ID.'/manifest.json');
+        Storage::disk('local')->assertMissing('backups/'.self::BACKUP_ID.'/manifest.json');
+    }
+
+    public function test_dashboard_renders_backup_protection_controls_and_status(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode([
+            'id' => self::BACKUP_ID,
+            'created_at' => now()->toIso8601String(),
+            'profile' => 'default',
+            'protection' => ['locked' => true, 'reason' => 'Compliance'],
+            'artifacts' => [],
+        ], JSON_THROW_ON_ERROR));
+
+        $this->get('/backup-manager')
+            ->assertOk()
+            ->assertSee('Korumalı')
+            ->assertSee('Compliance')
+            ->assertSee('backup-manager.protection');
+    }
+
 }
