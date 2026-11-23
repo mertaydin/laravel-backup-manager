@@ -11,6 +11,7 @@ use Throwable;
 final class ReportBackupsCommand extends Command
 {
     protected $signature = 'backup:report {--profile=} {--disk=} {--json : Output machine-readable JSON}';
+
     protected $description = 'Generate a backup inventory and storage usage report';
 
     public function handle(BackupReporter $reporter): int
@@ -22,6 +23,7 @@ final class ReportBackupsCommand extends Command
             );
             if ($this->option('json')) {
                 $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+
                 return self::SUCCESS;
             }
 
@@ -36,6 +38,7 @@ final class ReportBackupsCommand extends Command
             return self::SUCCESS;
         } catch (Throwable $exception) {
             $this->components->error($exception->getMessage());
+
             return self::FAILURE;
         }
     }
