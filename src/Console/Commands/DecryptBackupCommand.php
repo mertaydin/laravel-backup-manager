@@ -67,6 +67,11 @@ final class DecryptBackupCommand extends Command
                 throw new RuntimeException('The selected backup is not marked as encrypted.');
             }
 
+            if (($manifest['encryption']['algorithm'] ?? null) !== ArtifactEncryptor::ALGORITHM
+                || (int) ($manifest['encryption']['format_version'] ?? 0) !== 1) {
+                throw new RuntimeException('The encrypted artifact format is not supported by this package version.');
+            }
+
             if (! isset($manifest['artifacts'][$artifact])) {
                 throw new RuntimeException("Artifact [{$artifact}] is not part of this backup.");
             }
