@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('backup-manager::dashboard.storage_title') }} · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.8') }}-0.8.8">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.10') }}-0.8.10">
 
 </head>
 <body>
@@ -45,7 +45,7 @@
                 <h2>Yedekleme hedefleri</h2>
                 <p>Yedeklerinin nereye gönderileceğini belirle. Birden fazla hedef seçersen her yedek seçtiğin konumlara ayrı ayrı kopyalanır.</p>
             </div>
-            <div class="destination-count"><span>{{ count($selectedTargets) }}</span><small>seçili hedef</small></div>
+            <div class="destination-count"><span id="destination-selected-count">{{ count($selectedTargets) }}</span><small>seçili hedef</small></div>
         </div>
 
         <form method="POST" action="{{ route('backup-manager.storage.targets') }}" class="destination-form">
@@ -144,6 +144,6 @@
         <p>{{ __('backup-manager::dashboard.test_help') }}</p>
     </section>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.8') }}-0.8.8" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.10') }}-0.8.10" defer></script>
 </body>
 </html>
