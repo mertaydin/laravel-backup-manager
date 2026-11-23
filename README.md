@@ -1,26 +1,23 @@
 # Laravel Backup Manager
 
-A Laravel package for creating compressed MySQL backups and optional application file archives, then storing the artifacts on any configured Laravel filesystem disk.
+Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak depolama paketi.
 
-## Current status
+## Features
 
-The initial backup engine is implemented on the `feature/backup-engine-core` development branch:
-
-- Streaming MySQL export through `mysqldump` to `database.sql.gz`.
-- Optional application ZIP archive with conservative exclusions.
-- Laravel filesystem storage adapter (local and any configured Flysystem disk).
-- Per-artifact SHA-256 checksums and a JSON manifest.
-- `backup:run` Artisan command.
-- Temporary workspace cleanup and best-effort cleanup of partially uploaded artifacts.
-
-This is an early development version. Restore, encryption, retention, scheduling, history UI, and a dedicated Google Drive adapter are not implemented yet. Encryption being enabled in a profile causes the backup to fail safely; it will not silently create an unencrypted backup.
+- Streaming MySQL backups as compressed `database.sql.gz`.
+- Optional application ZIP archives with conservative default exclusions.
+- Laravel Filesystem disks: local, Amazon S3 and S3-compatible services such as Cloudflare R2.
+- SHA-256 checksums and JSON manifests.
+- Built-in dark administration dashboard.
+- Manual backup execution from Artisan or the dashboard.
+- Temporary workspace cleanup and best-effort cleanup of partial uploads.
 
 ## Requirements
 
 - PHP 8.2+
 - Laravel 11 or 12
-- MySQL client tools (`mysqldump`) for database backups
-- PHP `zip` extension for application file backups
+- MySQL client tools (`mysqldump`)
+- PHP `zip` extension when application file backups are enabled
 
 ## Installation
 
@@ -29,7 +26,17 @@ composer require mertaydin/laravel-backup-manager
 php artisan vendor:publish --tag=backup-manager-config
 ```
 
-Configure a Laravel filesystem disk (local, S3, or an S3-compatible endpoint such as Cloudflare R2), then set `BACKUP_MANAGER_DISK` to its name.
+The dashboard is available at `/backup-manager`. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
+
+```php
+'ui' => [
+    'enabled' => true,
+    'prefix' => 'backup-manager',
+    'middleware' => ['web', 'auth'],
+],
+```
+
+For applications with a custom admin authorization middleware, replace the middleware list with your own middleware, for example `['web', 'auth', 'can:manage-backups']`. Do not expose the dashboard publicly.
 
 ## Usage
 
@@ -56,9 +63,15 @@ The database connection is read from Laravel's `database.connections` configurat
 
 ## Storage support
 
-Local, Amazon S3, and Cloudflare R2 can be used through Laravel filesystem disks. Google Drive needs a separate OAuth-backed adapter and is not included in this first engine milestone.
+Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disks. A dedicated Google Drive OAuth adapter is not included yet.
 
-See [docs/backup-engine.md](docs/backup-engine.md) for implementation details and security notes.
+## Current limitations
+
+Restore, encryption, retention automation, queued execution, backup download/delete actions, and a dedicated Google Drive adapter are not implemented yet. If encryption is enabled in a profile, execution fails safely rather than storing plaintext.
+
+## Security
+
+The dashboard is protected by `web` and `auth` middleware by default. Use an additional authorization middleware in production. Application archives exclude `.env` and hidden files by default and skip symlinks. Database output is streamed and credentials are kept out of process arguments.
 
 ## License
 
