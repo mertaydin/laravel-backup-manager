@@ -44,7 +44,7 @@ final class LocalBackupDriver implements BackupDriver
             return BackupResult::failure($id, 'Unable to create the temporary backup workspace.');
         }
 
-        $storage = null;
+        $storages = [];
         $uploaded = [];
         try {
             $artifacts = [];
@@ -130,18 +130,29 @@ final class LocalBackupDriver implements BackupDriver
             $artifacts['manifest.json'] = $manifestPath;
 
             $disk = (string) ($options['disk'] ?? $profile['storage']['disk'] ?? 'local');
-            $storage = new LaravelFilesystemStorage($this->filesystem, $disk);
+            $localDisk = (string) ($profile['storage']['local_disk'] ?? 'local');
+            $diskNames = array_values(array_unique([$localDisk, $disk]));
             $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
-            foreach ($artifacts as $name => $path) {
-                $uploaded[$name] = $storage->put($path, $prefix.'/'.$name);
+
+            foreach ($diskNames as $diskName) {
+                $storages[$diskName] = new LaravelFilesystemStorage($this->filesystem, $diskName);
+                foreach ($artifacts as $name => $path) {
+                    $uploaded[$diskName][$name] = $storages[$diskName]->put($path, $prefix.'/'.$name);
+                }
             }
 
-            return BackupResult::success($id, $uploaded, ['profile' => $profileName, 'disk' => $disk, 'checksums' => $manifest['artifacts'], 'encryption' => $encryptionMetadata]);
+            return BackupResult::success($id, $uploaded[$disk] ?? [], [
+                'profile' => $profileName,
+                'disk' => $disk,
+                'storage_disks' => $diskNames,
+                'checksums' => $manifest['artifacts'],
+                'encryption' => $encryptionMetadata,
+            ]);
         } catch (Throwable $exception) {
-            if ($storage !== null) {
-                foreach ($uploaded as $remotePath) {
+            foreach ($uploaded as $diskName => $paths) {
+                foreach ($paths as $remotePath) {
                     try {
-                        $storage->delete($remotePath);
+                        $storages[$diskName]->delete($remotePath);
                     } catch (Throwable) {
                         // Preserve the original failure; incomplete artifacts are never reported as successful.
                     }
