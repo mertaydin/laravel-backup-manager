@@ -38,7 +38,7 @@ final class GoogleDriveClient
      */
     public function upload(string $localPath, string $name, ?string $folderId = null): string
     {
-        if (! is_file($localPath) || ! is_readable($localPath)) {
+        if (!is_file($localPath) || !is_readable($localPath)) {
             throw new RuntimeException('The local backup artifact cannot be read.');
         }
 
@@ -78,13 +78,12 @@ final class GoogleDriveClient
             fclose($stream);
         }
 
-        if (! $response->successful() || ! is_string($response->json('id'))) {
+        if (! $response->successful() || !is_string($response->json('id'))) {
             throw new RuntimeException('Google Drive upload failed: '.$response->body());
         }
 
         return $response->json('id');
     }
-
     /** @return array<int, array<string, mixed>> */
     public function list(string $folderId): array
     {
@@ -144,7 +143,7 @@ final class GoogleDriveClient
             'parents' => [$parentId],
         ]);
 
-        if (! $response->successful() || ! is_string($response->json('id'))) {
+        if (! $response->successful() || !is_string($response->json('id'))) {
             throw new RuntimeException('Unable to create a Google Drive folder: '.$response->body());
         }
 
@@ -205,7 +204,7 @@ final class GoogleDriveClient
             'grant_type' => 'refresh_token',
         ]);
 
-        if (! $response->successful() || ! is_string($response->json('access_token'))) {
+        if (! $response->successful() || !is_string($response->json('access_token'))) {
             throw new RuntimeException('Google Drive OAuth token refresh failed: '.$response->body());
         }
 
