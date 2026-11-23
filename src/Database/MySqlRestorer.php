@@ -15,6 +15,9 @@ final class MySqlRestorer
         if ($database === '') {
             throw new RuntimeException('The configured MySQL connection has no database name.');
         }
+        if (! preg_match('/^[A-Za-z0-9_][A-Za-z0-9_$-]*$/', $database)) {
+            throw new RuntimeException('Invalid MySQL database identifier.');
+        }
 
         $this->validateCompressedDump($compressedDump);
 
