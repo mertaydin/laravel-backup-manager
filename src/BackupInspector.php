@@ -228,12 +228,9 @@ final class BackupInspector
 
                 try {
                     while (! gzeof($gzip)) {
-                        if (gzread($gzip, 1024 * 1024) === false) {
+                        if (@gzread($gzip, 1024 * 1024) === false) {
                             return 'Database GZIP stream is corrupted.';
                         }
-                    }
-                    if (gzerror($gzip) !== ZLIB_OK) {
-                        return 'Database GZIP stream failed its integrity check.';
                     }
                 } finally {
                     gzclose($gzip);
