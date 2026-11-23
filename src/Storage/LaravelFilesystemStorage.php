@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Storage;
 
+use Aws\S3\MultipartUploader;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Support\Collection;
+use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use MertAydin\LaravelBackupManager\Contracts\BackupStorage;
 use RuntimeException;
 
@@ -36,7 +38,6 @@ final class LaravelFilesystemStorage implements BackupStorage
         return $destination;
     }
 
-
     private function uploadMultipartWhenSupported(string $sourcePath, string $destination): bool
     {
         $enabled = (bool) config('backup-manager.upload.multipart.enabled', true);
@@ -58,8 +59,8 @@ final class LaravelFilesystemStorage implements BackupStorage
 
         $filesystem = $this->filesystem->disk($this->disk);
         $adapter = method_exists($filesystem, 'getAdapter') ? $filesystem->getAdapter() : null;
-        $adapterClass = \League\Flysystem\AwsS3V3\AwsS3V3Adapter::class;
-        $uploaderClass = \Aws\S3\MultipartUploader::class;
+        $adapterClass = AwsS3V3Adapter::class;
+        $uploaderClass = MultipartUploader::class;
         if (! is_object($adapter)
             || ! is_a($adapter, $adapterClass)
             || ! class_exists($uploaderClass)
