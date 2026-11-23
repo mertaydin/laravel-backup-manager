@@ -43,7 +43,7 @@ final class GoogleDriveClient
         }
 
         $metadata = ['name' => $name];
-        if ($folderId ! == null && $folderId ! == '') {
+        if ($folderId !== null && $folderId !== '') {
             $metadata['parents'] = [$folderId];
         }
 
@@ -105,7 +105,7 @@ final class GoogleDriveClient
     public function delete(string $fileId): void
     {
         $response = Http::withToken($this->accessToken())->delete(self::API.'/files/'.rawurlencode($fileId));
-        if (! $response->successful() && $response->status() ! == 404) {
+        if (! $response->successful() && $response->status() !== 404) {
             throw new RuntimeException('Unable to delete the Google Drive backup: '.$response->body());
         }
     }
@@ -122,6 +122,7 @@ final class GoogleDriveClient
             throw new RuntimeException('Unable to download the Google Drive backup: '.$response->body());
         }
     }
+
 
     public function createFolder(string $name, string $parentId): string
     {
@@ -174,7 +175,7 @@ final class GoogleDriveClient
         $token = (string) ($this->credentials['access_token'] ?? '');
         $expiresAt = (int) ($this->credentials['expires_at'] ?? 0);
 
-        if ($token ! == '' && $expiresAt > time() + 60) {
+        if ($token !== '' && $expiresAt > time() + 60) {
             return $token;
         }
 
