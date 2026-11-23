@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager;
+namespace MertAydin\LaravelBackupManager;
 
-use Illuminate\\Support\\ServiceProvider;
-use MertAydin\\LaravelBackupManager\\Console\\Commands\\DecryptBackupCommand;
-use MertAydin\\LaravelBackupManager\\Console\\Commands\\ListBackupsCommand;
-use MertAydin\\LaravelBackupManager\\Console\\Commands\\PruneBackupsCommand;
-use MertAydin\\LaravelBackupManager\\Console\\Commands\\RestoreBackupCommand;
-use MertAydin\\LaravelBackupManager\\Console\\Commands\\RunBackupCommand;
-use MertAydin\\LaravelBackupManager\\Console\\Commands\\VerifyBackupCommand;
-use MertAydin\\LaravelBackupManager\\Database\\MySqlDumper;
-use MertAydin\\LaravelBackupManager\\Database\\MySqlRestorer;
-use MertAydin\\LaravelBackupManager\\Drivers\\LocalBackupDriver;
-use MertAydin\\LaravelBackupManager\\Files\\ZipArchiver;
-use MertAydin\\LaravelBackupManager\\Files\\ZipRestorer;
-use MertAydin\\LaravelBackupManager\\Http\\Controllers\\DashboardController;
-use MertAydin\\LaravelBackupManager\\Security\\ArtifactEncryptor;
-use MertAydin\\LaravelBackupManager\\Services\\DashboardAuthorizer;
+use Illuminate\Support\ServiceProvider;
+use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\PruneBackupsCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\RestoreBackupCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\RunBackupCommand;
+use MertAydin\LaravelBackupManager\Console\Commands\VerifyBackupCommand;
+use MertAydin\LaravelBackupManager\Database\MySqlDumper;
+use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
+use MertAydin\LaravelBackupManager\Drivers\LocalBackupDriver;
+use MertAydin\LaravelBackupManager\Files\ZipArchiver;
+use MertAydin\LaravelBackupManager\Files\ZipRestorer;
+use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
+use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
+use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
