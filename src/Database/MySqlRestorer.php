@@ -113,7 +113,7 @@ final class MySqlRestorer
     private function validateCompressedDump(string $path): void
     {
         $header = file_get_contents($path, false, null, 0, 2);
-        if ($header !== "\x1F\x8B") {
+        if ($header !== pack('C*', 0x1F, 0x8B)) {
             throw new RuntimeException('The SQL backup is not a valid gzip stream.');
         }
 
