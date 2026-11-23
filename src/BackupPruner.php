@@ -74,6 +74,13 @@ final class BackupPruner
                 continue;
             }
 
+            $protectedUntil = $backup['protected_until'] ?? null;
+            if (($backup['locked'] ?? false) || ($protectedUntil && now()->lt($protectedUntil))) {
+                $protectedCount++;
+
+                continue;
+            }
+
             try {
                 $createdAt = Carbon::parse((string) $backup['created_at']);
             } catch (\Throwable) {
