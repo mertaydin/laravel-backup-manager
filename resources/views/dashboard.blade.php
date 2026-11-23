@@ -66,6 +66,9 @@
                     <div class="backup-main"><div class="backup-title"><a href="{{ route('backup-manager.details', $backup['id']) }}">{{ ($backup['label'] ?? '') ?: $backup['id'] }}</a></div><div class="backup-sub">{{ $backup['id'] }} &nbsp;·&nbsp; {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
                     @if($backup['encrypted'] ?? false)<span class="artifact">{{ __('backup-manager::dashboard.encrypted') }}</span>@endif
                     @foreach(($backup['tags'] ?? []) as $tag)<span class="artifact">{{ $tag }}</span>@endforeach
+                    @if($backup['protected'] ?? false)<span class="artifact protection-badge">{{ __('backup-manager::dashboard.protected') }}</span>@endif
+                    @if(!empty($backup['protection_reason']))<div class="backup-sub">{{ __('backup-manager::dashboard.protection_reason') }}: {{ $backup['protection_reason'] }}</div>@endif
+                    @if(!empty($backup['protected_until']))<div class="backup-sub">{{ __('backup-manager::dashboard.protection_until') }}: {{ $backup['protected_until'] }}</div>@endif
                     @if(!empty($backup['note']))<div class="backup-sub">{{ $backup['note'] }}</div>@endif</div></div>
                     <div class="backup-size">{{ number_format($backup['size'] / 1048576, 2) }} MB</div>
                     <div class="backup-actions">
@@ -75,6 +78,20 @@
                         <a class="action-button" href="{{ route('backup-manager.download', ['id' => $backup['id'], 'artifact' => 'manifest.json']) }}">↓ manifest</a>
                         @if(empty($backup['error']))
                             <form class="verify-form" method="POST" action="{{ route('backup-manager.verify', $backup['id']) }}">@csrf<button class="verify-button" type="submit">✓ {{ __('backup-manager::dashboard.verify') }}</button></form>
+                        @endif
+                        @if($backup['protected'] ?? false)
+                            <form class="protection-form" method="POST" action="{{ route('backup-manager.protection', $backup['id']) }}">
+                                @csrf
+                                <input type="hidden" name="unlock" value="1">
+                                <button class="protection-button protection-button--unlock" type="submit">{{ __('backup-manager::dashboard.unlock_backup') }}</button>
+                            </form>
+                        @else
+                            <form class="protection-form" method="POST" action="{{ route('backup-manager.protection', $backup['id']) }}">
+                                @csrf
+                                <input class="protection-input" type="text" name="reason" maxlength="255" placeholder="{{ __('backup-manager::dashboard.protection_reason_placeholder') }}" aria-label="{{ __('backup-manager::dashboard.protection_reason') }}">
+                                <input class="protection-input" type="datetime-local" name="protected_until" aria-label="{{ __('backup-manager::dashboard.protection_until_optional') }}" title="{{ __('backup-manager::dashboard.protection_until_optional') }}">
+                                <button class="protection-button" type="submit">{{ __('backup-manager::dashboard.protect_backup') }}</button>
+                            </form>
                         @endif
                         <form class="delete-form" method="POST" action="{{ route('backup-manager.delete', $backup['id']) }}" data-confirm="{{ __('backup-manager::dashboard.confirm_delete') }}">
                             @csrf @method('DELETE')
