@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
@@ -11,6 +13,19 @@ use Orchestra\Testbench\TestCase;
 
 final class StorageHealthCheckerTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (! Schema::hasTable('backup_manager_storage_settings')) {
+            $this->artisan('migrate', [
+                '--path' => dirname(__DIR__, 2).'/database/migrations',
+                '--realpath' => true,
+            ])->assertExitCode(0);
+        }
+    }
     protected function getPackageProviders($app): array
     {
         return [BackupManagerServiceProvider::class];
