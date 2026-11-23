@@ -200,6 +200,7 @@ final class BackupInspector
         $stream = $disk->readStream($path);
         if (! is_resource($stream)) {
             @unlink($temporary);
+
             return 'Artifact could not be reopened for archive validation.';
         }
 
@@ -207,6 +208,7 @@ final class BackupInspector
         if ($target === false) {
             fclose($stream);
             @unlink($temporary);
+
             return 'Unable to write the temporary archive validation file.';
         }
 
