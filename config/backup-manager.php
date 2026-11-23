@@ -3,6 +3,11 @@
 return [
     'default' => env('BACKUP_MANAGER_PROFILE', 'default'),
     'default_driver' => 'local',
+    'ui' => [
+        'enabled' => env('BACKUP_MANAGER_UI_ENABLED', true),
+        'prefix' => env('BACKUP_MANAGER_UI_PREFIX', 'backup-manager'),
+        'middleware' => ['web', 'auth'],
+    ],
     'mysql' => [
         'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
     ],
