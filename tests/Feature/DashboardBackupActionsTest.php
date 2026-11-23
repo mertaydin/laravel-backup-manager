@@ -28,6 +28,24 @@ final class DashboardBackupActionsTest extends TestCase
         $app['config']->set('backup-manager.profiles.default.storage.path', 'backups');
     }
 
+
+    public function test_dashboard_authorization_callback_can_deny_access(): void
+    {
+        BackupManagerFacade::auth(static fn (Request $request): bool => false);
+
+        $this->get('/backup-manager')
+            ->assertForbidden();
+    }
+
+    public function test_dashboard_authorization_callback_receives_the_request(): void
+    {
+        Storage::fake('s3');
+        BackupManagerFacade::auth(static fn (Request $request): bool => $request->path() === 'backup-manager');
+
+        $this->get('/backup-manager')
+            ->assertOk();
+    }
+
     public function test_delete_removes_backup_from_remote_and_local_disks(): void
     {
         Storage::fake('s3');
