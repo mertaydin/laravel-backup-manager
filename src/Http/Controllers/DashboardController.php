@@ -41,8 +41,15 @@ final class DashboardController extends Controller
             $diskName,
             (string) data_get($profile, 'storage.local_disk', 'local'),
         ]));
-        $allBackups = collect($availableBackupDisks)
-            ->flatMap(fn (string $disk) => $this->inspector->list($profileName, $disk, 500))
+        $allBackups = collect();
+        foreach ($availableBackupDisks as $backupDisk) {
+            try {
+                $allBackups = $allBackups->concat($this->inspector->list($profileName, $backupDisk, 500));
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+        $allBackups = $allBackups
             ->unique('id')
             ->values()
             ->map(static function (array $backup): array {
@@ -256,9 +263,21 @@ final class DashboardController extends Controller
 
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
-        $diskName = (string) data_get($profile, 'storage.disk', 'local');
-        $backup = collect($this->inspector->list($profileName, $diskName, 500))
-            ->firstWhere('id', $id);
+        $diskNames = array_values(array_unique([
+            (string) data_get($profile, 'storage.disk', 'local'),
+            (string) data_get($profile, 'storage.local_disk', 'local'),
+        ]));
+        $backup = null;
+        foreach ($diskNames as $diskName) {
+            try {
+                $backup = collect($this->inspector->list($profileName, $diskName, 500))->firstWhere('id', $id);
+                if (is_array($backup)) {
+                    break;
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
 
         abort_unless(is_array($backup), 404);
 
