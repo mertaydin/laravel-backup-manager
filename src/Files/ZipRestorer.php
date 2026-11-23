@@ -23,6 +23,7 @@ final class ZipRestorer
 
         $entries = [];
         $seen = [];
+        $entryTypes = [];
 
         try {
             for ($index = 0; $index < $zip->numFiles; $index++) {
@@ -61,6 +62,7 @@ final class ZipRestorer
                     throw new RuntimeException("The ZIP archive contains a duplicate path [{$relative}].");
                 }
                 $seen[$relative] = true;
+                $entryTypes[$relative] = $isDirectory ? 'directory' : 'file';
 
                 $entries[] = [
                     'name' => $name,
@@ -72,6 +74,16 @@ final class ZipRestorer
             }
 
             foreach ($entries as $entry) {
+                $ancestors = [];
+                for ($index = 1; $index < count($entry['segments']); $index++) {
+                    $ancestors[] = implode('/', array_slice($entry['segments'], 0, $index));
+                }
+                foreach ($ancestors as $ancestor) {
+                    if (($entryTypes[$ancestor] ?? null) === 'file') {
+                        throw new RuntimeException("The ZIP archive places an entry beneath a file [{$ancestor}].");
+                    }
+                }
+
                 $destination = $root.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, $entry['segments']);
                 if ($entry['directory']) {
                     $this->ensureDirectory($root, $entry['segments']);
@@ -145,7 +157,7 @@ final class ZipRestorer
             throw new RuntimeException('The application restore target is not a valid directory.');
         }
 
-        return rtrim($root, DIRECTORY_SEPARATOR);
+        return $root === DIRECTORY_SEPARATOR ? $root : rtrim($root, DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -169,7 +181,7 @@ final class ZipRestorer
             }
 
             $real = realpath($current);
-            if ($real === false || ($real !== $root && ! str_starts_with($real, $root.DIRECTORY_SEPARATOR))) {
+            if ($real === false || ($root !== DIRECTORY_SEPARATOR && $real !== $root && ! str_starts_with($real, $root.DIRECTORY_SEPARATOR))) {
                 throw new RuntimeException('A ZIP entry resolved outside the restore target.');
             }
         }
