@@ -162,3 +162,85 @@ html[data-theme="light"] .backup-actions .delete-button {
         gap: 6px;
     }
 }
+
+
+/* Recent backups: keep each record in a predictable, full-width vertical layout. */
+.backup-list {
+    display: block;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.backup-list > .backup {
+    display: grid;
+    grid-template-columns: 39px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-items: start;
+    column-gap: 14px;
+    row-gap: 8px;
+    width: 100%;
+    min-width: 0;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.backup-list > .backup:last-child { border-bottom: 0; }
+
+.backup-list > .backup > .file-icon {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    margin-top: 2px;
+}
+
+.backup-list > .backup > .backup-main {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+}
+
+.backup-list > .backup > .backup-size {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    margin: 0;
+}
+
+.backup-list > .backup > .backup-actions {
+    grid-column: 2;
+    grid-row: 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin: 2px 0 0;
+}
+
+.backup-list > .backup .verify-form,
+.backup-list > .backup .delete-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+
+@media (max-width: 650px) {
+    .backup-list { padding: 0 14px; }
+    .backup-list > .backup { column-gap: 10px; row-gap: 7px; padding: 15px 0; }
+    .backup-list > .backup > .backup-actions { gap: 6px; }
+    .backup-list > .backup .action-button,
+    .backup-list > .backup .verify-button,
+    .backup-list > .backup .delete-button {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 380px) {
+    .backup-list { padding: 0 10px; }
+    .backup-list > .backup { grid-template-columns: 32px minmax(0, 1fr); column-gap: 8px; }
+    .backup-list > .backup > .file-icon { width: 32px; height: 36px; }
+}
