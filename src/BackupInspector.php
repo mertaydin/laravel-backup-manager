@@ -48,6 +48,9 @@ final class BackupInspector
                     'note' => (string) ($manifest['note'] ?? ''),
                     'tags' => is_array($manifest['tags'] ?? null) ? $manifest['tags'] : [],
                     'type' => (string) ($manifest['type'] ?? 'manual'),
+                    'locked' => (bool) data_get($manifest, 'protection.locked', false),
+                    'protected_until' => data_get($manifest, 'protection.protected_until'),
+                    'protection_reason' => data_get($manifest, 'protection.reason'),
                     'status' => 'available',
                     'encrypted' => (bool) (data_get($manifest, 'encryption.enabled', false)),
                     'artifacts' => collect($manifest['artifacts'])
