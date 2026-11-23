@@ -38,9 +38,9 @@ Without component flags, the selected profile's enabled components are used. Whe
 
 ## Storage
 
-The backup engine uses configured Laravel Filesystem disks. Local, Amazon S3, and S3-compatible services such as Cloudflare R2 can be used when their Laravel/Flysystem adapters are installed and configured. A local mirror and additional target disks can be configured in the backup profile.
+The backup engine uses configured Laravel Filesystem disks. Local, Amazon S3, and S3-compatible services such as Cloudflare R2 can be used when their Laravel/Flysystem adapters are installed and configured. One or more backup destinations are selected in Storage Management. The selected list is authoritative for new backup uploads; no local mirror is forced unless the local disk is selected.
 
-The package includes Google Drive OAuth account connection and connection testing in Storage Management, but Google Drive is not yet a selectable backup destination. A native Google Drive storage adapter and historical backup operations remain unimplemented.
+Google Drive is registered as a Laravel Flysystem disk through the maintained `masbug/flysystem-google-drive-ext` adapter. Storage Management stores OAuth credentials encrypted, allows choosing a Drive folder ID, and exposes Google Drive as a selectable backup destination after OAuth connection. The Backup destinations form persists one or more targets; backup runs upload to exactly those targets, and dashboard history, downloads, deletion, and restore resolve the selected primary target.
 
 Large S3 objects use multipart upload when the AWS SDK S3 adapter is available and multipart uploads are enabled.
 
