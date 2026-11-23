@@ -39,13 +39,19 @@ final class LocalBackupDriver implements BackupDriver
         $profile = $this->config->get('backup-manager.profiles.'.$profileName);
 
         if (! is_array($profile)) {
-            return BackupResult::failure($id, "Backup profile [{$profileName}] does not exist.");
+            $result = BackupResult::failure($id, "Backup profile [{$profileName}] does not exist.");
+            event(new BackupFailed($result));
+
+            return $result;
         }
 
         $temporaryRoot = (string) $this->config->get('backup-manager.temporary_directory');
         $workdir = rtrim($temporaryRoot, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$id;
         if (! $this->files->makeDirectory($workdir, 0700, true, true)) {
-            return BackupResult::failure($id, 'Unable to create the temporary backup workspace.');
+            $result = BackupResult::failure($id, 'Unable to create the temporary backup workspace.');
+            event(new BackupFailed($result));
+
+            return $result;
         }
 
         $storages = [];
