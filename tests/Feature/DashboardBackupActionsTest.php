@@ -44,7 +44,9 @@ final class DashboardBackupActionsTest extends TestCase
         BackupManagerFacade::auth(static fn (Request $request): bool => $request->path() === 'backup-manager');
 
         $this->get('/backup-manager')
-            ->assertOk();
+            ->assertOk()
+            ->assertSee('dashboard.css?v=0.6.1')
+            ->assertSee('dashboard.js?v=0.6.1');
     }
 
     public function test_delete_removes_backup_from_remote_and_local_disks(): void

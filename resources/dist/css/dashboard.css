@@ -25,3 +25,140 @@
 .job-status.is-failed{border-color:#87404d;color:var(--red)}
 @media(max-width:900px){.backup-actions{justify-content:flex-start;margin-inline-start:53px}}
 @media(max-width:650px){.backup-actions{margin-inline-start:0}.backup-actions .action-button{font-size:9px;padding:5px 6px}}
+
+
+/* Backup row actions: keep downloads and destructive actions in a dedicated,
+   wrapping row instead of squeezing them beside the backup metadata. */
+.backup {
+    display: grid;
+    grid-template-columns: 39px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 14px;
+    row-gap: 12px;
+}
+
+.backup-main {
+    min-width: 0;
+}
+
+.backup-size {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+}
+
+.backup-actions {
+    grid-column: 2 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+.backup-actions .action-button,
+.backup-actions .verify-button,
+.backup-actions .delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 32px;
+    margin: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel2);
+    color: var(--text);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+
+.backup-actions .action-button:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.backup-actions .verify-button {
+    border-color: #3c527e;
+    background: #1a2944;
+    color: #b8caff;
+}
+
+html[data-theme="light"] .backup-actions .verify-button {
+    border-color: #c7d2f0;
+    background: #edf2ff;
+    color: #405bbd;
+}
+
+.backup-actions .verify-button:hover {
+    border-color: var(--blue);
+    background: var(--panel);
+}
+
+.backup-actions .delete-button {
+    border-color: #87404d;
+    background: #48232e;
+    color: #ffc0c6;
+}
+
+html[data-theme="light"] .backup-actions .delete-button {
+    border-color: #edc4ca;
+    background: #fff0f1;
+    color: #a83243;
+}
+
+.backup-actions .delete-button:hover {
+    border-color: var(--red);
+    background: var(--panel);
+}
+
+.backup-actions .verify-form,
+.backup-actions .delete-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+
+@media (max-width: 650px) {
+    .backup {
+        grid-template-columns: 39px minmax(0, 1fr);
+        column-gap: 10px;
+    }
+
+    .backup-size {
+        grid-column: 2;
+        grid-row: auto;
+        justify-self: start;
+        margin: 0;
+    }
+
+    .backup-actions {
+        grid-column: 2;
+        justify-content: flex-start;
+        gap: 7px;
+    }
+
+    .backup-actions .action-button,
+    .backup-actions .verify-button,
+    .backup-actions .delete-button {
+        min-height: 30px;
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 420px) {
+    .backup-actions {
+        gap: 6px;
+    }
+}
