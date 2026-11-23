@@ -28,6 +28,10 @@ return [
         'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
         'restore_binary' => env('BACKUP_MANAGER_MYSQL_BINARY', 'mysql'),
     ],
+    'postgresql' => [
+        'dump_binary' => env('BACKUP_MANAGER_PG_DUMP_BINARY', 'pg_dump'),
+        'restore_binary' => env('BACKUP_MANAGER_PSQL_BINARY', 'psql'),
+    ],
 
     'profiles' => [
         'default' => [
