@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-11-23
+
+### Added
+- Native Google Drive Filesystem adapter with OAuth, resumable uploads, paginated inventory, download, deletion, and folder support.
+- Storage dashboard controls to choose one or multiple backup destinations, including Google Drive-only backups without a local mirror.
+- Configurable Google Drive root folder ID and read/write/list/delete permission checks.
+
+### Improved
+- Backup integrity verification, restore, pruning, protection, and dashboard history work against the selected Google Drive destination.
+- Long-running Google Drive uploads and downloads are not cut off by the default HTTP timeout.
+- Dashboard asset cache version defaults to 0.8.8.
+
+
 ### Added
 - Google Drive is available as a real Laravel Filesystem destination for backup upload, inventory, checksum verification, download, restore, and deletion.
 - The storage dashboard can select one or multiple backup destinations, including Google Drive-only mode without a local mirror, and configure the target Drive folder ID.
