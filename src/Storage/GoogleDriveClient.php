@@ -27,7 +27,7 @@ final class GoogleDriveClient
         $response = Http::withToken($this->accessToken())
             ->get(self::API.'/about', ['fields' => 'user(displayName,emailAddress)']);
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             throw new RuntimeException('Google Drive connection test failed: '.$response->body());
         }
     }
@@ -38,7 +38,7 @@ final class GoogleDriveClient
      */
     public function upload(string $localPath, string $name, ?string $folderId = null): string
     {
-        if (! is_file($localPath) || ! is_readable($localPath)) {
+        if (!is_file($localPath) || !is_readable($localPath)) {
             throw new RuntimeException('The local backup artifact cannot be read.');
         }
 
@@ -60,7 +60,7 @@ final class GoogleDriveClient
             ])
             ->post(self::UPLOAD_API.'/files?uploadType=resumable&fields=id,name,size', $metadata);
 
-        if (! $session->successful() || ! $session->header('Location')) {
+        if (!$session->successful() || !$session->header('Location')) {
             throw new RuntimeException('Google Drive did not create an upload session: '.$session->body());
         }
 
@@ -78,7 +78,7 @@ final class GoogleDriveClient
             fclose($stream);
         }
 
-        if (! $response->successful() || ! is_string($response->json('id'))) {
+        if (!$response->successful() || !is_string($response->json('id'))) {
             throw new RuntimeException('Google Drive upload failed: '.$response->body());
         }
 
@@ -95,7 +95,7 @@ final class GoogleDriveClient
             'orderBy' => 'createdTime desc',
         ]);
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             throw new RuntimeException('Unable to list Google Drive backups: '.$response->body());
         }
 
@@ -105,7 +105,7 @@ final class GoogleDriveClient
     public function delete(string $fileId): void
     {
         $response = Http::withToken($this->accessToken())->delete(self::API.'/files/'.rawurlencode($fileId));
-        if (! $response->successful() && $response->status() !== 404) {
+        if (!$response->successful() && $response->status() !== 404) {
             throw new RuntimeException('Unable to delete the Google Drive backup: '.$response->body());
         }
     }
@@ -115,14 +115,13 @@ final class GoogleDriveClient
         $response = Http::withToken($this->accessToken())->withOptions(['sink' => $destination])
             ->get(self::API.'/files/'.rawurlencode($fileId), ['alt' => 'media']);
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             if (is_file($destination)) {
                 unlink($destination);
             }
             throw new RuntimeException('Unable to download the Google Drive backup: '.$response->body());
         }
     }
-
 
     public function createFolder(string $name, string $parentId): string
     {
@@ -132,7 +131,7 @@ final class GoogleDriveClient
             'parents' => [$parentId],
         ]);
 
-        if (! $response->successful() || ! is_string($response->json('id'))) {
+        if (!$response->successful() || !is_string($response->json('id'))) {
             throw new RuntimeException('Unable to create a Google Drive folder: '.$response->body());
         }
 
@@ -142,7 +141,7 @@ final class GoogleDriveClient
     public function move(string $fileId, string $parentId, string $name): void
     {
         $file = Http::withToken($this->accessToken())->get(self::API.'/files/'.rawurlencode($fileId), ['fields' => 'parents']);
-        if (! $file->successful()) {
+        if (!$file->successful()) {
             throw new RuntimeException('Unable to inspect the Google Drive file before moving it.');
         }
 
@@ -153,7 +152,7 @@ final class GoogleDriveClient
             'removeParents' => $parents,
         ]);
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             throw new RuntimeException('Unable to move the Google Drive file: '.$response->body());
         }
     }
@@ -165,7 +164,7 @@ final class GoogleDriveClient
             'parents' => [$parentId],
         ]);
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             throw new RuntimeException('Unable to copy the Google Drive file: '.$response->body());
         }
     }
@@ -194,7 +193,7 @@ final class GoogleDriveClient
             'grant_type' => 'refresh_token',
         ]);
 
-        if (! $response->successful() || ! is_string($response->json('access_token'))) {
+        if (!$response->successful() || !is_string($response->json('access_token'))) {
             throw new RuntimeException('Google Drive OAuth token refresh failed: '.$response->body());
         }
 
