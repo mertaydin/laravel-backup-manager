@@ -67,4 +67,5 @@ return [
     'backup_deleted' => '备份已从本地和远程存储中删除。',
     'backup_delete_failed' => '无法删除备份。',
     'delete_partial' => '无法从所有存储磁盘中删除备份。失败的磁盘：:disks',
+    'validation_error' => '请修正以下错误：',
 ];
