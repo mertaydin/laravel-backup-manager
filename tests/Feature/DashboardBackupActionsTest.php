@@ -302,4 +302,24 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertSee('Compliance')
             ->assertSee('/backup-manager/'.self::BACKUP_ID.'/protection');
     }
+
+    public function test_storage_dashboard_saves_only_the_selected_backup_destinations(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+
+        $this->get('/backup-manager/storage')
+            ->assertOk()
+            ->assertSee('Yedekleme hedefleri')
+            ->assertSee('name="targets[]"', false)
+            ->assertSee('value="s3"', false);
+
+        $this->post('/backup-manager/storage/targets', [
+            'targets' => ['s3'],
+        ])->assertRedirect()
+            ->assertSessionHas('storage_success');
+
+        self::assertSame(['s3'], app(\\MertAydin\\LaravelBackupManager\\Storage\\StorageSettingsRepository::class)->all()['backup_targets']);
+    }
+
 }
