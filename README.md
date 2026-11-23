@@ -70,7 +70,7 @@ php artisan vendor:publish --tag=backup-manager-assets
 ```
 
 The dashboard assets are published to `public/vendor/backup-manager`; republish them after package updates with `php artisan vendor:publish --tag=backup-manager-assets --force
-php artisan optimize:clear`. This release updates the JavaScript locale switcher; republishing assets is required. CSS and JavaScript URLs include the configurable `backup-manager.ui.asset_version` query parameter (default `0.8.6`) to prevent stale browser caches. You can override it with `BACKUP_MANAGER_ASSET_VERSION`. The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
+php artisan optimize:clear`. This release updates the JavaScript locale switcher; republishing assets is required. CSS and JavaScript URLs include the configurable `backup-manager.ui.asset_version` query parameter (default `0.8.7`) to prevent stale browser caches. You can override it with `BACKUP_MANAGER_ASSET_VERSION`. The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
 
 ```php
 'ui' => [
