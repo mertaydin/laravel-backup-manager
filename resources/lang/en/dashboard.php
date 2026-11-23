@@ -106,4 +106,6 @@ return [
     'download_artifact' => "Download artifact",
     'download_manifest' => "Download manifest",
     'verify_integrity' => "Verify integrity",
+    'note' => "Note",
+    'tags' => "Tags",
 ];
