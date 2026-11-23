@@ -106,4 +106,6 @@ return [
     'download_artifact' => "Yedek dosyasını indir",
     'download_manifest' => "Manifest dosyasını indir",
     'verify_integrity' => "Bütünlüğü doğrula",
+    'note' => "Not",
+    'tags' => "Etiketler",
 ];
