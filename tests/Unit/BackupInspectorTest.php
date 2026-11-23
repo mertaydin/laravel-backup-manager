@@ -68,7 +68,6 @@ final class BackupInspectorTest extends TestCase
         self::assertNotEmpty($result['errors']);
     }
 
-
     public function test_it_rejects_a_corrupt_gzip_even_when_its_manifest_checksum_matches(): void
     {
         $contents = 'not a gzip stream';
