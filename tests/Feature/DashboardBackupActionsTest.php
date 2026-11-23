@@ -67,7 +67,6 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertSee('dashboard.js?v=0.8.4-0.8.4');
     }
 
-
     public function test_dashboard_locale_selection_persists_for_every_supported_language(): void
     {
         $locales = [
