@@ -83,6 +83,24 @@ BackupManager::auth(function (Request $request) {
 
 Register the callback in your application's `AppServiceProvider::boot()` method or another provider that boots before the dashboard request. Return `true` to allow access and `false` to respond with HTTP 403.
 
+## Database migrations
+
+**Run the package migration after installing or upgrading to v0.6.3:**
+
+```bash
+php artisan migrate
+```
+
+The package automatically registers its migrations through its service provider; you do not need to publish the migration manually. This creates the `backup_manager_storage_settings` table, which is required by Storage Management to persist encrypted storage credentials and automatic-backup settings. Without it, the dashboard may report MySQL error `1146` for the missing table.
+
+You can confirm whether Laravel has run the migration with:
+
+```bash
+php artisan migrate:status
+```
+
+If the migration is still pending, run `php artisan migrate` using the same environment and database connection used by the application. Back up your database before running migrations in production.
+
 ## Usage
 
 ```bash
