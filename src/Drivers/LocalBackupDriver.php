@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\Contracts\BackupDriver;
 use MertAydin\LaravelBackupManager\Data\BackupResult;
-use MertAydin\LaravelBackupManager\Database\MySqlDumper;
+use MertAydin\LaravelBackupManager\Database\DatabaseDumper;
 use MertAydin\LaravelBackupManager\Events\BackupCompleted;
 use MertAydin\LaravelBackupManager\Events\BackupFailed;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
@@ -25,7 +25,7 @@ final class LocalBackupDriver implements BackupDriver
     public function __construct(
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
-        private readonly MySqlDumper $dumper,
+        private readonly DatabaseDumper $dumper,
         private readonly ZipArchiver $archiver,
         private readonly Filesystem $files,
         private readonly ArtifactEncryptor $encryptor,
@@ -62,14 +62,16 @@ final class LocalBackupDriver implements BackupDriver
             if (($options['database'] ?? null) === true || (! array_key_exists('database', $options) && ($databaseConfig['enabled'] ?? false))) {
                 $connectionName = $databaseConfig['connection'] ?? null;
                 $connectionConfig = $this->config->get('database.connections.'.($connectionName ?: $this->config->get('database.default')));
-                if (($connectionConfig['driver'] ?? null) !== 'mysql') {
-                    throw new RuntimeException('The initial database exporter currently supports MySQL connections only.');
+                $connectionDriver = (string) ($connectionConfig['driver'] ?? '');
+                if ($connectionDriver === 'mysql') {
+                    $connectionConfig['dump_binary'] = $databaseConfig['dump_binary'] ?? $this->config->get('backup-manager.mysql.dump_binary', 'mysqldump');
+                } elseif ($connectionDriver === 'pgsql') {
+                    $connectionConfig['dump_binary'] = $databaseConfig['postgres_dump_binary'] ?? $this->config->get('backup-manager.postgresql.dump_binary', 'pg_dump');
                 }
-
-                $connectionConfig['dump_binary'] = $databaseConfig['dump_binary'] ?? $this->config->get('backup-manager.mysql.dump_binary', 'mysqldump');
-                $path = $workdir.'/database.sql.gz';
+                $databaseArtifactName = $connectionDriver === 'sqlite' ? 'database.sqlite.gz' : 'database.sql.gz';
+                $path = $workdir.'/'.$databaseArtifactName;
                 $this->dumper->dump($connectionConfig, $path, $databaseConfig['tables'] ?? [], $databaseConfig['exclude_tables'] ?? []);
-                $artifacts['database.sql.gz'] = $path;
+                $artifacts[$databaseArtifactName] = $path;
             }
 
             $fileConfig = $profile['files'] ?? [];
@@ -127,6 +129,11 @@ final class LocalBackupDriver implements BackupDriver
                 'note' => trim((string) ($options['note'] ?? '')) ?: null,
                 'tags' => array_values(array_unique(array_filter((array) ($options['tags'] ?? []), 'is_string'))),
                 'type' => (string) ($options['type'] ?? 'manual'),
+                'protection' => [
+                    'locked' => (bool) ($options['locked'] ?? false),
+                    'protected_until' => $options['protected_until'] ?? null,
+                    'reason' => isset($options['protection_reason']) ? trim((string) $options['protection_reason']) : null,
+                ],
                 'artifacts' => [],
             ];
             if ($encryptionMetadata !== null) {
@@ -153,7 +160,8 @@ final class LocalBackupDriver implements BackupDriver
 
             $disk = (string) ($options['disk'] ?? $profile['storage']['disk'] ?? 'local');
             $localDisk = (string) ($profile['storage']['local_disk'] ?? 'local');
-            $diskNames = array_values(array_unique([$localDisk, $disk]));
+            $additionalDisks = array_values(array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'));
+            $diskNames = array_values(array_unique(array_filter([$localDisk, $disk, ...$additionalDisks])));
             $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
 
             foreach ($diskNames as $diskName) {
@@ -165,9 +173,11 @@ final class LocalBackupDriver implements BackupDriver
 
             $verification = null;
             if ((bool) $this->config->get('backup-manager.integrity.verify_after_upload', true)) {
-                $verification = $this->inspector->verify($id, $profileName, $disk);
-                if (! $verification['valid']) {
-                    throw new RuntimeException('Post-upload integrity verification failed: '.implode(' ', $verification['errors']));
+                foreach ($diskNames as $targetDiskName) {
+                    $verification = $this->inspector->verify($id, $profileName, $targetDiskName);
+                    if (! $verification['valid']) {
+                        throw new RuntimeException("Post-upload integrity verification failed on disk [{$targetDiskName}]: ".implode(' ', $verification['errors']));
+                    }
                 }
             }
 
