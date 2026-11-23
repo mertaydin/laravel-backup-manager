@@ -26,6 +26,7 @@ final class ProtectBackupCommand extends Command
             $until = $this->option('until') ? (string) $this->option('until') : null;
             if ($unlock && $until !== null) {
                 $this->components->error('Do not combine --unlock and --until.');
+
                 return self::FAILURE;
             }
 
@@ -42,6 +43,7 @@ final class ProtectBackupCommand extends Command
             return self::SUCCESS;
         } catch (Throwable $exception) {
             $this->components->error($exception->getMessage());
+
             return self::FAILURE;
         }
     }
