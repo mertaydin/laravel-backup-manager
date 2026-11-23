@@ -14,6 +14,7 @@ use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\Facades\BackupManager as BackupManagerFacade;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Orchestra\Testbench\TestCase;
 
 final class DashboardBackupActionsTest extends TestCase
@@ -319,6 +320,6 @@ final class DashboardBackupActionsTest extends TestCase
         ])->assertRedirect()
             ->assertSessionHas('storage_success');
 
-        self::assertSame(['s3'], app(\MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository::class)->all()['backup_targets']);
+        self::assertSame(['s3'], app(StorageSettingsRepository::class)->all()['backup_targets']);
     }
 }
