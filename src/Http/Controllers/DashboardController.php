@@ -308,18 +308,30 @@ final class DashboardController extends Controller
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
 
-        try {
-            $result = $this->inspector->verify(
-                $id,
-                $profileName,
-                (string) data_get($profile, 'storage.disk', 'local')
-            );
+        $diskNames = array_values(array_unique([
+            (string) data_get($profile, 'storage.disk', 'local'),
+            (string) data_get($profile, 'storage.local_disk', 'local'),
+        ]));
 
-            if (! $result['valid']) {
-                return back()->with('backup_error', __('backup-manager::dashboard.verification_failed', ['errors' => implode(' ', $result['errors'])]));
+        try {
+            $errors = [];
+            foreach ($diskNames as $diskName) {
+                try {
+                    $result = $this->inspector->verify($id, $profileName, $diskName);
+                    if ($result['valid']) {
+                        return back()->with('backup_success', __('backup-manager::dashboard.verification_success', ['id' => $id]));
+                    }
+                    $errors = array_merge($errors, $result['errors']);
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
             }
 
-            return back()->with('backup_success', __('backup-manager::dashboard.verification_success', ['id' => $id]));
+            if ($errors !== []) {
+                return back()->with('backup_error', __('backup-manager::dashboard.verification_failed', ['errors' => implode(' ', $errors)]));
+            }
+
+            return back()->with('backup_error', __('backup-manager::dashboard.verification_error'));
         } catch (Throwable $exception) {
             report($exception);
 
