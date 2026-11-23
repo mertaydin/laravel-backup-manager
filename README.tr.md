@@ -280,7 +280,7 @@ BACKUP_MANAGER_VERIFY_AFTER_UPLOAD=false
 
 ## Depolama desteği
 
-Laravel Filesystem diskleri üzerinden local, Amazon S3 ve Cloudflare R2 kullanılabilir. Pakette yerleşik Google Drive OAuth adaptörü henüz bulunmuyor; Google Drive bağlantısı Laravel Filesystem diski olarak ayrıca sağlanmalıdır.
+Laravel Filesystem diskleri üzerinden local, Amazon S3 ve Cloudflare R2 kullanılabilir. Pakette yerleşik Google Drive, panelden bağlandıktan sonra yerel Laravel Filesystem diski gibi kullanılabilir. Depolama Yönetimi ekranında Google hesabını bağla, hedef klasör kimliğini gir ve **Yedekleme hedefleri** bölümünden `google-drive` seç. Yalnızca Google Drive seçersen sunucuda yerel yedek kopyası tutulmaz; birden fazla hedef seçersen yedekler hepsine yüklenir. Yükleme, listeleme, bütünlük doğrulama, indirme, geri yükleme ve silme işlemleri Drive üzerinden çalışır.
 
 ## Güvenlik notları
 
