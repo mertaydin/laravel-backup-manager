@@ -15,6 +15,7 @@ final class BackupProtector
     public function __construct(
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     public function update(string $id, ?string $profileName = null, bool $locked = true, ?string $protectedUntil = null, ?string $reason = null): void
@@ -43,9 +44,14 @@ final class BackupProtector
         $storage = $profile['storage'] ?? [];
         $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
         $relative = ($prefix === '' ? '' : $prefix.'/').$id.'/manifest.json';
-        $disks = array_values(array_unique(array_filter([
+        $targets = [];
+        try {
+            $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        } catch (Throwable) {
+            // Fall back to profile destinations before settings are installed.
+        }
+        $disks = array_values(array_unique($targets !== [] ? $targets : array_filter([
             (string) ($storage['disk'] ?? 'local'),
-            (string) ($storage['local_disk'] ?? 'local'),
             ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
         ])));
 
