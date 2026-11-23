@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Storage;
+namespace MertAydin\LaravelBackupManager\Storage;
 
-use Illuminate\\Contracts\\Filesystem\\Factory as FilesystemFactory;
+use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use RuntimeException;
 use Throwable;
 
