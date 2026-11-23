@@ -84,7 +84,7 @@ final class MySqlRestorer
                         $this->writeAll($pipes[0], $chunk);
                     }
                 }
-            } catch (\\Throwable $exception) {
+            } catch (\Throwable $exception) {
                 $streamFailure = $exception;
                 proc_terminate($process);
             } finally {
