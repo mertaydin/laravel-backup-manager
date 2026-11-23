@@ -48,7 +48,7 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 ## Kurulum
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.5
+composer require mertaydin/laravel-backup-manager:^0.6
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
