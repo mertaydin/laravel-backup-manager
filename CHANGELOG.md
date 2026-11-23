@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.6.1] - 2026-11-23
+
+### Fixed
+- Rework backup list action controls into a responsive, wrapping grid row so artifact downloads, verification, and deletion remain consistently styled and usable.
+- Add explicit light- and dark-theme styles for verify and delete actions.
+
+### Improved
+- Append a configurable version query parameter to dashboard CSS and JavaScript URLs to invalidate stale browser caches.
+- Add feature coverage for versioned dashboard asset URLs.
+
 ## [0.6.0] - 2026-11-23
 
 ### Added
