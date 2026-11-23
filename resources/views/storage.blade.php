@@ -39,6 +39,40 @@
     </section>
 
     <section class="storage-card">
+        <h2>Automatic backups</h2>
+        <p>Enable or pause daily backups without changing your server configuration. The Laravel scheduler must be running every minute on the server.</p>
+        <form method="POST" action="{{ route('backup-manager.storage.schedule') }}">
+            @csrf
+            <label class="storage-field">
+                <strong>Automatic backup</strong>
+                <span><input type="checkbox" name="enabled" value="1" {{ ($schedule['enabled'] ?? false) ? 'checked' : '' }}> Enable scheduled backups</span>
+            </label>
+            <label class="storage-field">
+                <strong>Run time</strong>
+                <input type="time" name="time" value="{{ old('time', $schedule['time'] ?? '02:00') }}" required>
+            </label>
+            <label class="storage-field">
+                <strong>Timezone</strong>
+                <input type="text" name="timezone" value="{{ old('timezone', $schedule['timezone'] ?? config('app.timezone', 'UTC')) }}" list="backup-timezones" required>
+                <datalist id="backup-timezones">
+                    <option value="Europe/Istanbul">
+                    <option value="UTC">
+                    <option value="Europe/London">
+                    <option value="Europe/Berlin">
+                    <option value="America/New_York">
+                </datalist>
+            </label>
+            <label class="storage-field">
+                <strong>Delete backups older than (days)</strong>
+                <input type="number" name="retain_days" min="1" max="3650" value="{{ old('retain_days', $schedule['retain_days'] ?? 30) }}" required>
+                <small>After a successful scheduled backup, backup sets older than this number of days are permanently deleted. Recent backups are retained.</small>
+            </label>
+            <div class="storage-actions"><button class="primary" type="submit">Save automatic backup settings</button></div>
+        </form>
+        <p><strong>Server cron requirement:</strong> <code>* * * * * php /path/to/your-project/artisan schedule:run</code></p>
+    </section>
+
+    <section class="storage-card">
         <h2>Laravel Filesystem disks</h2>
         <p>Existing Laravel disks such as local, S3 and Cloudflare R2 remain configured in your application's <code>config/filesystems.php</code>. Select the disk in the backup profile's <code>storage.disk</code> setting.</p>
         <ul>@foreach($filesystemDisks as $disk)<li><code>{{ $disk }}</code></li>@endforeach</ul>
