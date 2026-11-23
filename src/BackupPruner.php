@@ -106,7 +106,7 @@ final class BackupPruner
                         if (! $this->filesystem->disk($targetDiskName)->deleteDirectory($backupRoot.$id)) {
                             $allDeleted = false;
                         }
-                    } catch (\\Throwable) {
+                    } catch (\Throwable) {
                         $allDeleted = false;
                     }
                 }
