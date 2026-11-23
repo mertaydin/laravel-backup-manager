@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Facades;
+namespace MertAydin\LaravelBackupManager\Facades;
 
-use Illuminate\\Support\\Facades\\Facade;
-use MertAydin\\LaravelBackupManager\\Services\\DashboardAuthorizer;
+use Illuminate\Support\Facades\Facade;
+use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
 
 /**
  * @method static void auth(callable $callback)
