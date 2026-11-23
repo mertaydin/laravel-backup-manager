@@ -19,6 +19,7 @@ final class ScheduledBackupCommandTest extends TestCase
 
     public function test_disabled_schedule_does_not_run_a_backup(): void
     {
+        $this->app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
         Schema::create('backup_manager_storage_settings', function (Blueprint $table): void {
             $table->string('key')->primary();
             $table->longText('value');
