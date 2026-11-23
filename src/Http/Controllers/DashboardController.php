@@ -23,7 +23,6 @@ final class DashboardController extends Controller
 {
     public function __construct(
         private readonly BackupInspector $inspector,
-        private readonly BackupManager $backups,
         private readonly BackupDeleter $deleter,
         private readonly FilesystemFactory $filesystem,
         private readonly ConfigRepository $config,
@@ -140,16 +139,20 @@ final class DashboardController extends Controller
         $selectedDisk = null;
         $manifest = null;
         foreach ($diskNames as $diskName) {
-            $disk = $this->filesystem->disk($diskName);
-            if (! $disk->exists($prefix.'/manifest.json')) {
-                continue;
-            }
+            try {
+                $disk = $this->filesystem->disk($diskName);
+                if (! $disk->exists($prefix.'/manifest.json')) {
+                    continue;
+                }
 
-            $candidate = json_decode((string) $disk->get($prefix.'/manifest.json'), true);
-            if (is_array($candidate) && ($candidate['id'] ?? null) === $id) {
-                $selectedDisk = $disk;
-                $manifest = $candidate;
-                break;
+                $candidate = json_decode((string) $disk->get($prefix.'/manifest.json'), true);
+                if (is_array($candidate) && ($candidate['id'] ?? null) === $id) {
+                    $selectedDisk = $disk;
+                    $manifest = $candidate;
+                    break;
+                }
+            } catch (Throwable $exception) {
+                report($exception);
             }
         }
 
