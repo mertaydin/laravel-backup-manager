@@ -292,11 +292,11 @@ BACKUP_MANAGER_VERIFY_AFTER_UPLOAD=false
 
 ## Storage support
 
-Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disks. A dedicated Google Drive OAuth adapter is not included yet.
+Local, Amazon S3, Cloudflare R2, and the built-in Google Drive Flysystem adapter are supported. Connect Google Drive from Storage Management, then select it under **Backup destinations**. Multiple destinations can be selected; each new backup is uploaded to every selected destination. Local storage is not added implicitly.
 
 ## Current limitations
 
-A dedicated Google Drive OAuth adapter is not included yet. Google Drive integrations must be provided through a Laravel filesystem disk.
+Google Drive OAuth credentials and refresh tokens are encrypted in the package settings table. The Google Drive adapter is registered as a Laravel filesystem disk and uses the selected Drive folder.
 
 ## Security
 
