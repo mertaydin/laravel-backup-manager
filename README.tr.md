@@ -305,7 +305,7 @@ MIT
 Yedek oluşturulurken manifest'e koruma bilgisi ekleyerek manuel silme ve retention temizliğini engelleyebilirsiniz:
 
 ```php
-app(\\MertAydin\\LaravelBackupManager\\BackupManager::class)->run([
+app(\MertAydin\LaravelBackupManager\BackupManager::class)->run([
     'locked' => true,
     'protection_reason' => 'Aylık mevzuat yedeği',
 ]);
