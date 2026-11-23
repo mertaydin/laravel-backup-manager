@@ -7,6 +7,7 @@ namespace MertAydin\LaravelBackupManager\Drivers;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use MertAydin\LaravelBackupManager\Contracts\BackupDriver;
 use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\Data\BackupResult;
@@ -104,11 +105,19 @@ final class LocalBackupDriver implements BackupDriver
                 $encryptionMetadata['key_id'] = $encryptionConfig['key_id'] ?? null;
             }
 
+            $createdAt = now();
+            $nameTemplate = (string) $this->config->get('backup-manager.naming.template', ':app-:date-:time');
+            $generatedLabel = str_replace(
+                [':app', ':date', ':time', ':id'],
+                [Str::slug((string) $this->config->get('app.name', 'laravel-app')), $createdAt->format('Ymd'), $createdAt->format('His'), $id],
+                $nameTemplate,
+            );
+            $label = trim((string) ($options['label'] ?? '')) ?: Str::slug($generatedLabel);
             $manifest = [
                 'id' => $id,
-                'created_at' => now()->toIso8601String(),
+                'created_at' => $createdAt->toIso8601String(),
                 'profile' => $profileName,
-                'label' => trim((string) ($options['label'] ?? '')) ?: null,
+                'label' => $label,
                 'note' => trim((string) ($options['note'] ?? '')) ?: null,
                 'tags' => array_values(array_unique(array_filter((array) ($options['tags'] ?? []), 'is_string'))),
                 'type' => (string) ($options['type'] ?? 'manual'),
