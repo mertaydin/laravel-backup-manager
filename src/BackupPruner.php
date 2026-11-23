@@ -95,10 +95,23 @@ final class BackupPruner
         $deleted = [];
         $failed = [];
         if ($execute) {
-            $disk = $this->filesystem->disk($diskName);
+            $localDiskName = (string) ($profile['storage']['local_disk'] ?? 'local');
+            $diskNames = array_values(array_unique([$diskName, $localDiskName]));
             foreach ($candidates as $backup) {
                 $id = (string) $backup['id'];
-                if ($disk->deleteDirectory($backupRoot.$id)) {
+                $allDeleted = true;
+
+                foreach ($diskNames as $targetDiskName) {
+                    try {
+                        if (! $this->filesystem->disk($targetDiskName)->deleteDirectory($backupRoot.$id)) {
+                            $allDeleted = false;
+                        }
+                    } catch (\\Throwable) {
+                        $allDeleted = false;
+                    }
+                }
+
+                if ($allDeleted) {
                     $deleted[] = $id;
                 } else {
                     $failed[] = $id;
