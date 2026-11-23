@@ -233,10 +233,10 @@ Panelden oluşturulan yedeklere okunabilir bir ad, açıklama ve en fazla on eti
 
 Paket yedekleme yaşam döngüsünde aşağıdaki Laravel event'lerini tetikler:
 
-- `MertAydin\\LaravelBackupManager\\Events\\BackupCompleted`
-- `MertAydin\\LaravelBackupManager\\Events\\BackupFailed`
-- `MertAydin\\LaravelBackupManager\\Events\\BackupDeleted`
-- `MertAydin\\LaravelBackupManager\\Events\\BackupRestored`
+- `MertAydin\LaravelBackupManager\Events\BackupCompleted`
+- `MertAydin\LaravelBackupManager\Events\BackupFailed`
+- `MertAydin\LaravelBackupManager\Events\BackupDeleted`
+- `MertAydin\LaravelBackupManager\Events\BackupRestored`
 
 Laravel'in standart event/listener kayıt yöntemlerini kullanabilirsiniz. Tamamlanma ve hata event'lerinde sonuç `$event->result` üzerinden; silme ve geri yükleme event'lerinde `backupId` üzerinden alınabilir. `BackupRestored` ayrıca geri yüklenen bileşeni taşır.
 
