@@ -54,6 +54,7 @@
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
                 <select name="type" aria-label="Backup type"><option value="">All types</option><option value="manual" {{ ($filters['type'] ?? '') === 'manual' ? 'selected' : '' }}>Manual</option><option value="scheduled" {{ ($filters['type'] ?? '') === 'scheduled' ? 'selected' : '' }}>Scheduled</option></select>
                 <select name="status" aria-label="Backup status"><option value="">All statuses</option><option value="available" {{ ($filters['status'] ?? '') === 'available' ? 'selected' : '' }}>Available</option><option value="invalid" {{ ($filters['status'] ?? '') === 'invalid' ? 'selected' : '' }}>Invalid manifest</option></select>
+                <select name="disk" aria-label="Storage disk"><option value="">All disks</option>@foreach($availableBackupDisks as $availableDisk)<option value="{{ $availableDisk }}" {{ ($filters['disk'] ?? '') === $availableDisk ? 'selected' : '' }}>{{ $availableDisk }}</option>@endforeach</select>
                 <button class="action-button" type="submit">Filter</button>
                 <a class="action-button" href="{{ route('backup-manager.dashboard') }}">Clear</a>
             </form>
