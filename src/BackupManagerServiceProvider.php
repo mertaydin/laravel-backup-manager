@@ -6,6 +6,10 @@ namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Filesystem\FilesystemAdapter;
+use League\Flysystem\Filesystem as Flysystem;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Illuminate\Support\ServiceProvider;
 use MertAydin\LaravelBackupManager\Console\Commands\CompareBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
@@ -75,6 +79,32 @@ class BackupManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Storage::extend('google-drive', function ($app, array $config): FilesystemAdapter {
+            $credentials = $app->make(StorageSettingsRepository::class)->all()['disks']['google-drive'] ?? [];
+            foreach (['client_id', 'client_secret', 'refresh_token'] as $key) {
+                if (empty($credentials[$key])) {
+                    throw new \\RuntimeException('Google Drive is not connected. Configure and connect it from Backup Manager storage settings.');
+                }
+            }
+
+            $client = new \\Google\\Client();
+            $client->setApplicationName((string) config('app.name', 'Laravel Backup Manager'));
+            $client->setClientId((string) $credentials['client_id']);
+            $client->setClientSecret((string) $credentials['client_secret']);
+            $client->setAccessType('offline');
+            $client->setScopes(['https://www.googleapis.com/auth/drive']);
+            $client->fetchAccessTokenWithRefreshToken((string) $credentials['refresh_token']);
+
+            $service = new \\Google\\Service\\Drive($client);
+            $adapter = new \\Masbug\\Flysystem\\GoogleDriveAdapter(
+                $service,
+                (string) ($credentials['root_folder_id'] ?? 'root'),
+                ['useDisplayPaths' => true],
+            );
+
+            return new FilesystemAdapter(new Flysystem($adapter), $adapter);
+        });
+
         Event::listen([BackupCompleted::class, BackupFailed::class], [SendBackupNotifications::class, 'handle']);
         $this->publishes([
             __DIR__.'/../config/backup-manager.php' => config_path('backup-manager.php'),
