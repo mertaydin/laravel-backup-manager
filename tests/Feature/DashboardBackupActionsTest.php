@@ -298,9 +298,9 @@ final class DashboardBackupActionsTest extends TestCase
 
         $this->get('/backup-manager')
             ->assertOk()
-            ->assertSee('Korumalı')
+            ->assertSee('Protected')
             ->assertSee('Compliance')
-            ->assertSee('backup-manager.protection');
+            ->assertSee('/backup-manager/'.self::BACKUP_ID.'/protection');
     }
 
 }
