@@ -1,0 +1,32 @@
+name: Temporary Pint Formatter
+
+on:
+  push:
+    branches: ["feature/**"]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, zip, pdo_mysql
+          coverage: none
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: vendor/bin/pint
+      - name: Commit formatted PHP files
+        run: |
+          if [ -n "$(git status --porcelain -- src tests)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src tests
+            git commit -m "Apply Laravel Pint formatting"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
