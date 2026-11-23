@@ -78,7 +78,7 @@ final class BackupPruner
             try {
                 $isProtected = (bool) ($backup['locked'] ?? false)
                     || ($protectedUntil && now()->lt(Carbon::parse($protectedUntil)));
-            } catch (\\Throwable) {
+            } catch (\Throwable) {
                 $invalidCount++;
 
                 continue;
