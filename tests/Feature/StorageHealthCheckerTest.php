@@ -41,7 +41,7 @@ final class StorageHealthCheckerTest extends TestCase
         $this->get('/backup-manager/storage')
             ->assertOk()
             ->assertSee('dashboard.css?v=0.8.4-0.8.4')
-            ->assertSee('class="storage-page"', false)
+            ->assertSee('class="shell storage-page"', false)
             ->assertSee('class="storage-card"', false)
             ->assertSee('OAuth Client ID')
             ->assertSee('Save automatic backup settings');
