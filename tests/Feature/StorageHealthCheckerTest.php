@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
@@ -13,8 +12,6 @@ use Orchestra\Testbench\TestCase;
 
 final class StorageHealthCheckerTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
