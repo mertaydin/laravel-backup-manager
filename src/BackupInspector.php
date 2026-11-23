@@ -7,6 +7,7 @@ namespace MertAydin\LaravelBackupManager;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Support\Carbon;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use RuntimeException;
 use Throwable;
 
