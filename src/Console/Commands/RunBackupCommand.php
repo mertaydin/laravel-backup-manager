@@ -6,6 +6,7 @@ namespace MertAydin\LaravelBackupManager\Console\Commands;
 
 use Illuminate\Console\Command;
 use MertAydin\LaravelBackupManager\BackupManager;
+use MertAydin\LaravelBackupManager\BackupPreflight;
 
 final class RunBackupCommand extends Command
 {
@@ -17,7 +18,7 @@ final class RunBackupCommand extends Command
 
     protected $description = 'Create and upload a Laravel application backup';
 
-    public function handle(BackupManager $manager): int
+    public function handle(BackupManager $manager, BackupPreflight $preflight): int
     {
         $options = [];
         if ($this->option('profile')) {
@@ -31,6 +32,15 @@ final class RunBackupCommand extends Command
 
         if ($this->option('disk')) {
             $options['disk'] = $this->option('disk');
+        }
+
+        $checks = $preflight->inspect($options);
+        if (! $checks['ready']) {
+            foreach ($checks['errors'] as $error) {
+                $this->components->error($error);
+            }
+
+            return self::FAILURE;
         }
 
         $result = $manager->run($options);
