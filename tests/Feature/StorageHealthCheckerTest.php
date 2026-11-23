@@ -43,8 +43,8 @@ final class StorageHealthCheckerTest extends TestCase
             ->assertOk()
             ->assertSee('Depolama Yönetimi')
             ->assertSee('Türkçe')
-            ->assertSee('dashboard.css?v=0.8.8-0.8.8')
-            ->assertSee('dashboard.js?v=0.8.8-0.8.8')
+            ->assertSee('dashboard.css?v=0.8.8-0.8.10')
+            ->assertSee('dashboard.js?v=0.8.8-0.8.10')
             ->assertSee('data-locale-switcher', false)
             ->assertDontSee('onchange=', false)
             ->assertSee('class="shell storage-page"', false)
@@ -52,6 +52,8 @@ final class StorageHealthCheckerTest extends TestCase
             ->assertSee('OAuth İstemci Kimliği')
             ->assertSee('Otomatik yedekleme ayarlarını kaydet')
             ->assertSee('Yedekleme hedefleri')
+            ->assertSee('destination-grid', false)
+            ->assertSee('destination-selected-count', false)
             ->assertSee('/backup-manager/storage/targets');
 
         $css = file_get_contents(dirname(__DIR__, 2).'/resources/dist/css/dashboard.css');
