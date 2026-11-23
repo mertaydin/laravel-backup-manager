@@ -36,7 +36,7 @@ final class BackupDeleter
         $targets = [];
         try {
             $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             // Fall back to profile configuration before settings are installed.
         }
         $primaryDisk = (string) ($targets[0] ?? $storage['disk'] ?? 'local');
@@ -55,12 +55,6 @@ final class BackupDeleter
 
         $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
         $path = ($prefix === '' ? '' : $prefix.'/').$id;
-        $targets = [];
-        try {
-            $targets = (array) ($this->settings->all()['backup_targets'] ?? []);
-        } catch (\Throwable) {
-            // Fall back to profile configuration before settings are installed.
-        }
         $disks = array_values(array_unique($targets !== [] ? $targets : [
             (string) ($storage['disk'] ?? 'local'),
             ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
