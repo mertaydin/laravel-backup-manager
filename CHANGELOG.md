@@ -5,8 +5,6 @@
 ### Added
 - Dashboard and backup-details controls for permanent or time-limited deletion protection, with reason, status, and unlock actions in all six locales.
 - Per-profile cache locks that reject overlapping backup runs; configurable lock lifetime through BACKUP_MANAGER_LOCK_SECONDS.
-
-### Added
 - Manifest-based deletion protection honored by manual deletion and retention pruning.
 - Configurable retry attempts for manual and scheduled backup commands.
 - Multiple additional Laravel Filesystem destinations with preflight checks.
