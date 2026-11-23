@@ -30,6 +30,10 @@ jobs:
       - run: composer ide-helper:generate
       - run: composer ide-helper:meta
       - run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Collect Pint formatting diff
+        run: |
+          vendor/bin/pint src tests
+          git diff -- src tests
       - run: vendor/bin/pint --test
       - run: composer audit --no-interaction
       - run: vendor/bin/phpunit
