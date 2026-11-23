@@ -94,8 +94,8 @@ class BackupManagerServiceProvider extends ServiceProvider
             $client->setScopes(['https://www.googleapis.com/auth/drive']);
             $client->fetchAccessTokenWithRefreshToken((string) $credentials['refresh_token']);
 
-            $service = new \Google\Service\\Drive($client);
-            $adapter = new \Masbug\Flysystem\\GoogleDriveAdapter(
+            $service = new \Google\Service\Drive($client);
+            $adapter = new \Masbug\Flysystem\GoogleDriveAdapter(
                 $service,
                 (string) ($credentials['root_folder_id'] ?? 'root'),
                 ['useDisplayPaths' => true],
