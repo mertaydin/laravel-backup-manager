@@ -10,9 +10,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use MertAydin\LaravelBackupManager\BackupManager;
-use MertAydin\LaravelBackupManager\Data\BackupResult;
-use MertAydin\LaravelBackupManager\Events\BackupCompleted;
-use MertAydin\LaravelBackupManager\Events\BackupFailed;
 use Throwable;
 
 final class CreateBackupJob implements ShouldQueue
@@ -34,7 +31,6 @@ final class CreateBackupJob implements ShouldQueue
 
         try {
             $result = $manager->run($this->options);
-            event($result->successful ? new BackupCompleted($result) : new BackupFailed($result));
             $cache->put($key, [
                 'status' => $result->successful ? 'completed' : 'failed',
                 'backup_id' => $result->id,
@@ -43,7 +39,6 @@ final class CreateBackupJob implements ShouldQueue
             ], now()->addDay());
         } catch (Throwable $exception) {
             report($exception);
-            event(new BackupFailed(BackupResult::failure('', $exception->getMessage())));
             $cache->put($key, [
                 'status' => 'failed',
                 'error' => $exception->getMessage(),
