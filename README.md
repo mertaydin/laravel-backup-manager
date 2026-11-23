@@ -11,6 +11,7 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 - Backup history listing with `backup:list`.
 - Streaming SHA-256 and file-size integrity checks with `backup:verify`.
 - One-click integrity verification from the dashboard.
+- Configurable retention policy with safe dry-run pruning.
 - Built-in dark administration dashboard.
 - Manual backup execution from Artisan or the dashboard.
 - Temporary workspace cleanup and best-effort cleanup of partial uploads.
@@ -53,6 +54,8 @@ php artisan backup:list
 php artisan backup:list --disk=s3 --limit=50
 php artisan backup:verify 20261123_120000_aabbccdd
 php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
+php artisan backup:prune
+php artisan backup:prune --execute
 ```
 
 The default profile backs up the configured MySQL connection. Application files are disabled by default. Enable them in `config/backup-manager.php`:
@@ -98,13 +101,31 @@ php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 
 By default, decrypted artifacts are written under `storage/app/backup-manager/decrypted/{backup-id}` with restrictive file permissions. Use `--output=/absolute/path` to choose another destination and `--force` only when intentionally replacing an existing file.
 
+### Retention policy
+
+Retention is disabled by default. Enable it in the selected profile:
+
+```php
+'retention' => [
+    'enabled' => true,
+    'keep_days' => 30,
+    'keep_last' => 10,
+],
+```
+
+The pruning command is a dry run unless `--execute` is supplied. It preserves backups inside the configured age window and always protects the newest `keep_last` valid backups. Invalid manifests are skipped and never deleted. After reviewing the preview, schedule the destructive form from your Laravel application's scheduler:
+
+```php
+Schedule::command('backup:prune --execute')->daily();
+```
+
 ## Storage support
 
 Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disks. A dedicated Google Drive OAuth adapter is not included yet.
 
 ## Current limitations
 
-Full database/application restore, retention automation, queued execution, backup download/delete actions, and a dedicated Google Drive adapter are not implemented yet. If encryption is enabled in a profile, execution fails safely rather than storing plaintext.
+Full database/application restore, queued execution, backup download actions, and a dedicated Google Drive adapter are not implemented yet. If encryption is enabled in a profile, execution fails safely rather than storing plaintext.
 
 ## Security
 
