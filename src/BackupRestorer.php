@@ -7,7 +7,7 @@ namespace MertAydin\LaravelBackupManager;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Filesystem\Filesystem;
-use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
+use MertAydin\LaravelBackupManager\Database\DatabaseRestorer;
 use MertAydin\LaravelBackupManager\Events\BackupRestored;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
@@ -21,7 +21,7 @@ final class BackupRestorer
         private readonly Filesystem $files,
         private readonly BackupInspector $inspector,
         private readonly ArtifactEncryptor $encryptor,
-        private readonly MySqlRestorer $mysql,
+        private readonly DatabaseRestorer $databaseRestorer,
         private readonly ZipRestorer $zip,
     ) {}
 
@@ -67,7 +67,20 @@ final class BackupRestorer
             }
         }
 
-        $artifactName = $component === 'database' ? 'database.sql.gz' : 'application.zip';
+        $connectionName = null;
+        $connection = null;
+        if ($component === 'database') {
+            $database = $profile['database'] ?? [];
+            $connectionName = $database['connection'] ?? $this->config->get('database.default');
+            $connection = $this->config->get('database.connections.'.$connectionName);
+            if (! is_array($connection) || ! in_array(($connection['driver'] ?? null), ['mysql', 'pgsql', 'sqlite'], true)) {
+                throw new RuntimeException('The selected database profile does not use a supported database connection.');
+            }
+        }
+
+        $artifactName = $component === 'database'
+            ? ((($connection['driver'] ?? null) === 'sqlite') ? 'database.sqlite.gz' : 'database.sql.gz')
+            : 'application.zip';
         $storedArtifact = $artifactName.($encrypted ? '.enc' : '');
         if (! isset($manifest['artifacts'][$storedArtifact])) {
             throw new RuntimeException("The selected backup does not contain the [{$component}] artifact.");
@@ -100,14 +113,11 @@ final class BackupRestorer
             $restoredFiles = null;
             if ($component === 'database') {
                 $database = $profile['database'] ?? [];
-                $connectionName = $database['connection'] ?? $this->config->get('database.default');
-                $connection = $this->config->get('database.connections.'.$connectionName);
-                if (! is_array($connection) || ($connection['driver'] ?? null) !== 'mysql') {
-                    throw new RuntimeException('The selected database profile does not use a supported MySQL connection.');
+                if (($connection['driver'] ?? null) === 'pgsql') {
+                    $connection['restore_binary'] = $database['postgres_restore_binary'] ?? $database['restore_binary'] ?? $this->config->get('backup-manager.postgresql.restore_binary', 'psql');
                 }
-
                 $binary = (string) ($database['restore_binary'] ?? $this->config->get('backup-manager.mysql.restore_binary', 'mysql'));
-                $this->mysql->restore($connection, $restorePath, $binary);
+                $this->databaseRestorer->restore((string) $connectionName, $connection, $restorePath, $binary);
             } else {
                 $restoredFiles = $this->zip->restore($restorePath, $target, true);
             }
