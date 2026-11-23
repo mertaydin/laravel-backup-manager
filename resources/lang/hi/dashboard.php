@@ -119,4 +119,6 @@ return [
     'protection_removed' => 'बैकअप हटाने की सुरक्षा हटा दी गई।',
     'protection_failed' => 'बैकअप सुरक्षा अपडेट नहीं हो सकी।',
     'protection_unlock_date_conflict' => 'बैकअप अनलॉक करते समय समाप्ति तिथि सेट नहीं की जा सकती।',
+    'protection_status' => 'हटाने से सुरक्षा',
+    'unprotected' => 'सुरक्षित नहीं',
 ];
