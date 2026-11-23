@@ -10,6 +10,7 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 - SHA-256 checksums and JSON manifests.
 - Backup history listing with `backup:list`.
 - Streaming SHA-256 and file-size integrity checks with `backup:verify`.
+- Verified MySQL and application ZIP restore with `backup:restore`.
 - One-click integrity verification from the dashboard.
 - Configurable retention policy with safe dry-run pruning.
 - Built-in dark administration dashboard.
@@ -20,7 +21,7 @@ Laravel için veritabanı ve uygulama dosyası yedekleme, sıkıştırma ve uzak
 
 - PHP 8.2+
 - Laravel 11, 12 or 13
-- MySQL client tools (`mysqldump`)
+- MySQL client tools (`mysqldump` and `mysql`)
 - PHP `zip` extension when application file backups are enabled
 - PHP `sodium` extension when backup encryption is enabled
 
@@ -56,6 +57,10 @@ php artisan backup:verify 20261123_120000_aabbccdd
 php artisan backup:decrypt 20261123_120000_aabbccdd database.sql.gz.enc
 php artisan backup:prune
 php artisan backup:prune --execute
+php artisan backup:restore 20261123_120000_aabbccdd --database
+php artisan backup:restore 20261123_120000_aabbccdd --database --force
+php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my-app
+php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my-app --force
 ```
 
 The default profile backs up the configured MySQL connection. Application files are disabled by default. Enable them in `config/backup-manager.php`:
@@ -119,13 +124,31 @@ The pruning command is a dry run unless `--execute` is supplied. It preserves ba
 Schedule::command('backup:prune --execute')->daily();
 ```
 
+### Restore
+
+The restore command always verifies the complete backup set against its manifest before proceeding. It is a dry run unless `--force` is supplied:
+
+```bash
+# Verify and preview only
+php artisan backup:restore 20261123_120000_aabbccdd --database
+
+# Restore into the database connection selected by the backup profile
+php artisan backup:restore 20261123_120000_aabbccdd --database --force
+
+# Preview or restore application files into an explicit target directory
+php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my-app
+php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my-app --force
+```
+
+Select exactly one component per command. Database restore streams the decompressed SQL into the configured `mysql` client and validates the gzip stream before executing SQL. File restore rejects path traversal, symbolic links, duplicate paths and environment files, and refuses to extract through symbolic links already present in the target. Existing files are overwritten only when `--force` is explicitly supplied. Restore is not transactional: keep a separate current backup and test restores in a staging environment before production use.
+
 ## Storage support
 
 Local, Amazon S3, and Cloudflare R2 can be configured as Laravel filesystem disks. A dedicated Google Drive OAuth adapter is not included yet.
 
 ## Current limitations
 
-Full database/application restore, queued execution, backup download actions, and a dedicated Google Drive adapter are not implemented yet. If encryption is enabled in a profile, execution fails safely rather than storing plaintext.
+Queued execution, backup download actions, and a dedicated Google Drive adapter are not implemented yet.
 
 ## Security
 

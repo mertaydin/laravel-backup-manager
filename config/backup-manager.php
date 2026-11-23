@@ -10,6 +10,7 @@ return [
     ],
     'mysql' => [
         'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
+        'restore_binary' => env('BACKUP_MANAGER_MYSQL_BINARY', 'mysql'),
     ],
 
     'profiles' => [
