@@ -106,4 +106,6 @@ return [
     'download_artifact' => "تنزيل ملف النسخة",
     'download_manifest' => "تنزيل البيان",
     'verify_integrity' => "التحقق من السلامة",
+    'note' => "ملاحظة",
+    'tags' => "الوسوم",
 ];
