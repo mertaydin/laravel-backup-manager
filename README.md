@@ -204,6 +204,27 @@ A dedicated Google Drive OAuth adapter is not included yet. Google Drive integra
 
 The dashboard is protected by `web` and `auth` middleware by default. Use an additional authorization middleware in production. Application archives exclude `.env` and hidden files by default and skip symlinks. Database output is streamed and credentials are kept out of process arguments.
 
+## Development
+
+Install the development dependencies and run the quality checks:
+
+```bash
+composer install
+composer format
+composer format:test
+composer test
+composer audit
+```
+
+Generate IDE autocomplete metadata with Barryvdh Laravel IDE Helper:
+
+```bash
+composer ide-helper:generate
+composer ide-helper:meta
+```
+
+Generated IDE Helper files are excluded from version control.
+
 ## License
 
 MIT
