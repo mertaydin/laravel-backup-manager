@@ -48,6 +48,7 @@ final class DashboardController extends Controller
         $availableBackupDisks = array_values(array_unique(array_filter(
             $configuredTargets !== [] ? $configuredTargets : [
                 $diskName,
+                (string) data_get($profile, 'storage.local_disk', 'local'),
                 ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
             ],
             'is_string',
@@ -227,6 +228,7 @@ final class DashboardController extends Controller
         $diskNames = array_values(array_unique(array_filter(
             $configuredTargets !== [] ? $configuredTargets : [
                 (string) ($storage['disk'] ?? 'local'),
+                (string) ($storage['local_disk'] ?? 'local'),
                 ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
             ],
             'is_string',
@@ -284,11 +286,15 @@ final class DashboardController extends Controller
 
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
-        $diskNames = array_values(array_unique(array_filter([
-            (string) data_get($profile, 'storage.disk', 'local'),
-            (string) data_get($profile, 'storage.local_disk', 'local'),
-            ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
-        ])));
+        $selectedTargets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        $diskNames = array_values(array_unique(array_filter(
+            $selectedTargets !== [] ? $selectedTargets : [
+                (string) data_get($profile, 'storage.disk', 'local'),
+                (string) data_get($profile, 'storage.local_disk', 'local'),
+                ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
+            ],
+            'is_string',
+        )));
         $backup = null;
         foreach ($diskNames as $diskName) {
             try {
