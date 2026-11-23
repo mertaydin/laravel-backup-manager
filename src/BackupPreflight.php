@@ -57,8 +57,15 @@ class BackupPreflight
             $connectionName = (string) data_get($profile, 'database.connection', config('database.default'));
             $connection = config('database.connections.'.$connectionName, []);
             $checks['mysql_connection'] = is_array($connection) && ($connection['driver'] ?? null) === 'mysql';
+            if ($checks['mysql_connection']) {
+                try {
+                    app('db')->connection($connectionName)->getPdo();
+                } catch (\\Throwable) {
+                    $checks['mysql_connection'] = false;
+                }
+            }
             if (! $checks['mysql_connection']) {
-                $errors[] = 'The selected database connection is not a supported MySQL connection.';
+                $errors[] = 'The selected MySQL connection is unavailable or is not configured correctly.';
             }
 
             $binary = (string) data_get($profile, 'database.dump_binary', config('backup-manager.mysql.dump_binary', 'mysqldump'));
