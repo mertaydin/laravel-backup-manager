@@ -35,3 +35,47 @@
         });
     }
 })();
+
+(function () {
+    document.querySelectorAll('.delete-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            var message = form.getAttribute('data-confirm') || 'Delete this backup?';
+            if (!window.confirm(message)) event.preventDefault();
+        });
+    });
+
+    var status = document.getElementById('backup-job-status');
+    if (!status) return;
+
+    var url = status.getAttribute('data-status-url');
+    var attempts = 0;
+    function poll() {
+        attempts += 1;
+        fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+            .then(function (response) {
+                if (!response.ok) throw new Error('Unable to retrieve backup status.');
+                return response.json();
+            })
+            .then(function (data) {
+                if (data.status === 'completed') {
+                    status.textContent = status.getAttribute('data-completed') + (data.backup_id ? ' · ' + data.backup_id : '');
+                    status.classList.add('is-complete');
+                    window.setTimeout(function () { window.location.reload(); }, 1800);
+                    return;
+                }
+                if (data.status === 'failed') {
+                    status.textContent = status.getAttribute('data-failed') + (data.error ? ' · ' + data.error : '');
+                    status.classList.add('is-failed');
+                    return;
+                }
+                status.textContent = data.status === 'running'
+                    ? status.getAttribute('data-running')
+                    : status.textContent;
+                if (attempts < 600) window.setTimeout(poll, 2000);
+            })
+            .catch(function () {
+                if (attempts < 600) window.setTimeout(poll, 3000);
+            });
+    }
+    poll();
+})();
