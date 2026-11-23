@@ -48,6 +48,8 @@ return [
                 'tables' => [],
                 'exclude_tables' => [],
                 'dump_binary' => env('BACKUP_MANAGER_MYSQLDUMP_BINARY', 'mysqldump'),
+                'postgres_dump_binary' => env('BACKUP_MANAGER_PG_DUMP_BINARY', 'pg_dump'),
+                'postgres_restore_binary' => env('BACKUP_MANAGER_PSQL_BINARY', 'psql'),
             ],
             'files' => [
                 'enabled' => false,
