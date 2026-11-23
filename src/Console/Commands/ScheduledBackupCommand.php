@@ -40,7 +40,7 @@ final class ScheduledBackupCommand extends Command
         }
 
         try {
-            $result = $manager->run();
+            $result = $manager->run(['type' => 'scheduled']);
             if (! $result->successful) {
                 $cache->forget($lockKey);
                 $this->components->error($result->error ?? 'Scheduled backup failed.');
