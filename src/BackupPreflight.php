@@ -10,7 +10,6 @@ use Symfony\Component\Process\ExecutableFinder;
 class BackupPreflight
 {
     public function __construct(
-        private readonly BackupInspector $inspector,
         private readonly StorageHealthChecker $storageHealth,
         private readonly ExecutableFinder $executables,
     ) {}
@@ -38,14 +37,20 @@ class BackupPreflight
             $errors[] = 'The backup temporary directory is not writable.';
         }
 
-        try {
-            $storage = $this->storageHealth->check($diskName, (string) data_get($profile, 'storage.path', 'backups'));
-            $checks['storage'] = $storage['successful'];
-        } catch (\Throwable) {
-            $checks['storage'] = false;
-        }
-        if (! $checks['storage']) {
-            $errors[] = "Storage disk [{$diskName}] failed its connection or permission checks.";
+        $storageDisks = array_values(array_unique([
+            $diskName,
+            (string) data_get($profile, 'storage.local_disk', 'local'),
+        ]));
+        foreach ($storageDisks as $storageDisk) {
+            try {
+                $storage = $this->storageHealth->check($storageDisk, (string) data_get($profile, 'storage.path', 'backups'));
+                $checks['storage:'.$storageDisk] = $storage['successful'];
+            } catch (\\Throwable) {
+                $checks['storage:'.$storageDisk] = false;
+            }
+            if (! $checks['storage:'.$storageDisk]) {
+                $errors[] = "Storage disk [{$storageDisk}] failed its connection or permission checks.";
+            }
         }
 
         if ($database) {
