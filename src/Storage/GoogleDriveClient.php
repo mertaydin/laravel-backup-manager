@@ -25,7 +25,7 @@ final class GoogleDriveClient
     public function testConnection(): void
     {
         $response = Http::withToken($this->accessToken())
-            ->get(self::API.'/about', ['fields' => 'user(displayName,emailAddress)']);
+            ->get(self::API.'/files', ['q' => 'trashed = false', 'pageSize' => 1, 'fields' => 'files(id)']);
 
         if (! $response->successful()) {
             throw new RuntimeException('Google Drive connection test failed: '.$response->body());
