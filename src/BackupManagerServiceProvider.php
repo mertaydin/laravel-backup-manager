@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem as Flysystem;
 use Masbug\Flysystem\GoogleDriveAdapter;
-use RuntimeException;
-use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use MertAydin\LaravelBackupManager\Console\Commands\CompareBackupsCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\DecryptBackupCommand;
 use MertAydin\LaravelBackupManager\Console\Commands\ListBackupsCommand;
@@ -42,6 +40,8 @@ use MertAydin\LaravelBackupManager\Listeners\SendBackupNotifications;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
+use RuntimeException;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
@@ -72,7 +72,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(StorageSettingsRepository::class);
         $this->app->singleton(StorageHealthChecker::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
-            $manager = new BackupManager();
+            $manager = new BackupManager
             $manager->extend('local', $app->make(LocalBackupDriver::class));
 
             return $manager;
@@ -92,7 +92,7 @@ class BackupManagerServiceProvider extends ServiceProvider
                 }
             }
 
-            $client = new Client();
+            $client = new Client
             $client->setApplicationName((string) config('app.name', 'Laravel Backup Manager'));
             $client->setClientId((string) $credentials['client_id']);
             $client->setClientSecret((string) $credentials['client_secret']);
