@@ -64,8 +64,8 @@ final class DashboardBackupActionsTest extends TestCase
 
         $this->get('/backup-manager')
             ->assertOk()
-            ->assertSee('dashboard.css?v=0.8.7-0.8.7')
-            ->assertSee('dashboard.js?v=0.8.7-0.8.7');
+            ->assertSee('dashboard.css?v=0.8.8-0.8.8')
+            ->assertSee('dashboard.js?v=0.8.8-0.8.8');
     }
 
     public function test_dashboard_locale_selection_persists_for_every_supported_language(): void
@@ -201,7 +201,7 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertSee('Türkçe')
             ->assertSee('data-locale-switcher', false)
             ->assertDontSee('onchange=', false)
-            ->assertSee('dashboard.css?v=0.8.7-0.8.7')
+            ->assertSee('dashboard.css?v=0.8.8-0.8.8')
             ->assertSee('details-panel')
             ->assertSee('details-checksum')
             ->assertSee('Before deployment')
