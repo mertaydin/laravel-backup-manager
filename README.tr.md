@@ -36,6 +36,15 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - Türkçe, İngilizce, İspanyolca, Basitleştirilmiş Çince, Hintçe ve Arapça panel.
 - Açık, koyu ve sistem teması.
 - Geçici dosyaları işlem sonunda temizleme ve başarısız yüklemelerde kısmi dosyaları silmeye çalışma.
+- Depolama bağlantısı, listeleme, yazma, okuma ve silme izinleri için Storage Health Check.
+- MySQL araçları, PHP eklentileri, geçici dizin izinleri ve depolama erişimi için yedekleme öncesi kontroller.
+- Yedek etiketi, açıklaması, etiketleri ve yapılandırılabilir otomatik isimlendirme şablonu.
+- Tarih, tür, depolama diski ve manifest durumuna göre yedek geçmişi filtreleme.
+- Dosya boyutları ve SHA-256 checksum değerleriyle ayrıntılı yedek inceleme ekranı.
+- Yükleme sonrası otomatik bütünlük doğrulaması (yapılandırılabilir).
+- `BackupCompleted`, `BackupFailed`, `BackupDeleted` ve `BackupRestored` Laravel event'leri.
+- Panelde sonraki otomatik yedekleme zamanı ve toplam yedek depolama kullanımı.
+- Geri döndürülemez geri yükleme işlemleri öncesinde açık onay.
 
 ## Gereksinimler
 
@@ -48,7 +57,7 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 ## Kurulum
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.6
+composer require mertaydin/laravel-backup-manager:^0.7
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
