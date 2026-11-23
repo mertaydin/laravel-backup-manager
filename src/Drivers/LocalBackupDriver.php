@@ -68,9 +68,10 @@ final class LocalBackupDriver implements BackupDriver
                 } elseif ($connectionDriver === 'pgsql') {
                     $connectionConfig['dump_binary'] = $databaseConfig['dump_binary'] ?? $this->config->get('backup-manager.postgresql.dump_binary', 'pg_dump');
                 }
-                $path = $workdir.'/database.sql.gz';
+                $databaseArtifactName = $connectionDriver === 'sqlite' ? 'database.sqlite.gz' : 'database.sql.gz';
+                $path = $workdir.'/'.$databaseArtifactName;
                 $this->dumper->dump($connectionConfig, $path, $databaseConfig['tables'] ?? [], $databaseConfig['exclude_tables'] ?? []);
-                $artifacts['database.sql.gz'] = $path;
+                $artifacts[$databaseArtifactName] = $path;
             }
 
             $fileConfig = $profile['files'] ?? [];
