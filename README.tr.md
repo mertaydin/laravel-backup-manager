@@ -194,6 +194,20 @@ Anahtarı kaynak koduna eklemeyin; ortam değişkeni veya secret manager kullan�
 
 Manifest algoritma ve anahtar kimliğini tutar; anahtarın kendisini içermez. Anahtarı yedeklerin saklama süresi boyunca güvenli biçimde muhafaza edin.
 
+### Yedek silinme koruması
+
+Önemli bir yedeği hem panelden manuel silinmeye hem de retention temizliğine karşı koruyabilirsiniz. Panelde **Yedeği kilitle** seçeneğini kullanın; isteğe bağlı olarak neden ve bitiş tarihi girin. Bitiş tarihini boş bırakırsanız koruma kalıcı olur. **Kilidi kaldır** ile korumayı sonlandırabilirsiniz. Koruma etkin olduğu sürece silme işlemi panelde gösterilmez.
+
+Artisan komutları:
+
+```bash
+php artisan backup:protect 20261123_120000_aabbccdd --reason="Mevzuat saklama"
+php artisan backup:protect 20261123_120000_aabbccdd --until="2027-01-01T00:00:00+03:00" --reason="Yasal saklama"
+php artisan backup:protect 20261123_120000_aabbccdd --unlock
+```
+
+Her yedekleme profili cache tabanlı eşzamanlılık kilidine sahiptir. Aynı profil için başka bir yedekleme çalışırken ikinci işlem reddedilir. Kilit süresi BACKUP_MANAGER_LOCK_SECONDS ile ayarlanır (varsayılan 21600 saniye). Birden fazla uygulama sunucusu yedekleme başlatabiliyorsa ortak cache altyapısı kullanın.
+
 ### Saklama politikası
 
 Saklama politikası varsayılan olarak kapalıdır. Etkinleştirmek için:
