@@ -72,8 +72,8 @@ For applications with a custom admin authorization middleware, replace the middl
 You can also register a request-based authorization callback using the package facade. This callback is an additional authorization layer; the configured route middleware (including `auth`) still runs first. If no callback is registered, the existing middleware-only behavior is preserved.
 
 ```php
-use Illuminate\\Http\\Request;
-use MertAydin\\LaravelBackupManager\\Facades\\BackupManager;
+use Illuminate\Http\Request;
+use MertAydin\LaravelBackupManager\Facades\BackupManager;
 
 BackupManager::auth(function (Request $request) {
     return $request->user()?->isSuperAdmin()
