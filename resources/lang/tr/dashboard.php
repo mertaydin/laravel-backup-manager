@@ -67,4 +67,5 @@ return [
     'backup_deleted' => 'Yedek yerel ve uzak depolardan silindi.',
     'backup_delete_failed' => 'Yedek silinemedi.',
     'delete_partial' => 'Yedek tüm depolama disklerinden silinemedi. Hata alınan diskler: :disks',
+    'validation_error' => 'Lütfen aşağıdaki hataları düzeltin:',
 ];
