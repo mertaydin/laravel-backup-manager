@@ -72,8 +72,8 @@ Varsayılan panel middleware ayarı:
 Panel erişimini ayrıca bir yetkilendirme callback'i ile sınırlandırabilirsiniz. Bu callback, yapılandırılmış middleware katmanına ek olarak çalışır; `auth` middleware'ini devre dışı bırakmaz.
 
 ```php
-use Illuminate\\Http\\Request;
-use MertAydin\\LaravelBackupManager\\Facades\\BackupManager;
+use Illuminate\Http\Request;
+use MertAydin\LaravelBackupManager\Facades\BackupManager;
 
 BackupManager::auth(function (Request $request) {
     return $request->user()?->isSuperAdmin()
