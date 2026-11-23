@@ -119,4 +119,6 @@ return [
     'protection_removed' => 'Se eliminó la protección contra eliminación.',
     'protection_failed' => 'No se pudo actualizar la protección.',
     'protection_unlock_date_conflict' => 'No se puede establecer un vencimiento al desbloquear una copia.',
+    'protection_status' => 'Protección contra eliminación',
+    'unprotected' => 'Sin protección',
 ];
