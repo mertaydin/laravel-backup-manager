@@ -52,7 +52,7 @@ A Laravel package for database and application file backups, compression, encryp
 ## Installation
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.5
+composer require mertaydin/laravel-backup-manager:^0.6
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
