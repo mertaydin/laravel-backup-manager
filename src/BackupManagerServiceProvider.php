@@ -38,7 +38,6 @@ use MertAydin\LaravelBackupManager\Listeners\SendBackupNotifications;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
-use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 
 class BackupManagerServiceProvider extends ServiceProvider
 {
