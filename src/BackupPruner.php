@@ -49,6 +49,7 @@ final class BackupPruner
 
         $diskName ??= (string) ($profile['storage']['disk'] ?? 'local');
         $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/');
+        $backupRoot = $prefix === '' ? '' : $prefix.'/';
         $backups = $this->inspector->list($profileName, $diskName, PHP_INT_MAX);
         $cutoff = now()->subDays($keepDays);
         $protectedIds = [];
@@ -97,7 +98,7 @@ final class BackupPruner
             $disk = $this->filesystem->disk($diskName);
             foreach ($candidates as $backup) {
                 $id = (string) $backup['id'];
-                if ($disk->deleteDirectory($prefix.'/'.$id)) {
+                if ($disk->deleteDirectory($backupRoot.$id)) {
                     $deleted[] = $id;
                 } else {
                     $failed[] = $id;
