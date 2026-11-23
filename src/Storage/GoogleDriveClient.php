@@ -116,7 +116,9 @@ final class GoogleDriveClient
             ->get(self::API.'/files/'.rawurlencode($fileId), ['alt' => 'media']);
 
         if (! $response->successful()) {
-            @unlink($destination);
+            if (is_file($destination)) {
+                unlink($destination);
+            }
             throw new RuntimeException('Unable to download the Google Drive backup: '.$response->body());
         }
     }
@@ -157,6 +159,6 @@ final class GoogleDriveClient
 
     private function escapeQuery(string $value): string
     {
-        return addcslashes($value, "\\'");
+        return addcslashes($value, chr(92).chr(39));
     }
 }
