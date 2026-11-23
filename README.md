@@ -244,10 +244,10 @@ When no custom label is supplied, the package generates one using `BACKUP_MANAGE
 
 The package dispatches Laravel events after backup lifecycle operations:
 
-- `MertAydin\\LaravelBackupManager\\Events\\BackupCompleted`
-- `MertAydin\\LaravelBackupManager\\Events\\BackupFailed`
-- `MertAydin\\LaravelBackupManager\\Events\\BackupDeleted`
-- `MertAydin\\LaravelBackupManager\\Events\\BackupRestored`
+- `MertAydin\LaravelBackupManager\Events\BackupCompleted`
+- `MertAydin\LaravelBackupManager\Events\BackupFailed`
+- `MertAydin\LaravelBackupManager\Events\BackupDeleted`
+- `MertAydin\LaravelBackupManager\Events\BackupRestored`
 
 Listen to these events using Laravel's standard event/listener registration. The backup result is available as `$event->result` for completion and failure events; deletion and restore events expose `backupId`, with the restored component on `BackupRestored`.
 
