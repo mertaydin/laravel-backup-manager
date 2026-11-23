@@ -302,4 +302,23 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertSee('Compliance')
             ->assertSee('/backup-manager/'.self::BACKUP_ID.'/protection');
     }
+
+    public function test_dashboard_can_select_google_drive_as_the_only_backup_destination(): void
+    {
+        $settings = app(\\MertAydin\\LaravelBackupManager\\Storage\\StorageSettingsRepository::class);
+        $settings->putDisk('google-drive', [
+            'refresh_token' => 'refresh-token',
+            'client_id' => 'client-id',
+            'client_secret' => 'client-secret',
+        ]);
+
+        $this->post('/backup-manager/storage/targets', [
+            'targets' => ['google-drive'],
+        ])->assertRedirect()
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('storage_success');
+
+        self::assertSame(['google-drive'], $settings->all()['backup_targets']);
+    }
+
 }
