@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Manifest-based deletion protection honored by manual deletion and retention pruning.
+- Configurable retry attempts for manual and scheduled backup commands.
+- Multiple additional Laravel Filesystem destinations with preflight checks.
+- Optional email and Slack notifications for successful and failed backups.
+- Verified backup manifest comparison through `backup:compare`.
+- Backup inventory and storage usage reports through `backup:report`.
+
+
 ## [0.7.0] - 2026-11-23
 
 ### Added
