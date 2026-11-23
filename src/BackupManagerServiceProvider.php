@@ -95,7 +95,7 @@ class BackupManagerServiceProvider extends ServiceProvider
             try {
                 $settings = $this->app->make(StorageSettingsRepository::class)->all();
                 $credentials = (array) data_get($settings, 'disks.google-drive', []);
-                if (!empty($credentials['refresh_token'])) {
+                if (! empty($credentials['refresh_token'])) {
                     config(['filesystems.disks.google-drive' => [
                         'driver' => 'google-drive',
                         'root_folder_id' => (string) ($credentials['root_folder_id'] ?? 'root'),
