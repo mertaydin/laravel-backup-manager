@@ -71,6 +71,12 @@ final class RestoreBackupCommand extends Command
                 return self::SUCCESS;
             }
 
+            if ($this->input->isInteractive() && ! $this->confirm('This restore can overwrite existing data. Have you taken a separate backup and do you want to continue?', false)) {
+                $this->components->warn('Restore cancelled.');
+
+                return self::SUCCESS;
+            }
+
             $result = $restorer->restore($id, [
                 'component' => $component,
                 'profile' => $profileName,
