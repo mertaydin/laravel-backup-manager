@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager;
+namespace MertAydin\LaravelBackupManager;
 
-use Illuminate\\Contracts\\Config\\Repository as ConfigRepository;
-use Illuminate\\Contracts\\Filesystem\\Factory as FilesystemFactory;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use RuntimeException;
 
 final class BackupDeleter
@@ -19,7 +19,7 @@ final class BackupDeleter
     /** @return array{deleted: list<string>, failed: list<string>} */
     public function delete(string $id, ?string $profileName = null): array
     {
-        if (! preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id)) {
+        if (! preg_match('/^\d{8}_\d{6}_[a-f0-9]{8}$/', $id)) {
             throw new RuntimeException('Invalid backup identifier.');
         }
 
@@ -47,7 +47,7 @@ final class BackupDeleter
                     continue;
                 }
                 $deleted[] = $diskName;
-            } catch (\\Throwable) {
+            } catch (\Throwable) {
                 $failed[] = $diskName;
             }
         }
