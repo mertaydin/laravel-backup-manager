@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager;
 
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Symfony\Component\Process\ExecutableFinder;
 
 class BackupPreflight
@@ -12,6 +13,7 @@ class BackupPreflight
     public function __construct(
         private readonly StorageHealthChecker $storageHealth,
         private readonly ExecutableFinder $executables,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     /** @param array<string, mixed> $options
@@ -37,11 +39,15 @@ class BackupPreflight
             $errors[] = 'The backup temporary directory is not writable.';
         }
 
-        $storageDisks = array_values(array_unique([
-            $diskName,
-            (string) data_get($profile, 'storage.local_disk', 'local'),
-            ...array_values(array_filter((array) data_get($profile, 'storage.disks', []), 'is_string')),
-        ]));
+        $selectedTargets = [];
+        try {
+            $selectedTargets = (array) ($this->settings->all()['backup_targets'] ?? []);
+        } catch (\Throwable) {
+            // Use profile configuration until the settings migration is installed.
+        }
+        $storageDisks = array_values(array_unique($selectedTargets !== [] && ! isset($options['disk'])
+            ? $selectedTargets
+            : [$diskName]));
         foreach ($storageDisks as $storageDisk) {
             try {
                 $storage = $this->storageHealth->check($storageDisk, (string) data_get($profile, 'storage.path', 'backups'));
