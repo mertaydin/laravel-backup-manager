@@ -106,4 +106,6 @@ return [
     'download_artifact' => "बैकअप फ़ाइल डाउनलोड करें",
     'download_manifest' => "मैनिफ़ेस्ट डाउनलोड करें",
     'verify_integrity' => "अखंडता सत्यापित करें",
+    'note' => "टिप्पणी",
+    'tags' => "टैग",
 ];
