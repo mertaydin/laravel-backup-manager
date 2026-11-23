@@ -82,6 +82,8 @@ class BackupManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        config(['filesystems.disks.google-drive.driver' => 'google-drive']);
+
         Storage::extend('google-drive', function ($app, array $config): FilesystemAdapter {
             $credentials = $app->make(StorageSettingsRepository::class)->all()['disks']['google-drive'] ?? [];
             foreach (['client_id', 'client_secret', 'refresh_token'] as $key) {
