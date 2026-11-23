@@ -7,6 +7,7 @@ namespace MertAydin\LaravelBackupManager\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use MertAydin\LaravelBackupManager\BackupManager;
+use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\BackupPruner;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Throwable;
@@ -22,6 +23,7 @@ final class ScheduledBackupCommand extends Command
         BackupPruner $pruner,
         StorageSettingsRepository $settings,
         CacheRepository $cache,
+        BackupPreflight $preflight,
     ): int {
         $schedule = $settings->all()['schedule'] ?? [];
         if (! ($schedule['enabled'] ?? false)) {
@@ -40,6 +42,16 @@ final class ScheduledBackupCommand extends Command
         }
 
         try {
+            $checks = $preflight->inspect(['type' => 'scheduled']);
+            if (! $checks['ready']) {
+                $cache->forget($lockKey);
+                foreach ($checks['errors'] as $error) {
+                    $this->components->error($error);
+                }
+
+                return self::FAILURE;
+            }
+
             $result = $manager->run(['type' => 'scheduled']);
             if (! $result->successful) {
                 $cache->forget($lockKey);
