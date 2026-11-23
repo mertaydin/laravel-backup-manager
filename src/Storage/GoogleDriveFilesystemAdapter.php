@@ -91,10 +91,10 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
         try {
             $parent = $this->folderId(dirname($path), true);
             $existing = $this->find($path, false);
-            if ($existing !== null) {
+            $uploadedId = $this->client->upload($temporary, basename($path), $parent);
+            if ($existing !== null && (string) $existing['id'] !== $uploadedId) {
                 $this->client->delete((string) $existing['id']);
             }
-            $this->client->upload($temporary, basename($path), $parent);
         } finally {
             @unlink($temporary);
         }
@@ -197,7 +197,11 @@ final class GoogleDriveFilesystemAdapter implements FilesystemAdapter
 
     public function listContents(string $path, bool $deep): iterable
     {
-        $folderId = $this->folderId($path, false);
+        try {
+            $folderId = $this->folderId($path, false);
+        } catch (Throwable) {
+            return;
+        }
         foreach ($this->client->list($folderId) as $item) {
             $name = (string) ($item['name'] ?? '');
             if ($name === '') {
