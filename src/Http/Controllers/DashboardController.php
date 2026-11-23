@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Http\\Controllers;
+namespace MertAydin\LaravelBackupManager\Http\Controllers;
 
-use Illuminate\\Contracts\\Cache\\Repository as CacheRepository;
-use Illuminate\\Contracts\\Config\\Repository as ConfigRepository;
-use Illuminate\\Contracts\\Filesystem\\Factory as FilesystemFactory;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Response;
-use Illuminate\\Routing\\Controller;
-use Illuminate\\Support\\Str;
-use Illuminate\\View\\View;
-use MertAydin\\LaravelBackupManager\\BackupDeleter;
-use MertAydin\\LaravelBackupManager\\BackupInspector;
-use MertAydin\\LaravelBackupManager\\BackupManager;
-use MertAydin\\LaravelBackupManager\\Http\\Middleware\\SetDashboardLocale;
-use MertAydin\\LaravelBackupManager\\Jobs\\CreateBackupJob;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+use MertAydin\LaravelBackupManager\BackupDeleter;
+use MertAydin\LaravelBackupManager\BackupInspector;
+use MertAydin\LaravelBackupManager\BackupManager;
+use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
+use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use Throwable;
 
 final class DashboardController extends Controller
@@ -123,7 +123,7 @@ final class DashboardController extends Controller
 
     public function download(string $id, string $artifact): mixed
     {
-        abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
+        abort_unless(preg_match('/^\d{8}_\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
         abort_unless(basename($artifact) === $artifact && preg_match('/^[A-Za-z0-9_.-]+$/', $artifact) === 1, 404);
 
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
