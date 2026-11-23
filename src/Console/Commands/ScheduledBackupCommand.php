@@ -53,8 +53,20 @@ final class ScheduledBackupCommand extends Command
                 return self::FAILURE;
             }
 
-            $result = $manager->run(['type' => 'scheduled']);
-            if (! $result->successful) {
+            $maxAttempts = max(1, (int) config('backup-manager.retry.max_attempts', 1));
+            $retryDelay = max(0, (int) config('backup-manager.retry.delay_seconds', 30));
+            $result = null;
+            for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+                $result = $manager->run(['type' => 'scheduled']);
+                if ($result->successful || $attempt === $maxAttempts) {
+                    break;
+                }
+                $this->components->warn("Scheduled backup attempt {$attempt}/{$maxAttempts} failed. Retrying in {$retryDelay} seconds...");
+                if ($retryDelay > 0) {
+                    sleep($retryDelay);
+                }
+            }
+            if (! $result?->successful) {
                 $cache->forget($lockKey);
                 $cache->put('backup-manager:last-run', ['status' => 'failed', 'backup_id' => $result->id, 'error' => $result->error, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
                 $this->components->error($result->error ?? 'Scheduled backup failed.');
