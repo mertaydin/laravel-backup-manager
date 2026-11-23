@@ -14,18 +14,22 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupDeleter;
 use MertAydin\LaravelBackupManager\BackupInspector;
+use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Throwable;
 
 final class DashboardController extends Controller
 {
     public function __construct(
         private readonly BackupInspector $inspector,
+        private readonly BackupPreflight $preflight,
         private readonly BackupDeleter $deleter,
         private readonly FilesystemFactory $filesystem,
         private readonly ConfigRepository $config,
         private readonly CacheRepository $cache,
+        private readonly StorageSettingsRepository $settings,
     ) {}
 
     public function index(): View
@@ -33,18 +37,81 @@ final class DashboardController extends Controller
         $profileName = (string) config('backup-manager.default', 'default');
         $profile = config('backup-manager.profiles.'.$profileName, []);
         $diskName = (string) data_get($profile, 'storage.disk', 'local');
-        $backups = collect($this->inspector->list($profileName, $diskName, 100))
+        $availableBackupDisks = array_values(array_unique([
+            $diskName,
+            (string) data_get($profile, 'storage.local_disk', 'local'),
+        ]));
+        $allBackups = collect();
+        foreach ($availableBackupDisks as $backupDisk) {
+            try {
+                $allBackups = $allBackups->concat($this->inspector->list($profileName, $backupDisk, 500));
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+        $allBackups = $allBackups
+            ->unique('id')
+            ->values()
             ->map(static function (array $backup): array {
                 $backup['size'] = (int) ($backup['total_size'] ?? 0);
 
                 return $backup;
             });
+        $schedule = [];
+        try {
+            $schedule = $this->settings->all()['schedule'] ?? [];
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+        $nextScheduledBackup = null;
+        if (($schedule['enabled'] ?? false) && ! empty($schedule['time'])) {
+            try {
+                $timezone = (string) ($schedule['timezone'] ?? config('app.timezone', 'UTC'));
+                $nextScheduledBackup = now($timezone)->setTimeFromTimeString((string) $schedule['time']);
+                if ($nextScheduledBackup->lessThanOrEqualTo(now($timezone))) {
+                    $nextScheduledBackup->addDay();
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+        $filters = request()->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'type' => ['nullable', 'in:manual,scheduled'],
+            'status' => ['nullable', 'in:available,invalid'],
+            'disk' => ['nullable', 'string', 'in:'.implode(',', $availableBackupDisks)],
+        ]);
+        $backups = $allBackups
+            ->when($filters['q'] ?? null, static fn ($items, string $query) => $items->filter(
+                static fn (array $backup): bool => str_contains(strtolower(implode(' ', [
+                    $backup['id'] ?? '',
+                    $backup['label'] ?? '',
+                    $backup['note'] ?? '',
+                    implode(' ', $backup['tags'] ?? []),
+                ])), strtolower($query))
+            ))
+            ->when($filters['from'] ?? null, static fn ($items, string $date) => $items->filter(
+                static fn (array $backup): bool => ($backup['created_at'] ?? '') >= $date
+            ))
+            ->when($filters['to'] ?? null, static fn ($items, string $date) => $items->filter(
+                static fn (array $backup): bool => ($backup['created_at'] ?? '') <= $date.'T23:59:59'
+            ))
+            ->when($filters['type'] ?? null, static fn ($items, string $type) => $items->where('type', $type))
+            ->when($filters['status'] ?? null, static fn ($items, string $status) => $items->where('status', $status))
+            ->when($filters['disk'] ?? null, static fn ($items, string $disk) => $items->where('disk', $disk))
+            ->values();
 
         return view('backup-manager::dashboard', [
             'backups' => $backups,
-            'totalBackups' => $backups->count(),
-            'totalSize' => $backups->sum('size'),
-            'latestBackup' => $backups->first(),
+            'totalBackups' => $allBackups->count(),
+            'totalSize' => $allBackups->sum('size'),
+            'latestBackup' => $allBackups->first(),
+            'filters' => $filters,
+            'availableBackupDisks' => $availableBackupDisks,
+            'nextScheduledBackup' => $nextScheduledBackup,
+            'lastBackupStatus' => $this->cache->get('backup-manager:last-run'),
             'diskName' => $diskName,
             'profileName' => $profileName,
             'databaseEnabled' => (bool) data_get($profile, 'database.enabled', false),
@@ -65,10 +132,22 @@ final class DashboardController extends Controller
         $validated = request()->validate([
             'database' => ['nullable', 'boolean'],
             'files' => ['nullable', 'boolean'],
+            'label' => ['nullable', 'string', 'max:100'],
+            'note' => ['nullable', 'string', 'max:500'],
+            'tags' => ['nullable', 'array', 'max:10'],
+            'tags.*' => ['string', 'max:40'],
         ]);
 
         if (empty($validated['database']) && empty($validated['files'])) {
             return back()->with('backup_error', __('backup-manager::dashboard.choose_component'));
+        }
+
+        $preflight = $this->preflight->inspect([
+            'database' => (bool) ($validated['database'] ?? false),
+            'files' => (bool) ($validated['files'] ?? false),
+        ]);
+        if (! $preflight['ready']) {
+            return back()->with('backup_error', implode(' ', $preflight['errors']));
         }
 
         $jobId = (string) Str::uuid();
@@ -78,6 +157,10 @@ final class DashboardController extends Controller
         $job = new CreateBackupJob($jobId, [
             'database' => (bool) ($validated['database'] ?? false),
             'files' => (bool) ($validated['files'] ?? false),
+            'label' => $validated['label'] ?? null,
+            'note' => $validated['note'] ?? null,
+            'tags' => array_values(array_unique(array_filter(array_map('trim', preg_split('/[\\r\\n,]+/', implode('\\n', $validated['tags'] ?? [])) ?: [])))),
+            'type' => 'manual',
         ]);
 
         $connection = $this->config->get('backup-manager.queue.connection');
@@ -174,6 +257,33 @@ final class DashboardController extends Controller
         }, $artifact, ['Content-Type' => 'application/octet-stream']);
     }
 
+    public function show(string $id): View
+    {
+        abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
+
+        $profileName = (string) $this->config->get('backup-manager.default', 'default');
+        $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
+        $diskNames = array_values(array_unique([
+            (string) data_get($profile, 'storage.disk', 'local'),
+            (string) data_get($profile, 'storage.local_disk', 'local'),
+        ]));
+        $backup = null;
+        foreach ($diskNames as $diskName) {
+            try {
+                $backup = collect($this->inspector->list($profileName, $diskName, 500))->firstWhere('id', $id);
+                if (is_array($backup)) {
+                    break;
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        abort_unless(is_array($backup), 404);
+
+        return view('backup-manager::details', ['backup' => $backup]);
+    }
+
     public function delete(string $id): RedirectResponse
     {
         try {
@@ -197,18 +307,30 @@ final class DashboardController extends Controller
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
 
-        try {
-            $result = $this->inspector->verify(
-                $id,
-                $profileName,
-                (string) data_get($profile, 'storage.disk', 'local')
-            );
+        $diskNames = array_values(array_unique([
+            (string) data_get($profile, 'storage.disk', 'local'),
+            (string) data_get($profile, 'storage.local_disk', 'local'),
+        ]));
 
-            if (! $result['valid']) {
-                return back()->with('backup_error', __('backup-manager::dashboard.verification_failed', ['errors' => implode(' ', $result['errors'])]));
+        try {
+            $errors = [];
+            foreach ($diskNames as $diskName) {
+                try {
+                    $result = $this->inspector->verify($id, $profileName, $diskName);
+                    if ($result['valid']) {
+                        return back()->with('backup_success', __('backup-manager::dashboard.verification_success', ['id' => $id]));
+                    }
+                    $errors = array_merge($errors, $result['errors']);
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
             }
 
-            return back()->with('backup_success', __('backup-manager::dashboard.verification_success', ['id' => $id]));
+            if ($errors !== []) {
+                return back()->with('backup_error', __('backup-manager::dashboard.verification_failed', ['errors' => implode(' ', $errors)]));
+            }
+
+            return back()->with('backup_error', __('backup-manager::dashboard.verification_error'));
         } catch (Throwable $exception) {
             report($exception);
 

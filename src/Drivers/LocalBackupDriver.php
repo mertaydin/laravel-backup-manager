@@ -7,9 +7,13 @@ namespace MertAydin\LaravelBackupManager\Drivers;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
+use MertAydin\LaravelBackupManager\BackupInspector;
 use MertAydin\LaravelBackupManager\Contracts\BackupDriver;
 use MertAydin\LaravelBackupManager\Data\BackupResult;
 use MertAydin\LaravelBackupManager\Database\MySqlDumper;
+use MertAydin\LaravelBackupManager\Events\BackupCompleted;
+use MertAydin\LaravelBackupManager\Events\BackupFailed;
 use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Storage\LaravelFilesystemStorage;
@@ -25,6 +29,7 @@ final class LocalBackupDriver implements BackupDriver
         private readonly ZipArchiver $archiver,
         private readonly Filesystem $files,
         private readonly ArtifactEncryptor $encryptor,
+        private readonly BackupInspector $inspector,
     ) {}
 
     public function run(array $options = []): BackupResult
@@ -34,13 +39,19 @@ final class LocalBackupDriver implements BackupDriver
         $profile = $this->config->get('backup-manager.profiles.'.$profileName);
 
         if (! is_array($profile)) {
-            return BackupResult::failure($id, "Backup profile [{$profileName}] does not exist.");
+            $result = BackupResult::failure($id, "Backup profile [{$profileName}] does not exist.");
+            event(new BackupFailed($result));
+
+            return $result;
         }
 
         $temporaryRoot = (string) $this->config->get('backup-manager.temporary_directory');
         $workdir = rtrim($temporaryRoot, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$id;
         if (! $this->files->makeDirectory($workdir, 0700, true, true)) {
-            return BackupResult::failure($id, 'Unable to create the temporary backup workspace.');
+            $result = BackupResult::failure($id, 'Unable to create the temporary backup workspace.');
+            event(new BackupFailed($result));
+
+            return $result;
         }
 
         $storages = [];
@@ -100,10 +111,22 @@ final class LocalBackupDriver implements BackupDriver
                 $encryptionMetadata['key_id'] = $encryptionConfig['key_id'] ?? null;
             }
 
+            $createdAt = now();
+            $nameTemplate = (string) $this->config->get('backup-manager.naming.template', ':app-:date-:time');
+            $generatedLabel = str_replace(
+                [':app', ':date', ':time', ':id'],
+                [Str::slug((string) $this->config->get('app.name', 'laravel-app')), $createdAt->format('Ymd'), $createdAt->format('His'), $id],
+                $nameTemplate,
+            );
+            $label = trim((string) ($options['label'] ?? '')) ?: Str::slug($generatedLabel);
             $manifest = [
                 'id' => $id,
-                'created_at' => now()->toIso8601String(),
+                'created_at' => $createdAt->toIso8601String(),
                 'profile' => $profileName,
+                'label' => $label,
+                'note' => trim((string) ($options['note'] ?? '')) ?: null,
+                'tags' => array_values(array_unique(array_filter((array) ($options['tags'] ?? []), 'is_string'))),
+                'type' => (string) ($options['type'] ?? 'manual'),
                 'artifacts' => [],
             ];
             if ($encryptionMetadata !== null) {
@@ -140,13 +163,25 @@ final class LocalBackupDriver implements BackupDriver
                 }
             }
 
-            return BackupResult::success($id, $uploaded[$disk] ?? [], [
+            $verification = null;
+            if ((bool) $this->config->get('backup-manager.integrity.verify_after_upload', true)) {
+                $verification = $this->inspector->verify($id, $profileName, $disk);
+                if (! $verification['valid']) {
+                    throw new RuntimeException('Post-upload integrity verification failed: '.implode(' ', $verification['errors']));
+                }
+            }
+
+            $result = BackupResult::success($id, $uploaded[$disk] ?? [], [
                 'profile' => $profileName,
                 'disk' => $disk,
                 'storage_disks' => $diskNames,
                 'checksums' => $manifest['artifacts'],
                 'encryption' => $encryptionMetadata,
+                'verification' => $verification,
             ]);
+            event(new BackupCompleted($result));
+
+            return $result;
         } catch (Throwable $exception) {
             foreach ($uploaded as $diskName => $paths) {
                 foreach ($paths as $remotePath) {
@@ -158,7 +193,10 @@ final class LocalBackupDriver implements BackupDriver
                 }
             }
 
-            return BackupResult::failure($id, $exception->getMessage(), ['profile' => $profileName, 'uploaded_artifacts_cleaned' => $uploaded !== []]);
+            $result = BackupResult::failure($id, $exception->getMessage(), ['profile' => $profileName, 'uploaded_artifacts_cleaned' => $uploaded !== []]);
+            event(new BackupFailed($result));
+
+            return $result;
         } finally {
             $this->files->deleteDirectory($workdir);
         }

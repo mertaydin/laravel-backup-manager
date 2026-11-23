@@ -40,6 +40,15 @@ A Laravel package for database and application file backups, compression, encryp
 - Light, dark, and system theme preferences, remembered in the browser.
 - Manual backup execution from Artisan or the dashboard.
 - Temporary workspace cleanup and best-effort cleanup of partial uploads.
+- Storage health checks for connectivity, listing, write, read, and delete permissions.
+- Preflight checks for MySQL tools, PHP extensions, temporary directory permissions, and storage access.
+- Backup labels, notes, tags, and configurable automatic naming templates.
+- Backup history filters for date, type, storage disk, and manifest status.
+- Detailed backup inspection with artifact sizes and SHA-256 checksums.
+- Automatic post-upload integrity verification (configurable).
+- Backup lifecycle events: `BackupCompleted`, `BackupFailed`, `BackupDeleted`, and `BackupRestored`.
+- Dashboard summary of the next scheduled backup and aggregate storage usage.
+- Explicit confirmation before destructive restore operations.
 
 ## Requirements
 
@@ -52,12 +61,12 @@ A Laravel package for database and application file backups, compression, encryp
 ## Installation
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.6
+composer require mertaydin/laravel-backup-manager:^0.7
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
 
-The dashboard assets are published to `public/vendor/backup-manager`; republish them after package updates with `php artisan vendor:publish --tag=backup-manager-assets --force`. CSS and JavaScript URLs include the configurable `backup-manager.ui.asset_version` query parameter (default `0.6.2`) to prevent stale browser caches. You can override it with `BACKUP_MANAGER_ASSET_VERSION`. The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
+The dashboard assets are published to `public/vendor/backup-manager`; republish them after package updates with `php artisan vendor:publish --tag=backup-manager-assets --force`. CSS and JavaScript URLs include the configurable `backup-manager.ui.asset_version` query parameter (default `0.7.0`) to prevent stale browser caches. You can override it with `BACKUP_MANAGER_ASSET_VERSION`. The dashboard is available at `/backup-manager`. It supports English, Turkish, Spanish, Simplified Chinese, Hindi, and Arabic. Users can switch between light, dark, and system themes; the selected language is saved in the session and the theme preference is saved in the browser. It uses Laravel's `web` and `auth` middleware by default. Configure access in `config/backup-manager.php`:
 
 ```php
 'ui' => [
@@ -221,6 +230,40 @@ php artisan backup:restore 20261123_120000_aabbccdd --files --target=/var/www/my
 ```
 
 Select exactly one component per command. Database restore streams the decompressed SQL into the configured `mysql` client and validates the gzip stream before executing SQL. File restore rejects path traversal, symbolic links, duplicate paths and environment files, and refuses to extract through symbolic links already present in the target. Existing files are overwritten only when `--force` is explicitly supplied. Restore is not transactional: keep a separate current backup and test restores in a staging environment before production use.
+
+## Backup metadata, naming, and events
+
+Dashboard-created backups can include a human-readable label, a note, and up to ten tags. These values are stored in the backup manifest and are searchable from the dashboard history.
+
+When no custom label is supplied, the package generates one using `BACKUP_MANAGER_NAME_TEMPLATE`. The default is `:app-:date-:time`. Supported placeholders are:
+
+- `:app` — slugged Laravel application name.
+- `:date` — backup date in `YYYYMMDD` format.
+- `:time` — backup time in `HHMMSS` format.
+- `:id` — complete backup identifier.
+
+The package dispatches Laravel events after backup lifecycle operations:
+
+- `MertAydin\LaravelBackupManager\Events\BackupCompleted`
+- `MertAydin\LaravelBackupManager\Events\BackupFailed`
+- `MertAydin\LaravelBackupManager\Events\BackupDeleted`
+- `MertAydin\LaravelBackupManager\Events\BackupRestored`
+
+Listen to these events using Laravel's standard event/listener registration. The backup result is available as `$event->result` for completion and failure events; deletion and restore events expose `backupId`, with the restored component on `BackupRestored`.
+
+## Storage health and preflight checks
+
+Use **Storage Management → Laravel Filesystem disks → Test connection and permissions** to verify a disk. The check performs temporary listing, write, read, and delete operations under the configured backup path and removes its probe file afterward.
+
+Before a dashboard backup is queued, the package checks the temporary workspace, configured storage disks, MySQL connection type and `mysqldump` executable, and the ZIP or sodium PHP extensions when those features are selected.
+
+## Automatic integrity verification
+
+After uploading a backup, the package verifies artifact SHA-256 checksums and file sizes by default. Disable this extra read pass when necessary:
+
+```dotenv
+BACKUP_MANAGER_VERIFY_AFTER_UPLOAD=false
+```
 
 ## Storage support
 

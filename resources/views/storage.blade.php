@@ -75,7 +75,19 @@
     <section class="storage-card">
         <h2>Laravel Filesystem disks</h2>
         <p>Existing Laravel disks such as local, S3 and Cloudflare R2 remain configured in your application's <code>config/filesystems.php</code>. Select the disk in the backup profile's <code>storage.disk</code> setting.</p>
-        <ul>@foreach($filesystemDisks as $disk)<li><code>{{ $disk }}</code></li>@endforeach</ul>
+        <ul>
+            @foreach($filesystemDisks as $disk)
+                <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                    <code>{{ $disk }}</code>
+                    <form method="POST" action="{{ route('backup-manager.storage.test') }}">
+                        @csrf
+                        <input type="hidden" name="disk" value="{{ $disk }}">
+                        <button type="submit">Test connection and permissions</button>
+                    </form>
+                </li>
+            @endforeach
+        </ul>
+        <p>Each test performs a temporary write, read, listing and delete check. The temporary test file is removed after the check.</p>
         <p>Google Drive is currently available here for account connection and verification. It is not selectable as a backup destination until the native storage adapter and historical backup operations are completed.</p>
     </section>
 </div>

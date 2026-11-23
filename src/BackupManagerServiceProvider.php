@@ -20,6 +20,7 @@ use MertAydin\LaravelBackupManager\Files\ZipArchiver;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use MertAydin\LaravelBackupManager\Services\DashboardAuthorizer;
+use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 
 class BackupManagerServiceProvider extends ServiceProvider
@@ -34,11 +35,13 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(ZipRestorer::class);
         $this->app->singleton(ArtifactEncryptor::class);
         $this->app->singleton(BackupInspector::class);
+        $this->app->singleton(BackupPreflight::class);
         $this->app->singleton(BackupDeleter::class);
         $this->app->singleton(BackupPruner::class);
         $this->app->singleton(BackupRestorer::class);
         $this->app->singleton(DashboardAuthorizer::class);
         $this->app->singleton(StorageSettingsRepository::class);
+        $this->app->singleton(StorageHealthChecker::class);
         $this->app->singleton(BackupManager::class, function ($app): BackupManager {
             $manager = new BackupManager;
             $manager->extend('local', $app->make(LocalBackupDriver::class));

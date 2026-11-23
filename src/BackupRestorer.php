@@ -8,6 +8,7 @@ use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Filesystem\Filesystem;
 use MertAydin\LaravelBackupManager\Database\MySqlRestorer;
+use MertAydin\LaravelBackupManager\Events\BackupRestored;
 use MertAydin\LaravelBackupManager\Files\ZipRestorer;
 use MertAydin\LaravelBackupManager\Security\ArtifactEncryptor;
 use RuntimeException;
@@ -110,6 +111,8 @@ final class BackupRestorer
             } else {
                 $restoredFiles = $this->zip->restore($restorePath, $target, true);
             }
+
+            event(new BackupRestored($id, $component));
 
             return [
                 'id' => $id,

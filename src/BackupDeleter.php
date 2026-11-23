@@ -6,6 +6,7 @@ namespace MertAydin\LaravelBackupManager;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use MertAydin\LaravelBackupManager\Events\BackupDeleted;
 use RuntimeException;
 
 final class BackupDeleter
@@ -50,6 +51,10 @@ final class BackupDeleter
             } catch (\Throwable) {
                 $failed[] = $diskName;
             }
+        }
+
+        if ($failed === []) {
+            event(new BackupDeleted($id, $deleted));
         }
 
         return ['deleted' => $deleted, 'failed' => $failed];

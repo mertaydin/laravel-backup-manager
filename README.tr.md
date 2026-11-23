@@ -36,6 +36,15 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - Türkçe, İngilizce, İspanyolca, Basitleştirilmiş Çince, Hintçe ve Arapça panel.
 - Açık, koyu ve sistem teması.
 - Geçici dosyaları işlem sonunda temizleme ve başarısız yüklemelerde kısmi dosyaları silmeye çalışma.
+- Depolama bağlantısı, listeleme, yazma, okuma ve silme izinleri için Storage Health Check.
+- MySQL araçları, PHP eklentileri, geçici dizin izinleri ve depolama erişimi için yedekleme öncesi kontroller.
+- Yedek etiketi, açıklaması, etiketleri ve yapılandırılabilir otomatik isimlendirme şablonu.
+- Tarih, tür, depolama diski ve manifest durumuna göre yedek geçmişi filtreleme.
+- Dosya boyutları ve SHA-256 checksum değerleriyle ayrıntılı yedek inceleme ekranı.
+- Yükleme sonrası otomatik bütünlük doğrulaması (yapılandırılabilir).
+- `BackupCompleted`, `BackupFailed`, `BackupDeleted` ve `BackupRestored` Laravel event'leri.
+- Panelde sonraki otomatik yedekleme zamanı ve toplam yedek depolama kullanımı.
+- Geri döndürülemez geri yükleme işlemleri öncesinde açık onay.
 
 ## Gereksinimler
 
@@ -48,12 +57,12 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 ## Kurulum
 
 ```bash
-composer require mertaydin/laravel-backup-manager:^0.6
+composer require mertaydin/laravel-backup-manager:^0.7
 php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
 
-Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.6.2`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
+Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.7.0`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
 
 ```bash
 php artisan vendor:publish --tag=backup-manager-assets --force
@@ -210,6 +219,40 @@ Panelden otomatik yedeklemeyi pasife almak zamanlanmış çalışmaları durduru
 Geri yükleme öncesinde yedek setinin tamamı manifest üzerinden doğrulanır. `--force` kullanılmadığında komut yalnızca önizleme yapar. Veritabanı geri yüklemesi sıkıştırılmış SQL'i akış halinde MySQL istemcisine aktarır. Dosya geri yüklemesi path traversal, sembolik bağlantılar, yinelenen yollar ve `.env` dosyalarına karşı kontroller uygular. Var olan dosyalar yalnızca `--force` ile üzerine yazılır.
 
 Geri yükleme işlemi transaction tabanlı değildir. Üretimde kullanmadan önce mevcut sistemin ayrı bir yedeğini alın ve geri yüklemeyi staging ortamında test edin.
+
+## Yedek metaverisi, isimlendirme ve event'ler
+
+Panelden oluşturulan yedeklere okunabilir bir ad, açıklama ve en fazla on etiket ekleyebilirsiniz. Bu bilgiler yedek manifest dosyasında saklanır ve paneldeki yedek geçmişinde aranabilir.
+
+Özel bir ad girilmezse `BACKUP_MANAGER_NAME_TEMPLATE` kullanılarak otomatik ad oluşturulur. Varsayılan şablon `:app-:date-:time` şeklindedir. Desteklenen değişkenler:
+
+- `:app` — Laravel uygulama adının slug biçimi.
+- `:date` — `YYYYMMDD` biçiminde tarih.
+- `:time` — `HHMMSS` biçiminde saat.
+- `:id` — tam yedek kimliği.
+
+Paket yedekleme yaşam döngüsünde aşağıdaki Laravel event'lerini tetikler:
+
+- `MertAydin\LaravelBackupManager\Events\BackupCompleted`
+- `MertAydin\LaravelBackupManager\Events\BackupFailed`
+- `MertAydin\LaravelBackupManager\Events\BackupDeleted`
+- `MertAydin\LaravelBackupManager\Events\BackupRestored`
+
+Laravel'in standart event/listener kayıt yöntemlerini kullanabilirsiniz. Tamamlanma ve hata event'lerinde sonuç `$event->result` üzerinden; silme ve geri yükleme event'lerinde `backupId` üzerinden alınabilir. `BackupRestored` ayrıca geri yüklenen bileşeni taşır.
+
+## Depolama sağlığı ve yedekleme öncesi kontroller
+
+**Storage Management → Laravel Filesystem disks → Test connection and permissions** üzerinden disk bağlantısını test edebilirsiniz. Kontrol, yapılandırılmış yedekleme dizini altında geçici bir dosya oluşturur; listeleme, yazma, okuma ve silme işlemlerini dener ve test dosyasını işlem sonunda temizler.
+
+Panelden yedekleme kuyruğa alınmadan önce geçici çalışma dizini, depolama diskleri, MySQL bağlantı türü ve `mysqldump` komutu kontrol edilir. Seçilen özelliklere göre PHP ZIP ve sodium eklentileri de doğrulanır.
+
+## Otomatik bütünlük doğrulaması
+
+Yedek dosyaları depolamaya yüklendikten sonra SHA-256 checksum ve dosya boyutları varsayılan olarak yeniden doğrulanır. Gerekirse bu ek okuma işlemini kapatabilirsiniz:
+
+```dotenv
+BACKUP_MANAGER_VERIFY_AFTER_UPLOAD=false
+```
 
 ## Depolama desteği
 

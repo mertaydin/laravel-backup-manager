@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Backup Manager · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.6.1') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.7.0') }}">
 </head>
 <body>
 <div class="shell">
@@ -48,12 +48,24 @@
     <section class="content">
         <div class="panel">
             <div class="panel-head"><div><h2>{{ __('backup-manager::dashboard.recent_backups') }}</h2><p>{{ __('backup-manager::dashboard.history_subtitle') }}</p></div><span class="count">{{ $totalBackups }} {{ __('backup-manager::dashboard.records') }}</span></div>
+            <form method="GET" action="{{ route('backup-manager.dashboard') }}" class="backup-filters" style="display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--border)">
+                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Search ID, label, note or tag" aria-label="Search backups">
+                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
+                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
+                <select name="type" aria-label="Backup type"><option value="">All types</option><option value="manual" {{ ($filters['type'] ?? '') === 'manual' ? 'selected' : '' }}>Manual</option><option value="scheduled" {{ ($filters['type'] ?? '') === 'scheduled' ? 'selected' : '' }}>Scheduled</option></select>
+                <select name="status" aria-label="Backup status"><option value="">All statuses</option><option value="available" {{ ($filters['status'] ?? '') === 'available' ? 'selected' : '' }}>Available</option><option value="invalid" {{ ($filters['status'] ?? '') === 'invalid' ? 'selected' : '' }}>Invalid manifest</option></select>
+                <select name="disk" aria-label="Storage disk"><option value="">All disks</option>@foreach($availableBackupDisks as $availableDisk)<option value="{{ $availableDisk }}" {{ ($filters['disk'] ?? '') === $availableDisk ? 'selected' : '' }}>{{ $availableDisk }}</option>@endforeach</select>
+                <button class="action-button" type="submit">Filter</button>
+                <a class="action-button" href="{{ route('backup-manager.dashboard') }}">Clear</a>
+            </form>
             <div class="backup-list">
             @forelse($backups->take(12) as $backup)
                 <article class="backup">
                     <div class="file-icon">▤</div>
-                    <div class="backup-main"><div class="backup-title">{{ $backup['id'] }}</div><div class="backup-sub">{{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
-                    @if($backup['encrypted'] ?? false)<span class="artifact">{{ __('backup-manager::dashboard.encrypted') }}</span>@endif</div></div>
+                    <div class="backup-main"><div class="backup-title"><a href="{{ route('backup-manager.details', $backup['id']) }}">{{ ($backup['label'] ?? '') ?: $backup['id'] }}</a></div><div class="backup-sub">{{ $backup['id'] }} &nbsp;·&nbsp; {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
+                    @if($backup['encrypted'] ?? false)<span class="artifact">{{ __('backup-manager::dashboard.encrypted') }}</span>@endif
+                    @foreach(($backup['tags'] ?? []) as $tag)<span class="artifact">{{ $tag }}</span>@endforeach
+                    @if(!empty($backup['note']))<div class="backup-sub">{{ $backup['note'] }}</div>@endif</div></div>
                     <div class="backup-size">{{ number_format($backup['size'] / 1048576, 2) }} MB</div>
                     <div class="backup-actions">
                         @foreach($backup['artifacts'] as $artifact)
@@ -82,6 +94,9 @@
                     @csrf
                     <label class="check"><input type="checkbox" name="database" value="1" {{ $databaseEnabled ? 'checked' : '' }}><span><strong>{{ __('backup-manager::dashboard.database_backup') }}</strong><small>{{ __('backup-manager::dashboard.mysql_compressed') }}</small></span></label>
                     <label class="check"><input type="checkbox" name="files" value="1" {{ $filesEnabled ? 'checked' : '' }}><span><strong>{{ __('backup-manager::dashboard.application_files') }}</strong><small>{{ __('backup-manager::dashboard.zip_exclusions') }}</small></span></label>
+                    <label class="storage-field"><strong>Backup label</strong><input type="text" name="label" maxlength="100" placeholder="e.g. Before deployment"></label>
+                    <label class="storage-field"><strong>Backup note</strong><textarea name="note" maxlength="500" rows="2" placeholder="Optional backup description"></textarea></label>
+                    <label class="storage-field"><strong>Tags (one per line)</strong><textarea name="tags[]" maxlength="40" rows="2" placeholder="production"></textarea></label>
                     <button class="primary" type="submit">＋ &nbsp; {{ __('backup-manager::dashboard.start_backup') }}</button>
                     <p class="hint">{{ __('backup-manager::dashboard.backup_runtime_hint') }}</p>
                 </form>
@@ -93,6 +108,9 @@
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.storage_disk') }}</span><strong>{{ $diskName }}</strong></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.database') }}</span><strong>{{ $databaseEnabled ? __('backup-manager::dashboard.enabled') : __('backup-manager::dashboard.disabled') }}</strong></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.application_files') }}</span><strong>{{ $filesEnabled ? __('backup-manager::dashboard.enabled') : __('backup-manager::dashboard.disabled') }}</strong></div>
+                    <div class="storage-row"><span>Last backup status</span><strong>{{ is_array($lastBackupStatus) ? ucfirst($lastBackupStatus['status'] ?? 'unknown') : 'No recent run' }}</strong></div>
+                    @if(is_array($lastBackupStatus) && !empty($lastBackupStatus['finished_at']))<div class="storage-row"><span>Last run finished</span><strong>{{ \Illuminate\Support\Carbon::parse($lastBackupStatus['finished_at'])->diffForHumans() }}</strong></div>@endif
+                    <div class="storage-row"><span>Next scheduled backup</span><strong>{{ $nextScheduledBackup ? $nextScheduledBackup->format('d M Y H:i T') : 'Not scheduled' }}</strong></div>
                     <div class="divider"></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.integrity') }}</span><strong>SHA-256</strong></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.manifest') }}</span><strong>JSON</strong></div>
@@ -102,6 +120,6 @@
     </section>
     <footer class="footer"><span>Laravel Backup Manager</span><span>{{ __('backup-manager::dashboard.protect') }}</span></footer>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.6.1') }}" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.7.0') }}" defer></script>
 </body>
 </html>
