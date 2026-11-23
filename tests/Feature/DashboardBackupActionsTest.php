@@ -85,7 +85,8 @@ final class DashboardBackupActionsTest extends TestCase
     public function test_dashboard_dispatches_backup_job_to_configured_queue(): void
     {
         Queue::fake();
-        $this->instance(BackupPreflight::class, new class extends BackupPreflight {
+        $this->instance(BackupPreflight::class, new class extends BackupPreflight
+        {
             public function __construct() {}
 
             public function inspect(array $options = []): array
@@ -102,7 +103,6 @@ final class DashboardBackupActionsTest extends TestCase
 
         Queue::assertPushed(CreateBackupJob::class);
     }
-
 
     public function test_backup_details_page_displays_manifest_metadata_and_checksums(): void
     {
