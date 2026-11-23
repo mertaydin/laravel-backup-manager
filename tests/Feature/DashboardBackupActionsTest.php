@@ -73,6 +73,22 @@ final class DashboardBackupActionsTest extends TestCase
         Queue::assertPushed(CreateBackupJob::class);
     }
 
+    public function test_download_falls_back_to_local_mirror_when_remote_copy_is_missing(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        $manifest = [
+            'id' => self::BACKUP_ID,
+            'artifacts' => ['database.sql.gz' => ['size' => 6, 'sha256' => hash('sha256', 'backup')]],
+        ];
+        Storage::disk('local')->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode($manifest));
+        Storage::disk('local')->put('backups/'.self::BACKUP_ID.'/database.sql.gz', 'backup');
+
+        $this->get('/backup-manager/'.self::BACKUP_ID.'/download/database.sql.gz')
+            ->assertOk()
+            ->assertHeader('content-disposition');
+    }
+
     public function test_download_rejects_artifacts_not_in_manifest(): void
     {
         Storage::fake('s3');
