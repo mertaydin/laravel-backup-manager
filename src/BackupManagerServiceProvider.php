@@ -48,6 +48,10 @@ class BackupManagerServiceProvider extends ServiceProvider
             __DIR__.'/../config/backup-manager.php' => config_path('backup-manager.php'),
         ], 'backup-manager-config');
 
+        $this->publishes([
+            __DIR__.'/../resources/dist' => public_path('vendor/backup-manager'),
+        ], 'backup-manager-assets');
+
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'backup-manager');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'backup-manager');
 

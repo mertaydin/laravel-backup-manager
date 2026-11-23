@@ -25,9 +25,19 @@ final class DashboardLocalizationTest extends TestCase
         $this->get('/backup-manager')
             ->assertOk()
             ->assertSee('Backup dashboard')
-            ->assertSee('backup-manager-theme')
+            ->assertSee('vendor/backup-manager/css/dashboard.css')
+            ->assertSee('vendor/backup-manager/js/dashboard.js')
             ->assertSee('dashboard-language')
             ->assertSee('Total backups');
+    }
+
+    public function test_dashboard_assets_can_be_published(): void
+    {
+        $this->artisan('vendor:publish', ['--tag' => 'backup-manager-assets', '--force' => true])
+            ->assertExitCode(0);
+
+        self::assertFileExists(public_path('vendor/backup-manager/css/dashboard.css'));
+        self::assertFileExists(public_path('vendor/backup-manager/js/dashboard.js'));
     }
 
     public function test_user_can_change_dashboard_language_and_keep_it_in_session(): void
