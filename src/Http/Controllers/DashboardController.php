@@ -37,7 +37,14 @@ final class DashboardController extends Controller
         $profileName = (string) config('backup-manager.default', 'default');
         $profile = config('backup-manager.profiles.'.$profileName, []);
         $diskName = (string) data_get($profile, 'storage.disk', 'local');
-        $allBackups = collect($this->inspector->list($profileName, $diskName, 500))
+        $availableBackupDisks = array_values(array_unique([
+            $diskName,
+            (string) data_get($profile, 'storage.local_disk', 'local'),
+        ]));
+        $allBackups = collect($availableBackupDisks)
+            ->flatMap(fn (string $disk) => $this->inspector->list($profileName, $disk, 500))
+            ->unique('id')
+            ->values()
             ->map(static function (array $backup): array {
                 $backup['size'] = (int) ($backup['total_size'] ?? 0);
 
@@ -67,6 +74,7 @@ final class DashboardController extends Controller
             'to' => ['nullable', 'date', 'after_or_equal:from'],
             'type' => ['nullable', 'in:manual,scheduled'],
             'status' => ['nullable', 'in:available,invalid'],
+            'disk' => ['nullable', 'string', 'in:'.implode(',', $availableBackupDisks)],
         ]);
         $backups = $allBackups
             ->when($filters['q'] ?? null, static fn ($items, string $query) => $items->filter(
@@ -85,6 +93,7 @@ final class DashboardController extends Controller
             ))
             ->when($filters['type'] ?? null, static fn ($items, string $type) => $items->where('type', $type))
             ->when($filters['status'] ?? null, static fn ($items, string $status) => $items->where('status', $status))
+            ->when($filters['disk'] ?? null, static fn ($items, string $disk) => $items->where('disk', $disk))
             ->values();
 
         return view('backup-manager::dashboard', [
@@ -93,6 +102,7 @@ final class DashboardController extends Controller
             'totalSize' => $allBackups->sum('size'),
             'latestBackup' => $allBackups->first(),
             'filters' => $filters,
+            'availableBackupDisks' => $availableBackupDisks,
             'nextScheduledBackup' => $nextScheduledBackup,
             'diskName' => $diskName,
             'profileName' => $profileName,
