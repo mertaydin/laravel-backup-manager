@@ -39,7 +39,7 @@ final class BackupInspectorTest extends TestCase
 
         self::assertCount(1, $backups);
         self::assertSame(self::BACKUP_ID, $backups[0]['id']);
-        self::assertSame(strlen(gzencode('database payload')), $backups[0]['total_size']);
+        self::assertSame(Storage::disk('backup-test')->size('backups/'.self::BACKUP_ID.'/database.sql.gz'), $backups[0]['total_size']);
         self::assertSame('database.sql.gz', $backups[0]['artifacts'][0]['name']);
     }
 
