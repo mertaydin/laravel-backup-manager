@@ -42,7 +42,7 @@ final class GoogleDriveOAuth
             'grant_type' => 'authorization_code',
         ]);
 
-        if (! $response->successful() || !is_string($response->json('access_token'))) {
+        if (! $response->successful() || ! is_string($response->json('access_token'))) {
             throw new RuntimeException('Google OAuth authorization failed: '.$response->body());
         }
 
