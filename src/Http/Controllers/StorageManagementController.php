@@ -26,7 +26,7 @@ final class StorageManagementController extends Controller
     public function index(): View
     {
         $settings = $this->settings->all();
-        $disks = array_keys(config('filesystems.disks', []));
+        $disks = array_values(array_filter(array_keys(config('filesystems.disks', [])), static fn (string $disk): bool => $disk !== 'google-drive'));
         if (! empty(data_get($settings, 'disks.google-drive.refresh_token'))) {
             $disks[] = 'google-drive';
         }
@@ -50,7 +50,7 @@ final class StorageManagementController extends Controller
             'targets.*' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_.-]+$/'],
         ]);
 
-        $available = array_keys(config('filesystems.disks', []));
+        $available = array_values(array_filter(array_keys(config('filesystems.disks', [])), static fn (string $disk): bool => $disk !== 'google-drive'));
         if (! empty(data_get($this->settings->all(), 'disks.google-drive.refresh_token'))) {
             $available[] = 'google-drive';
         }
