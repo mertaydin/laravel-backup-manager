@@ -32,10 +32,36 @@ final class StorageManagementController extends Controller
         return view('backup-manager::storage', [
             'settings' => $settings,
             'filesystemDisks' => $disks,
-            'googleConnected' => ! empty(data_get($settings, 'disks.google-drive.refresh_token')),
+            'googleConnected' => ! empty(data_get($settings, 'disks.google-drive.refresh_token')),\n            'selectedTargets' => $settings['backup_targets'] ?? [data_get(config('backup-manager.profiles.'.config('backup-manager.default', 'default')), 'storage.disk', 'local')],
             'callbackUrl' => route('backup-manager.storage.google.callback'),
             'schedule' => $settings['schedule'] ?? ['enabled' => false, 'time' => '02:00', 'timezone' => config('app.timezone', 'UTC'), 'retain_days' => 30],
         ]);
+    }
+
+
+    public function saveTargets(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'targets' => ['required', 'array', 'min:1'],
+            'targets.*' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_.-]+$/'],
+        ]);
+
+        $available = array_keys(config('filesystems.disks', []));
+        if (! empty(data_get($this->settings->all(), 'disks.google-drive.refresh_token'))) {
+            $available[] = 'google-drive';
+        }
+        $targets = array_values(array_unique($data['targets']));
+        foreach ($targets as $target) {
+            if (! in_array($target, $available, true)) {
+                return back()->withErrors(['targets' => "Storage target [{$target}] is not configured or connected."]);
+            }
+        }
+
+        $settings = $this->settings->all();
+        $settings['backup_targets'] = $targets;
+        $this->settings->save($settings);
+
+        return back()->with('storage_success', 'Backup destinations saved. New backups will be uploaded only to the selected destinations.');
     }
 
     public function saveSchedule(Request $request): RedirectResponse
@@ -63,14 +89,14 @@ final class StorageManagementController extends Controller
     {
         $data = $request->validate([
             'client_id' => ['required', 'string', 'max:255'],
-            'client_secret' => ['required', 'string', 'max:255'],
+            'client_secret' => ['nullable', 'string', 'max:255'],\n            'root_folder_id' => ['nullable', 'string', 'max:255'],
         ]);
 
         $settings = $this->settings->all();
         $existing = $settings['disks']['google-drive'] ?? [];
         $settings['disks']['google-drive'] = array_merge($existing, [
             'client_id' => $data['client_id'],
-            'client_secret' => $data['client_secret'],
+            'client_secret' => $data['client_secret'] ?: ($existing['client_secret'] ?? ''),\n            'root_folder_id' => trim((string) ($data['root_folder_id'] ?? '')) ?: 'root',
         ]);
         $this->settings->save($settings);
 
