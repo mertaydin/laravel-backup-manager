@@ -153,7 +153,7 @@ Varsayılan profil Laravel yapılandırmasındaki MySQL bağlantısını kullan�
 
 ### Yerel ve uzak depolama
 
-Yedekler `storage.disk` üzerinde saklanır; ayrıca `storage.local_disk` (varsayılan: `local`) üzerine kopyalanır. Örneğin `disk=s3` ve `local_disk=local` ayarları aynı yedek setini S3/R2'ye yükler ve yerelde de tutar. İki disk aynıysa yinelenen yazma yapılmaz. Panelden silme ve retention temizliği her iki diskteki yedek dizinini de kaldırır.
+Yedek hedeflerini **Backup Manager → Storage Management → Yedekleme hedefleri** bölümünden seçebilirsiniz. Birden fazla hedef işaretlenirse her yedek tüm seçili hedeflere yüklenir. Yalnızca Google Drive kullanmak için sadece Google Drive kutusunu işaretleyin; yerel disk otomatik olarak eklenmez. Yeni hedef seçimi yalnızca bundan sonra oluşturulacak yedekleri etkiler.
 
 ### Arka plan yedekleme ve kuyruk
 
@@ -280,7 +280,7 @@ BACKUP_MANAGER_VERIFY_AFTER_UPLOAD=false
 
 ## Depolama desteği
 
-Laravel Filesystem diskleri üzerinden local, Amazon S3 ve Cloudflare R2 kullanılabilir. Pakette yerleşik Google Drive OAuth adaptörü henüz bulunmuyor; Google Drive bağlantısı Laravel Filesystem diski olarak ayrıca sağlanmalıdır.
+Local, Amazon S3, Cloudflare R2 ve yerleşik Google Drive Flysystem adaptörü desteklenir. Google Drive için Storage Management ekranından OAuth bilgilerini kaydedip hesabı bağlayın. Ardından **Yedekleme hedefleri** bölümünde Google Drive'ı seçin. İsterseniz aynı anda başka diskleri de seçerek çoklu hedefe yükleme yapabilirsiniz.
 
 ## Güvenlik notları
 
