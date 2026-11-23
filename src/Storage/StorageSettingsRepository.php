@@ -39,10 +39,19 @@ final class StorageSettingsRepository
             throw new RuntimeException('Unable to encode Backup Manager storage settings.', previous: $exception);
         }
 
-        DB::table('backup_manager_storage_settings')->updateOrInsert(
-            ['key' => self::KEY],
-            ['value' => $encrypted, 'updated_at' => now(), 'created_at' => now()],
-        );
+        $query = DB::table('backup_manager_storage_settings')->where('key', self::KEY);
+        if ($query->exists()) {
+            $query->update(['value' => $encrypted, 'updated_at' => now()]);
+
+            return;
+        }
+
+        DB::table('backup_manager_storage_settings')->insert([
+            'key' => self::KEY,
+            'value' => $encrypted,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /** @param array<string, mixed> $disk */
