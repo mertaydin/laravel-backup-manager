@@ -194,6 +194,27 @@ Laravel Filesystem diskleri üzerinden local, Amazon S3 ve Cloudflare R2 kullan�
 - Yedekleri indirme ve geri yükleme yetkisini yalnızca güvenilir yöneticilere verin.
 - Geri yükleme işlemlerini önce staging ortamında doğrulayın.
 
+## Geliştirme
+
+Geliştirme bağımlılıklarını kurup kalite kontrollerini çalıştırın:
+
+```bash
+composer install
+composer format
+composer format:test
+composer test
+composer audit
+```
+
+Barryvdh Laravel IDE Helper ile IDE otomatik tamamlama dosyalarını üretin:
+
+```bash
+composer ide-helper:generate
+composer ide-helper:meta
+```
+
+Üretilen IDE Helper dosyaları Git sürüm kontrolüne dahil edilmez.
+
 ## Lisans
 
 MIT
