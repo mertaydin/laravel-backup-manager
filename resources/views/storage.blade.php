@@ -1,23 +1,22 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Storage Management · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.6.2') }}">
-    <style>
-        .storage-page{max-width:920px;margin:32px auto;padding:0 24px}.storage-card{background:var(--panel,rgba(255,255,255,.04));border:1px solid var(--border,rgba(255,255,255,.1));border-radius:16px;padding:24px;margin:20px 0}.storage-card h2{margin:0 0 8px}.storage-card p{opacity:.75}.storage-field{display:grid;gap:8px;margin:16px 0}.storage-field input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--border, #555);background:transparent;color:inherit}.storage-actions{display:flex;gap:12px;flex-wrap:wrap}.storage-actions button,.storage-actions a{padding:11px 16px;border-radius:8px;border:1px solid var(--border,#555);color:inherit;text-decoration:none;background:transparent;cursor:pointer}.storage-actions .primary{background:#2563eb;border-color:#2563eb;color:white}.storage-alert{padding:14px 18px;border-radius:8px;margin:16px 0;background:rgba(22,163,74,.14)}.storage-alert.error{background:rgba(220,38,38,.14)}.storage-back{display:inline-block;margin:20px 0}
-    </style>
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.4') }}-0.8.4-0.8.4 }}">
+
 </head>
 <body>
-<div class="storage-page">
+<div class="shell storage-page">
     <a class="storage-back" href="{{ route('backup-manager.dashboard') }}">← {{ __('backup-manager::dashboard.dashboard_title') }}</a>
     <h1>Storage Management</h1>
     <p>Configure and verify backup destinations. Google Drive authorization is handled directly through Google OAuth and Drive API; no third-party Google Drive Composer package is used.</p>
 
-    @if(session('storage_success'))<div class="storage-alert">{{ session('storage_success') }}</div>@endif
-    @if(session('storage_error'))<div class="storage-alert error">{{ session('storage_error') }}</div>@endif
+    @if(session('storage_success'))<div class="alert success">{{ session('storage_success') }}</div>@endif
+    @if(session('storage_error'))<div class="alert error" role="alert">{{ session('storage_error') }}</div>@endif
+    @if($errors->any())<div class="alert error" role="alert"><strong>{{ __('backup-manager::dashboard.validation_error') }}</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
     <section class="storage-card">
         <h2>Google Drive</h2>
