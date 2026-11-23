@@ -15,7 +15,7 @@ class BackupPreflight
     ) {}
 
     /** @param array<string, mixed> $options
-     *  @return array{ready: bool, checks: array<string, bool>, errors: list<string>}
+     * @return array{ready: bool, checks: array<string, bool>, errors: list<string>}
      */
     public function inspect(array $options = []): array
     {
