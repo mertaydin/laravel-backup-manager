@@ -321,4 +321,57 @@ final class DashboardBackupActionsTest extends TestCase
 
         self::assertSame(['google-drive'], $settings->all()['backup_targets']);
     }
+
+    public function test_dashboard_can_update_backup_metadata_on_remote_and_local_copies(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        $manifest = ['id' => self::BACKUP_ID, 'label' => 'Old label', 'note' => 'Old note', 'tags' => ['old'], 'artifacts' => []];
+        foreach (['s3', 'local'] as $disk) {
+            Storage::disk($disk)->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode($manifest, JSON_THROW_ON_ERROR));
+        }
+
+        $this->put('/backup-manager/'.self::BACKUP_ID.'/metadata', [
+            'label' => 'Release backup',
+            'note' => 'Before production deployment',
+            'tags' => "production\\nrelease, important",
+        ])->assertRedirect()->assertSessionHas('backup_success');
+
+        foreach (['s3', 'local'] as $disk) {
+            $stored = json_decode(Storage::disk($disk)->get('backups/'.self::BACKUP_ID.'/manifest.json'), true);
+            self::assertSame('Release backup', $stored['label']);
+            self::assertSame('Before production deployment', $stored['note']);
+            self::assertSame(['production', 'release', 'important'], $stored['tags']);
+        }
+    }
+
+    public function test_dashboard_can_repeat_an_existing_database_backup(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode([
+            'id' => self::BACKUP_ID,
+            'label' => 'Nightly database',
+            'note' => 'Pre-release',
+            'tags' => ['nightly'],
+            'artifacts' => ['database.sql.gz' => ['size' => 10, 'sha256' => str_repeat('a', 64)]],
+        ], JSON_THROW_ON_ERROR));
+        Queue::fake();
+        $this->instance(BackupPreflight::class, new class extends BackupPreflight {
+            public function __construct() {}
+            public function inspect(array $options = []): array { return ['ready' => true, 'checks' => [], 'errors' => []]; }
+        });
+        config(['backup-manager.queue.connection' => 'database']);
+
+        $this->post('/backup-manager/'.self::BACKUP_ID.'/repeat')
+            ->assertRedirect()
+            ->assertSessionHas('backup_job_id');
+
+        Queue::assertPushed(CreateBackupJob::class, static fn (CreateBackupJob $job): bool => $job->options['database'] === true
+            && $job->options['files'] === false
+            && $job->options['label'] === 'Nightly database'
+            && $job->options['note'] === 'Pre-release'
+            && $job->options['tags'] === ['nightly']);
+    }
+
 }
