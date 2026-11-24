@@ -34,6 +34,7 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - Yedek listesinde SQL ve uygulama ZIP dosyalarının boyutlarını ayrı ayrı gösterme.
 - Yedek setinin tüm dosyalarını tek ZIP arşivi olarak indirme.
 - Mevcut yedeği yapılandırılmış başka bir depolama hedefine kopyalama; hedefteki mevcut yedeklerin üzerine yazmama.
+- Son başarısız yedeklemeyi aynı bileşen ve metadata ayarlarıyla yeniden kuyruğa alma; yeniden denemeden önce preflight kontrollerini çalıştırma.
 - Yedek etiketi, açıklaması ve etiketlerini panelden düzenleme; uzak ve yerel manifest kopyalarını tutarlı güncelleme.
 - Raporlar sayfasından filtrelenmiş CSV ve JSON dışa aktarma.
 - Yedek silindiğinde hem uzak depodan hem yerel kopyadan kaldırma.
