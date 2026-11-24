@@ -179,5 +179,4 @@ final class DashboardQuickActionsTest extends TestCase
             && $job->options['label'] === 'Retry me'
             && $job->options['tags'] === ['nightly']);
     }
-
 }
