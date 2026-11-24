@@ -80,6 +80,19 @@
                     <div class="backup-size">{{ number_format($backup['size'] / 1048576, 2) }} MB</div>
                     <div class="backup-actions">
                         <form class="verify-form" method="POST" action="{{ route('backup-manager.repeat', $backup['id']) }}" data-confirm="Create a new backup using this backup's components and metadata?">@csrf<button class="verify-button" type="submit">↻ Repeat</button></form>
+                        <a class="action-button" href="{{ route('backup-manager.download.archive', $backup['id']) }}">↓ Full ZIP</a>
+                        <form class="protection-form" method="POST" action="{{ route('backup-manager.copy', $backup['id']) }}">
+                            @csrf
+                            <select class="protection-input" name="destination" aria-label="Copy backup to another storage target" required>
+                                <option value="">Copy to disk…</option>
+                                @foreach($availableBackupDisks as $availableDisk)
+                                    @if($availableDisk !== ($backup['disk'] ?? null))
+                                        <option value="{{ $availableDisk }}">{{ $availableDisk }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                            <button class="protection-button" type="submit">Copy</button>
+                        </form>
                         <details class="backup-metadata-edit"><summary class="action-button">Edit details</summary>
                             <form class="protection-form" method="POST" action="{{ route('backup-manager.metadata', $backup['id']) }}">@csrf @method('PUT')
                                 <input class="protection-input" type="text" name="label" maxlength="100" value="{{ $backup['label'] ?? '' }}" placeholder="Backup label" aria-label="Backup label">
