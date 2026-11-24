@@ -396,7 +396,7 @@ final class DashboardController extends Controller
                     'label' => $manifest['label'] ?? null, 'note' => $manifest['note'] ?? null, 'tags' => $manifest['tags'] ?? [],
                 ]);
                 return $this->run();
-            } catch (\Illuminate\\Http\\Exceptions\\HttpResponseException $exception) {
+            } catch (\Illuminate\Http\Exceptions\HttpResponseException $exception) {
                 throw $exception;
             } catch (Throwable $exception) { report($exception); }
         }
