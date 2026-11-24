@@ -26,7 +26,7 @@ final class ReportsController extends Controller
         return view('backup-manager::reports', $report);
     }
 
-    public function export(): Response
+    public function export(): StreamedResponse
     {
         $report = $this->reportData();
         $payload = [
