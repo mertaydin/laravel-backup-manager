@@ -165,6 +165,9 @@ final class DashboardQuickActionsTest extends TestCase
             'status' => 'failed',
             'options' => ['database' => true, 'files' => false, 'label' => 'Retry me', 'note' => 'Same options', 'tags' => ['nightly']],
         ], now()->addDays(30));
+        $preflight = \Mockery::mock(BackupPreflight::class);
+        $preflight->shouldReceive('inspect')->once()->andReturn(['ready' => true, 'checks' => [], 'errors' => []]);
+        $this->instance(BackupPreflight::class, $preflight);
         config(['backup-manager.queue.connection' => 'database']);
 
         $this->post('/backup-manager/retry-last')
