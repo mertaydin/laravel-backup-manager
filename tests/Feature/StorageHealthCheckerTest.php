@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Orchestra\Testbench\TestCase;
 
 final class StorageHealthCheckerTest extends TestCase
@@ -97,7 +98,7 @@ final class StorageHealthCheckerTest extends TestCase
             'backup-manager.profiles.default.storage.local_disk' => 'local',
             'backup-manager.profiles.default.storage.path' => 'backups',
         ]);
-        app(\MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository::class)->save([
+        app(StorageSettingsRepository::class)->save([
             'schedule' => ['retain_days' => 30, 'warning_threshold_percent' => 85],
         ]);
 
