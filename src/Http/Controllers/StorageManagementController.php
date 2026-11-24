@@ -231,6 +231,46 @@ final class StorageManagementController extends Controller
         return $capacity;
     }
 
+    public function previewRetention(): RedirectResponse
+    {
+        $profileName = (string) config('backup-manager.default', 'default');
+        $settings = $this->settings->all();
+        $retainDays = max(1, (int) data_get($settings, 'schedule.retain_days', 30));
+        config([
+            'backup-manager.profiles.'.$profileName.'.retention.enabled' => true,
+            'backup-manager.profiles.'.$profileName.'.retention.keep_days' => $retainDays,
+            'backup-manager.profiles.'.$profileName.'.retention.keep_last' => 0,
+        ]);
+
+        try {
+            $preview = $this->pruner->run($profileName, null, false);
+            $items = array_map(static fn (array $backup): array => [
+                'id' => (string) ($backup['id'] ?? ''),
+                'created_at' => (string) ($backup['created_at'] ?? ''),
+                'size' => (int) ($backup['total_size'] ?? 0),
+                'disk' => (string) ($backup['disk'] ?? ''),
+            ], $preview['candidates']);
+            $this->activity->record(
+                'retention.preview',
+                'completed',
+                message: count($items).' expired backup(s) identified; nothing was deleted.',
+                metadata: ['candidate_count' => count($items), 'protected_count' => $preview['protected_count'], 'invalid_count' => $preview['invalid_count'], 'cutoff' => $preview['cutoff']],
+            );
+
+            return back()->with('retention_preview', [
+                'items' => $items,
+                'protected_count' => $preview['protected_count'],
+                'invalid_count' => $preview['invalid_count'],
+                'cutoff' => $preview['cutoff'],
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->activity->record('retention.preview', 'failed', message: $exception->getMessage());
+
+            return back()->with('storage_error', 'Retention preview failed: '.$exception->getMessage());
+        }
+    }
+
     public function testGoogle(): RedirectResponse
     {
         try {
