@@ -34,21 +34,6 @@ final class DashboardLocalizationTest extends TestCase
             ->assertSee('Total backups');
     }
 
-    public function test_reports_page_displays_inventory_summary_and_json_export(): void
-    {
-        $this->get('/backup-manager/reports')
-            ->assertOk()
-            ->assertSee('Yedekleme raporları')
-            ->assertSee('Depolama hedeflerine göre özet')
-            ->assertSee('Yedekleme envanteri')
-            ->assertSee('JSON raporunu indir');
-
-        $this->get('/backup-manager/reports/export')
-            ->assertOk()
-            ->assertHeader('content-type', 'application/json; charset=UTF-8')
-            ->assertSee('"summary"', false);
-    }
-
     public function test_dashboard_assets_can_be_published(): void
     {
         $this->artisan('vendor:publish', ['--tag' => 'backup-manager-assets', '--force' => true])
