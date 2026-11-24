@@ -36,7 +36,7 @@ final class ScheduledBackupCommand extends Command
             return self::SUCCESS;
         }
 
-        $lockKey = 'backup-manager:scheduled:'.$now->format('Y-m-d');
+        $startedAt = now();\n        $lockKey = 'backup-manager:scheduled:'.$now->format('Y-m-d');
         if (! $cache->add($lockKey, true, now()->addDays(2))) {
             return self::SUCCESS;
         }
@@ -46,7 +46,7 @@ final class ScheduledBackupCommand extends Command
             if (! $checks['ready']) {
                 $cache->forget($lockKey);
                 $cache->put('backup-manager:last-run', ['status' => 'failed', 'error' => implode(' ', $checks['errors']), 'finished_at' => now()->toIso8601String()], now()->addDays(30));
-                foreach ($checks['errors'] as $error) {
+                $activity->record('backup.scheduled', 'failed', message: implode(' ', $checks['errors']), startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));\n                foreach ($checks['errors'] as $error) {
                     $this->components->error($error);
                 }
 
@@ -69,7 +69,7 @@ final class ScheduledBackupCommand extends Command
             if (! $result?->successful) {
                 $cache->forget($lockKey);
                 $cache->put('backup-manager:last-run', ['status' => 'failed', 'backup_id' => $result->id, 'error' => $result->error, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
-                $this->components->error($result->error ?? 'Scheduled backup failed.');
+                $activity->record('backup.scheduled', 'failed', $result->id, message: $result->error, startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));\n                $this->components->error($result->error ?? 'Scheduled backup failed.');
 
                 return self::FAILURE;
             }
@@ -83,7 +83,7 @@ final class ScheduledBackupCommand extends Command
 
             $cache->put('backup-manager:last-run', ['status' => 'completed', 'backup_id' => $result->id, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
             $pruned = $pruner->run($profileName, null, true);
-            $this->components->info('Scheduled backup completed: '.$result->id);
+            $activity->record('backup.scheduled', 'completed', $result->id, message: 'Scheduled backup and retention cleanup completed.', startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));\n            $this->components->info('Scheduled backup completed: '.$result->id);
             $this->line('Expired backups deleted: '.count($pruned['deleted']));
 
             return self::SUCCESS;
