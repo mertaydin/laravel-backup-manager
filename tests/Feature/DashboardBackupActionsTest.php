@@ -315,5 +315,4 @@ final class DashboardBackupActionsTest extends TestCase
 
         self::assertSame(['google-drive'], $settings->all()['backup_targets']);
     }
-
 }
