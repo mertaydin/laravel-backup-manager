@@ -16,6 +16,7 @@ final class ReportsPageTest extends TestCase
 
     protected function getEnvironmentSetUp($app): void
     {
+        $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
         $app['config']->set('backup-manager.ui.middleware', ['web']);
     }
 
