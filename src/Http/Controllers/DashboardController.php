@@ -346,34 +346,6 @@ final class DashboardController extends Controller
         }
     }
 
-    public function bulk(): RedirectResponse
-    {
-        $validated = request()->validate([
-            'ids' => ['required', 'array', 'min:1', 'max:100'],
-            'ids.*' => ['required', 'string', 'regex:/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', 'distinct'],
-            'action' => ['required', 'in:delete,protect,unlock'],
-        ]);
-        $succeeded = [];
-        $failed = [];
-        foreach ($validated['ids'] as $id) {
-            try {
-                if ($validated['action'] === 'delete') {
-                    $result = $this->deleter->delete($id);
-                    if ($result['failed'] !== []) throw new RuntimeException('Delete failed on: '.implode(', ', $result['failed']));
-                } else {
-                    $this->protector->update($id, locked: $validated['action'] === 'protect', reason: $validated['action'] === 'protect' ? 'Bulk protection' : null);
-                }
-                $succeeded[] = $id;
-            } catch (Throwable $exception) {
-                $failed[$id] = $exception->getMessage();
-            }
-        }
-        if ($failed !== []) {
-            return back()->with('backup_error', count($succeeded).' backup(s) processed; '.count($failed).' skipped or failed. Protected backups are never deleted by bulk delete.');
-        }
-        return back()->with('backup_success', count($succeeded).' backup(s) processed successfully.');
-    }
-
     public function repeat(string $id): RedirectResponse
     {
         abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
