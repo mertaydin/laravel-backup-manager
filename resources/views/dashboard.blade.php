@@ -60,9 +60,15 @@
                 <button class="action-button" type="submit">Filter</button>
                 <a class="action-button" href="{{ route('backup-manager.dashboard') }}">Clear</a>
             </form>
+            <form id="bulk-backups-form" method="POST" action="{{ route('backup-manager.bulk') }}" class="report-filters" data-confirm="Apply this action to all selected backups?">
+                @csrf
+                <label><span>Bulk action</span><select name="action" required><option value="delete">Delete selected (protected backups are skipped)</option><option value="protect">Protect selected</option><option value="unlock">Unlock selected</option></select></label>
+                <button class="action-button" type="submit">Apply to selected</button>
+            </form>
             <div class="backup-list">
             @forelse($backups->take(12) as $backup)
                 <article class="backup">
+                    <label class="backup-select"><input type="checkbox" name="ids[]" value="{{ $backup['id'] }}" form="bulk-backups-form" aria-label="Select {{ $backup['id'] }}"></label>
                     <div class="file-icon">▤</div>
                     <div class="backup-main"><div class="backup-title"><a href="{{ route('backup-manager.details', $backup['id']) }}">{{ ($backup['label'] ?? '') ?: $backup['id'] }}</a></div><div class="backup-sub">{{ $backup['id'] }} &nbsp;·&nbsp; {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
                     @if($backup['encrypted'] ?? false)<span class="artifact">{{ __('backup-manager::dashboard.encrypted') }}</span>@endif
