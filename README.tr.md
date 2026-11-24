@@ -29,6 +29,9 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - SHA-256 checksum, JSON manifest ve GZIP/ZIP arşiv yapısı doğrulaması.
 - Artisan komutlarıyla yedek listeleme, doğrulama, şifre çözme ve geri yükleme.
 - Yönetim panelinden yedek başlatma, durumunu takip etme ve dosyaları indirme.
+- Mevcut yedeğin bileşen ve metadata ayarlarını kullanarak tek tıkla yeniden yedekleme.
+- Yedek etiketi, açıklaması ve etiketlerini panelden düzenleme; uzak ve yerel manifest kopyalarını tutarlı güncelleme.
+- Raporlar sayfasından filtrelenmiş CSV ve JSON dışa aktarma.
 - Yedek silindiğinde hem uzak depodan hem yerel kopyadan kaldırma.
 - Önemli yedekleri kalıcı olarak veya belirli bir tarihe kadar silinmeye karşı kilitleme; kilitli yedekler açılmadan ya da süreleri dolmadan silinemez.
 - Profil başına eşzamanlılık kilidiyle aynı profilin çakışan yedeklemelerini engelleme.
