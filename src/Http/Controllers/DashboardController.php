@@ -344,8 +344,6 @@ final class DashboardController extends Controller
         }
     }
 
-
-
     public function bulk(): RedirectResponse
     {
         $validated = request()->validate([
