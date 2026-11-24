@@ -22,6 +22,7 @@ use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use RuntimeException;
 use Throwable;
+use ZipArchive;
 
 final class DashboardController extends Controller
 {
@@ -464,7 +465,7 @@ final class DashboardController extends Controller
 
         $temporaryBase = tempnam(sys_get_temp_dir(), 'backup-manager-');
         abort_unless(is_string($temporaryBase), 500, 'Unable to allocate a temporary archive file.');
-        @unlink($temporaryBase);
+        unlink($temporaryBase);
         $archivePath = $temporaryBase.'.zip';
         $temporaryFiles = [];
         $archive = new \ZipArchive();
@@ -516,16 +517,16 @@ final class DashboardController extends Controller
 
             $archive->close();
             foreach ($temporaryFiles as $temporaryFile) {
-                @unlink($temporaryFile);
+                unlink($temporaryFile);
             }
 
             return response()->download($archivePath, $id.'.zip')->deleteFileAfterSend(true);
         } catch (Throwable $exception) {
             $archive->close();
             foreach ($temporaryFiles as $temporaryFile) {
-                @unlink($temporaryFile);
+                unlink($temporaryFile);
             }
-            @unlink($archivePath);
+            unlink($archivePath);
             report($exception);
 
             return back()->with('backup_error', 'Unable to create a combined backup archive.');
