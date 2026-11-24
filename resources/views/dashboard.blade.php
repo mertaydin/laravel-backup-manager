@@ -73,6 +73,15 @@
                     @if(!empty($backup['note']))<div class="backup-sub">{{ $backup['note'] }}</div>@endif</div></div>
                     <div class="backup-size">{{ number_format($backup['size'] / 1048576, 2) }} MB</div>
                     <div class="backup-actions">
+                        <form class="verify-form" method="POST" action="{{ route('backup-manager.repeat', $backup['id']) }}" data-confirm="Create a new backup using this backup's components and metadata?">@csrf<button class="verify-button" type="submit">↻ Repeat</button></form>
+                        <details class="backup-metadata-edit"><summary class="action-button">Edit details</summary>
+                            <form class="protection-form" method="POST" action="{{ route('backup-manager.metadata', $backup['id']) }}">@csrf @method('PUT')
+                                <input class="protection-input" type="text" name="label" maxlength="100" value="{{ $backup['label'] ?? '' }}" placeholder="Backup label" aria-label="Backup label">
+                                <input class="protection-input" type="text" name="note" maxlength="500" value="{{ $backup['note'] ?? '' }}" placeholder="Backup note" aria-label="Backup note">
+                                <textarea class="protection-input" name="tags" rows="2" placeholder="Tags (one per line)" aria-label="Tags">{{ implode("\\n", $backup['tags'] ?? []) }}</textarea>
+                                <button class="protection-button" type="submit">Save details</button>
+                            </form>
+                        </details>
                         @foreach($backup['artifacts'] as $artifact)
                             <a class="action-button" href="{{ route('backup-manager.download', ['id' => $backup['id'], 'artifact' => $artifact['name']]) }}">↓ {{ $artifact['name'] }}</a>
                         @endforeach
