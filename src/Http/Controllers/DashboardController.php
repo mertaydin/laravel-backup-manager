@@ -359,7 +359,7 @@ final class DashboardController extends Controller
             try {
                 if ($validated['action'] === 'delete') {
                     $result = $this->deleter->delete($id);
-                    if ($result['failed'] !== []) throw new \\RuntimeException('Delete failed on: '.implode(', ', $result['failed']));
+                    if ($result['failed'] !== []) throw new \RuntimeException('Delete failed on: '.implode(', ', $result['failed']));
                 } else {
                     $this->protector->update($id, locked: $validated['action'] === 'protect', reason: $validated['action'] === 'protect' ? 'Bulk protection' : null);
                 }
@@ -396,7 +396,7 @@ final class DashboardController extends Controller
                     'label' => $manifest['label'] ?? null, 'note' => $manifest['note'] ?? null, 'tags' => $manifest['tags'] ?? [],
                 ]);
                 return $this->run();
-            } catch (\\Illuminate\\Http\\Exceptions\\HttpResponseException $exception) {
+            } catch (\Illuminate\\Http\\Exceptions\\HttpResponseException $exception) {
                 throw $exception;
             } catch (Throwable $exception) { report($exception); }
         }
@@ -428,7 +428,7 @@ final class DashboardController extends Controller
         $updated = [];
         try {
             foreach ($originals as $diskName => $original) {
-                if (! $this->filesystem->disk($diskName)->put($relative, $contents)) throw new \\RuntimeException("Unable to update manifest on disk [{$diskName}].");
+                if (! $this->filesystem->disk($diskName)->put($relative, $contents)) throw new \RuntimeException("Unable to update manifest on disk [{$diskName}].");
                 $updated[] = $diskName;
             }
         } catch (Throwable $exception) {
