@@ -14,21 +14,16 @@ use Throwable;
 
 final class ReportsController extends Controller
 {
-    public function __construct(
-        private readonly BackupInspector $inspector,
-        private readonly ConfigRepository $config,
-    ) {}
-
-    public function index(): View
+    public function index(BackupInspector $inspector, ConfigRepository $config): View
     {
-        $report = $this->reportData();
+        $report = $this->reportData($inspector, $config);
 
         return view('backup-manager::reports', $report);
     }
 
-    public function export(): StreamedResponse
+    public function export(BackupInspector $inspector, ConfigRepository $config): StreamedResponse
     {
-        $report = $this->reportData();
+        $report = $this->reportData($inspector, $config);
         $payload = [
             'generated_at' => now()->toIso8601String(),
             'profile' => $report['profileName'],
@@ -45,10 +40,10 @@ final class ReportsController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function reportData(): array
+    private function reportData(BackupInspector $inspector, ConfigRepository $config): array
     {
-        $profileName = (string) $this->config->get('backup-manager.default', 'default');
-        $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
+        $profileName = (string) $config->get('backup-manager.default', 'default');
+        $profile = $config->get('backup-manager.profiles.'.$profileName, []);
         $diskNames = array_values(array_unique(array_filter([
             (string) data_get($profile, 'storage.disk', 'local'),
             (string) data_get($profile, 'storage.local_disk', 'local'),
@@ -59,7 +54,7 @@ final class ReportsController extends Controller
         $diskSummary = [];
         foreach ($diskNames as $diskName) {
             try {
-                $items = collect($this->inspector->list($profileName, $diskName, PHP_INT_MAX));
+                $items = collect($inspector->list($profileName, $diskName, PHP_INT_MAX));
                 $diskSummary[] = [
                     'disk' => $diskName,
                     'total' => $items->count(),
