@@ -403,7 +403,7 @@ final class DashboardController extends Controller
                 }
 
                 try {
-                    if (! $destination->writeStream($path, $stream)) {
+                    if ($destination->writeStream($path, $stream) === false) {
                         throw new RuntimeException('Unable to write backup file to destination: '.$path);
                     }
                 } finally {
@@ -446,7 +446,7 @@ final class DashboardController extends Controller
         foreach ($diskNames as $diskName) {
             try {
                 $disk = $this->filesystem->disk($diskName);
-                if (! $disk->exists($backupPath.'/manifest.json')) {
+                if ($disk->exists($backupPath.'/manifest.json') === false) {
                     continue;
                 }
 
@@ -551,7 +551,7 @@ final class DashboardController extends Controller
         foreach ($disks as $diskName) {
             try {
                 $disk = $this->filesystem->disk($diskName);
-                if (! $disk->exists($relative)) {
+                if ($disk->exists($relative) === false) {
                     continue;
                 }
 
@@ -634,7 +634,7 @@ final class DashboardController extends Controller
 
         try {
             foreach ($originals as $diskName => $original) {
-                if (! $this->filesystem->disk($diskName)->put($relative, $contents)) {
+                if ($this->filesystem->disk($diskName)->put($relative, $contents) === false) {
                     throw new RuntimeException("Unable to update manifest on disk [{$diskName}].");
                 }
 
