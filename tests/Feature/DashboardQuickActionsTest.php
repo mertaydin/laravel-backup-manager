@@ -138,7 +138,7 @@ final class DashboardQuickActionsTest extends TestCase
 
     public function test_dashboard_can_download_all_backup_artifacts_as_one_zip(): void
     {
-        if (! class_exists(\\ZipArchive::class)) {
+        if (! class_exists(\ZipArchive::class)) {
             $this->markTestSkipped('The PHP zip extension is not available.');
         }
 
@@ -151,7 +151,7 @@ final class DashboardQuickActionsTest extends TestCase
         $response = $this->get('/backup-manager/'.self::BACKUP_ID.'/download.zip');
         $response->assertOk()->assertHeader('content-disposition');
 
-        $archive = new \\ZipArchive();
+        $archive = new \ZipArchive();
         self::assertTrue($archive->open($response->baseResponse->getFile()->getPathname()));
         self::assertNotFalse($archive->locateName('database.sql.gz'));
         self::assertNotFalse($archive->locateName('manifest.json'));
