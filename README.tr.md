@@ -376,3 +376,8 @@ Yedek envanteri ve toplam depolama kullanım raporu:
 ```bash
 php artisan backup:report --json
 ```
+
+
+### Yedekleme raporlarını dışa aktarma
+
+Raporlar sayfasından JSON veya CSV indirebilirsiniz. Her iki dışa aktarma da seçili tarih, durum ve depolama hedefi filtrelerini uygular. CSV dosyasında yedek metaverileri ile veritabanı/uygulama arşivi boyutları ayrı sütunlarda bulunur; metin alanları elektronik tablo formül enjeksiyonuna karşı korunur.
