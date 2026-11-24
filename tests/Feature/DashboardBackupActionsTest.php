@@ -374,4 +374,25 @@ final class DashboardBackupActionsTest extends TestCase
             && $job->options['tags'] === ['nightly']);
     }
 
+
+    public function test_bulk_delete_skips_protected_backups_and_deletes_unprotected_ones(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        $protectedId = '20261123_120001_a1b2c3d4';
+        foreach ([$protectedId, self::BACKUP_ID] as $id) {
+            $manifest = ['id' => $id, 'artifacts' => [], 'protection' => ['locked' => $id === $protectedId]];
+            foreach (['s3', 'local'] as $disk) {
+                Storage::disk($disk)->put('backups/'.$id.'/manifest.json', json_encode($manifest, JSON_THROW_ON_ERROR));
+            }
+        }
+
+        $this->post('/backup-manager/bulk', ['action' => 'delete', 'ids' => [$protectedId, self::BACKUP_ID]])
+            ->assertRedirect()
+            ->assertSessionHas('backup_error');
+
+        Storage::disk('s3')->assertExists('backups/'.$protectedId.'/manifest.json');
+        Storage::disk('s3')->assertMissing('backups/'.self::BACKUP_ID.'/manifest.json');
+    }
+
 }
