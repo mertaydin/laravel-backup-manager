@@ -139,7 +139,7 @@ final class DashboardQuickActionsTest extends TestCase
 
     public function test_dashboard_can_download_all_backup_artifacts_as_one_zip(): void
     {
-        if (!class_exists(ZipArchive::class)) {
+        if (class_exists(ZipArchive::class) === false) {
             $this->markTestSkipped('The PHP zip extension is not available.');
         }
 
