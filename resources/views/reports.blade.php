@@ -43,7 +43,7 @@
         <div class="report-disk-grid">
             @foreach($diskSummary as $disk)
                 <article class="report-disk-card">
-                    <div class="report-disk-title"><span class="report-disk-icon">▤</span><strong>{{ $disk['disk'] }}</strong><span class="report-disk-status {{ $disk['error'] ? 'is-error' : 'is-ok' }}">{{ $disk['error'] ? 'Erişim hatası' : 'Taranıyor' }}</span></div>
+                    <div class="report-disk-title"><span class="report-disk-icon">▤</span><strong>{{ $disk['disk'] }}</strong><span class="report-disk-status {{ $disk['error'] ? 'is-error' : 'is-ok' }}">{{ $disk['error'] ? 'Erişim hatası' : 'Erişilebilir' }}</span></div>
                     <div class="report-disk-numbers"><div><strong>{{ number_format($disk['total']) }}</strong><small>Toplam</small></div><div><strong>{{ number_format($disk['valid']) }}</strong><small>Geçerli</small></div><div><strong>{{ number_format($disk['invalid']) }}</strong><small>Hatalı</small></div></div>
                     <div class="report-disk-usage"><span>Depolama kullanımı</span><strong>{{ number_format($disk['bytes'] / 1048576, 2) }} MB</strong></div>
                     @if($disk['error'])<p class="report-disk-error">{{ $disk['error'] }}</p>@endif
