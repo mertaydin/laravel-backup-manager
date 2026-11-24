@@ -8,7 +8,6 @@ use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
 use Orchestra\Testbench\TestCase;
-use Symfony\Component\Process\ExecutableFinder;
 
 final class BackupPreflightTest extends TestCase
 {
