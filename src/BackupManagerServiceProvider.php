@@ -60,6 +60,7 @@ class BackupManagerServiceProvider extends ServiceProvider
         $this->app->singleton(ZipRestorer::class);
         $this->app->singleton(ArtifactEncryptor::class);
         $this->app->singleton(BackupInspector::class);
+        $this->app->singleton(BackupManagerActivityLogger::class);
         $this->app->singleton(BackupProtector::class);
         $this->app->singleton(BackupComparator::class);
         $this->app->singleton(BackupReporter::class);
