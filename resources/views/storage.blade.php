@@ -171,16 +171,16 @@
         </ul>
     </section>
     @endif
-    @if($storageActivities !== [])
     <section class="storage-card">
         <div class="storage-card-heading"><div><span class="storage-card-kicker">AUDIT HISTORY</span><h2>Recent storage tests</h2><p>Persistent history of storage permission checks.</p></div></div>
         <ul class="filesystem-disk-list">
-            @foreach($storageActivities as $activity)
+            @forelse($storageActivities as $activity)
                 <li class="filesystem-disk"><span class="filesystem-disk-name"><strong>{{ $activity->disk }}</strong><small>{{ $activity->created_at }} · {{ $activity->message }}</small></span><span class="storage-connection {{ $activity->status === 'completed' ? 'is-connected' : 'is-disconnected' }}"><i></i>{{ ucfirst($activity->status) }}</span></li>
-            @endforeach
+            @empty
+                <li class="filesystem-disk"><span class="filesystem-disk-name"><strong>No storage tests yet</strong><small>Run a disk permission test to start the history.</small></span></li>
+            @endforelse
         </ul>
     </section>
-    @endif
 
     <section class="storage-card storage-card--disks">
         <div class="storage-card-heading">
