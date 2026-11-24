@@ -147,7 +147,7 @@ final class DashboardBackupActionsTest extends TestCase
     {
         Queue::fake();
         $preflight = \Mockery::mock(BackupPreflight::class);
-        $preflight->shouldReceive('inspect')->once()->andReturn(['ready' => true, 'checks' => [], 'errors' => []]);
+        $preflight->shouldReceive('inspect')->twice()->andReturn(['ready' => true, 'checks' => [], 'errors' => []]);
         $this->instance(BackupPreflight::class, $preflight);
         config([
             'backup-manager.queue.connection' => 'database',
