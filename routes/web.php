@@ -31,6 +31,7 @@ Route::middleware(array_merge(
             ->name('locale');
         Route::post('/run', [DashboardController::class, 'run'])->name('run');
         Route::post('/bulk', [DashboardController::class, 'bulk'])->name('bulk');
+        Route::post('/retry-last', [DashboardController::class, 'retryLastFailed'])->name('retry-last');
         Route::post('/{id}/copy', [DashboardController::class, 'copyToDisk'])->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')->name('copy');
         Route::post('/{id}/repeat', [DashboardController::class, 'repeat'])->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')->name('repeat');
         Route::put('/{id}/metadata', [DashboardController::class, 'updateMetadata'])->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')->name('metadata');
