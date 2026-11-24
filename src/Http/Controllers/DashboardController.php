@@ -398,7 +398,7 @@ final class DashboardController extends Controller
 
             foreach ($files as $path) {
                 $stream = $source->readStream($path);
-                if (! is_resource($stream)) {
+                if (!is_resource($stream)) {
                     throw new RuntimeException('Unable to read source backup file: '.$path);
                 }
 
@@ -468,7 +468,7 @@ final class DashboardController extends Controller
         unlink($temporaryBase);
         $archivePath = $temporaryBase.'.zip';
         $temporaryFiles = [];
-        $archive = new ZipArchive();
+        $archive = new ZipArchive;
 
         try {
             if ($archive->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -481,7 +481,7 @@ final class DashboardController extends Controller
                 }
 
                 $stream = $source->readStream($backupPath.'/'.$name);
-                if (! is_resource($stream)) {
+                if (!is_resource($stream)) {
                     throw new RuntimeException('Unable to read backup artifact: '.$name);
                 }
 
@@ -493,7 +493,7 @@ final class DashboardController extends Controller
 
                 $temporaryFiles[] = $temporaryArtifact;
                 $target = fopen($temporaryArtifact, 'wb');
-                if (! is_resource($target)) {
+                if (!is_resource($target)) {
                     fclose($stream);
                     throw new RuntimeException('Unable to open temporary backup artifact.');
                 }
