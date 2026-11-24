@@ -70,7 +70,7 @@ final class DashboardLocalizationTest extends TestCase
             ->assertSee('Depolama Yönetimi')
             ->assertSee('data-locale-switcher', false)
             ->assertDontSee('onchange=', false)
-            ->assertSee('dashboard.js?v=0.8.13-0.8.14');
+            ->assertSee('dashboard.js?v=0.8.14-0.8.14');
     }
 
     public function test_language_switcher_uses_external_javascript_compatible_with_strict_csp(): void
