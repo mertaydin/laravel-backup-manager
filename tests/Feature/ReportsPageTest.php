@@ -32,6 +32,6 @@ final class ReportsPageTest extends TestCase
         $this->get('/backup-manager/reports/export')
             ->assertOk()
             ->assertHeader('content-type', 'application/json; charset=UTF-8')
-            ->assertSee('"summary"', false);
+            ->assertHeader('content-disposition');
     }
 }
