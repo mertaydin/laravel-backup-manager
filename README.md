@@ -41,6 +41,10 @@ A Laravel package for database and application file backups, compression, encryp
 - Retry the last failed backup with its original component selection and metadata after running preflight checks.
 - Edit backup labels, notes, and tags from the dashboard; update remote and local manifest copies consistently.
 - Export filtered backup reports as CSV or JSON.
+- Persist backup execution and storage health-check history with status, timestamps, errors, and durations.
+- Preview retention expiry candidates in the dashboard without deleting backups; protected and invalid backups are excluded from the candidate list.
+- Warn when local filesystem usage reaches a configurable threshold and enforce a configurable minimum free temporary-disk space before backups.
+- Prevent rapid duplicate dashboard backup requests with a configurable per-profile window, show a live next-scheduled-backup countdown, and focus search with `/`.
 - Download individual backup artifacts and manifests directly from the dashboard.
 - Delete backup sets from both the configured remote disk and the local mirror.
 - Protect important backups permanently or until a selected date; protected backups cannot be manually deleted or pruned until unlocked or expired.
@@ -115,7 +119,7 @@ Register the callback in your application's `AppServiceProvider::boot()` method 
 php artisan migrate
 ```
 
-The package automatically registers its migrations through its service provider; you do not need to publish the migration manually. These migrations create `backup_manager_storage_settings` for encrypted storage credentials and schedule settings, and `backup_manager_activity` for persistent backup execution and storage-test history. Without it, the dashboard may report MySQL error `1146` for the missing table.
+The package automatically registers its migrations through its service provider; you do not need to publish the migration manually. These migrations create `backup_manager_storage_settings` for encrypted storage credentials and schedule settings, and `backup_manager_activity` for persistent backup execution and storage-test history. If the migrations have not run, the dashboard may report MySQL error `1146` for a missing table.
 
 You can confirm whether Laravel has run the migration with:
 
@@ -407,4 +411,11 @@ The Reports page supports JSON and CSV downloads. Both exports respect the activ
 
 - `BACKUP_MANAGER_MINIMUM_FREE_BYTES` sets the minimum free space required on the temporary filesystem before a backup starts (default: 104857600 bytes / 100 MiB).
 - `BACKUP_MANAGER_DEDUPE_WINDOW_SECONDS` prevents a second dashboard backup for the same profile during the configured window (default: 300 seconds). Set it to `0` to disable the additional time-window guard; the existing overlap lock remains active.
+- Storage Management lets you set a local filesystem usage warning threshold and preview expired backups. Preview never deletes files. Remote object stores do not expose a portable capacity API, so no remote capacity is guessed.
+
+
+### Backup dashboard safety controls
+
+- `BACKUP_MANAGER_MINIMUM_FREE_BYTES` sets the minimum free space required on the temporary filesystem before a backup starts (default: 104857600 bytes / 100 MiB).
+- `BACKUP_MANAGER_DEDUPE_WINDOW_SECONDS` prevents a second dashboard backup for the same profile during the configured window (default: 300 seconds). Set it to `0` to disable this additional time-window guard; the existing overlap lock remains active.
 - Storage Management lets you set a local filesystem usage warning threshold and preview expired backups. Preview never deletes files. Remote object stores do not expose a portable capacity API, so no remote capacity is guessed.
