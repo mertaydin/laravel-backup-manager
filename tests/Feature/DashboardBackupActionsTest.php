@@ -374,7 +374,6 @@ final class DashboardBackupActionsTest extends TestCase
             && $job->options['tags'] === ['nightly']);
     }
 
-
     public function test_bulk_delete_skips_protected_backups_and_deletes_unprotected_ones(): void
     {
         Storage::fake('s3');
