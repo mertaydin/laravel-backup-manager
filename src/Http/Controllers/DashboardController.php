@@ -657,6 +657,37 @@ final class DashboardController extends Controller
         return back()->with('backup_success', 'Backup label, note and tags updated.');
     }
 
+    public function retryLastFailed(): RedirectResponse
+    {
+        $lastRun = $this->cache->get('backup-manager:last-run');
+        abort_unless(is_array($lastRun) && ($lastRun['status'] ?? null) === 'failed' && is_array($lastRun['options'] ?? null), 404);
+
+        $jobId = (string) Str::uuid();
+        $this->cache->put('backup-manager:jobs:'.$jobId, ['status' => 'queued'], now()->addDay());
+        $job = new CreateBackupJob($jobId, $lastRun['options']);
+        $connection = $this->config->get('backup-manager.queue.connection');
+        $queue = $this->config->get('backup-manager.queue.queue');
+
+        try {
+            if (is_string($connection) && $connection !== '' && $connection !== 'sync') {
+                $job->onConnection($connection);
+                if (is_string($queue) && $queue !== '') {
+                    $job->onQueue($queue);
+                }
+                dispatch($job);
+            } else {
+                dispatch($job)->afterResponse();
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('backup_error', 'The failed backup could not be queued for retry.');
+        }
+
+        return back()->with('backup_job_id', $jobId)
+            ->with('backup_success', 'The failed backup has been queued again.');
+    }
+
     public function bulk(): RedirectResponse
     {
         $validated = request()->validate([
