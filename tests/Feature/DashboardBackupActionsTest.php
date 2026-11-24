@@ -357,10 +357,14 @@ final class DashboardBackupActionsTest extends TestCase
             'artifacts' => ['database.sql.gz' => ['size' => 10, 'sha256' => str_repeat('a', 64)]],
         ], JSON_THROW_ON_ERROR));
         Queue::fake();
-        $this->instance(BackupPreflight::class, new class extends BackupPreflight {
+        $this->instance(BackupPreflight::class, new class extends BackupPreflight
+        {
             public function __construct() {}
 
-            public function inspect(array $options = []): array { return ['ready' => true, 'checks' => [], 'errors' => []]; }
+            public function inspect(array $options = []): array
+            {
+                return ['ready' => true, 'checks' => [], 'errors' => []];
+            }
         });
         config(['backup-manager.queue.connection' => 'database']);
 
