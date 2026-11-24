@@ -35,7 +35,8 @@ final class CreateBackupJob implements ShouldQueue
     public function handle(BackupManager $manager, CacheRepository $cache): void
     {
         $key = 'backup-manager:jobs:'.$this->jobId;
-        $cache->put($key, ['status' => 'running', 'started_at' => now()->toIso8601String()], now()->addDay());
+        $startedAt = now();
+        $cache->put($key, ['status' => 'running', 'started_at' => $startedAt->toIso8601String()], now()->addDay());
 
         try {
             $result = $manager->run($this->options);
@@ -53,12 +54,19 @@ final class CreateBackupJob implements ShouldQueue
             $cache->put('backup-manager:last-run', $status, now()->addDays(30));
         } catch (Throwable $exception) {
             report($exception);
+            $finishedAt = now();
             $status = [
-                'status' => 'failed',
+                'status' => $this->attempts() < $this->tries ? 'retrying' : 'failed',
+                'job_id' => $this->jobId,
                 'error' => $exception->getMessage(),
-                'finished_at' => now()->toIso8601String(),
+                'started_at' => $startedAt->toIso8601String(),
+                'finished_at' => $finishedAt->toIso8601String(),
+                'duration_seconds' => $startedAt->diffInSeconds($finishedAt),
             ];
             $cache->put($key, $status, now()->addDay());
+            if ($status['status'] === 'failed') {
+                $status['options'] = $this->options;
+            }
             $cache->put('backup-manager:last-run', $status, now()->addDays(30));
 
             throw $exception;
@@ -67,12 +75,21 @@ final class CreateBackupJob implements ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
+        $finishedAt = now();
+        $jobStatus = cache()->get('backup-manager:jobs:'.$this->jobId, []);
+        $startedAt = is_array($jobStatus) && ! empty($jobStatus['started_at'])
+            ? \\Illuminate\\Support\\Carbon::parse($jobStatus['started_at'])
+            : $finishedAt;
         $status = [
             'status' => 'failed',
+            'job_id' => $this->jobId,
             'error' => $exception?->getMessage() ?? 'Backup job failed.',
-            'finished_at' => now()->toIso8601String(),
+            'started_at' => $startedAt->toIso8601String(),
+            'finished_at' => $finishedAt->toIso8601String(),
+            'duration_seconds' => $startedAt->diffInSeconds($finishedAt),
+            'options' => $this->options,
         ];
-        cache()->put('backup-manager:jobs:'.$this->jobId, $status, now()->addDay());
+        cache()->put('backup-manager:jobs:'.$this->jobId, array_diff_key($status, ['options' => true]), now()->addDay());
         cache()->put('backup-manager:last-run', $status, now()->addDays(30));
     }
 }
