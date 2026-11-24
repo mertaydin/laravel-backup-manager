@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupDeleter;
 use MertAydin\LaravelBackupManager\BackupInspector;
+use MertAydin\LaravelBackupManager\BackupManagerActivityLogger;
 use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\BackupProtector;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
@@ -35,6 +36,7 @@ final class DashboardController extends Controller
         private readonly ConfigRepository $config,
         private readonly CacheRepository $cache,
         private readonly StorageSettingsRepository $settings,
+        private readonly BackupManagerActivityLogger $activity,
     ) {}
 
     public function index(): View
@@ -191,6 +193,7 @@ final class DashboardController extends Controller
                 dispatch($job)->afterResponse();
             }
         } catch (Throwable $exception) {
+            $this->cache->forget($dedupeKey);
             report($exception);
             $this->cache->put($key, [
                 'status' => 'failed',
