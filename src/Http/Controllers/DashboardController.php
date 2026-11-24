@@ -19,6 +19,7 @@ use MertAydin\LaravelBackupManager\BackupProtector;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
 use MertAydin\LaravelBackupManager\Jobs\CreateBackupJob;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
+use RuntimeException;
 use Throwable;
 
 final class DashboardController extends Controller
@@ -357,7 +358,7 @@ final class DashboardController extends Controller
             try {
                 if ($validated['action'] === 'delete') {
                     $result = $this->deleter->delete($id);
-                    if ($result['failed'] !== []) throw new \RuntimeException('Delete failed on: '.implode(', ', $result['failed']));
+                    if ($result['failed'] !== []) throw new RuntimeException('Delete failed on: '.implode(', ', $result['failed']));
                 } else {
                     $this->protector->update($id, locked: $validated['action'] === 'protect', reason: $validated['action'] === 'protect' ? 'Bulk protection' : null);
                 }
@@ -426,7 +427,7 @@ final class DashboardController extends Controller
         $updated = [];
         try {
             foreach ($originals as $diskName => $original) {
-                if (! $this->filesystem->disk($diskName)->put($relative, $contents)) throw new \RuntimeException("Unable to update manifest on disk [{$diskName}].");
+                if (! $this->filesystem->disk($diskName)->put($relative, $contents)) throw new RuntimeException("Unable to update manifest on disk [{$diskName}].");
                 $updated[] = $diskName;
             }
         } catch (Throwable $exception) {
