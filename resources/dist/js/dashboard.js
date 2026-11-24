@@ -37,7 +37,7 @@
 })();
 
 (function () {
-    document.querySelectorAll('.delete-form').forEach(function (form) {
+    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
         form.addEventListener('submit', function (event) {
             var message = form.getAttribute('data-confirm') || 'Delete this backup?';
             if (!window.confirm(message)) event.preventDefault();
