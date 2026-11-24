@@ -6,6 +6,8 @@
 - Add dashboard actions to repeat an existing backup and edit its label, note, and tags across configured copies.
 - Add bulk protect, unlock, and delete actions; protected backups are skipped during bulk deletion.
 - Show individual database and application artifact sizes in backup history.
+- Add a combined ZIP download containing the manifest, checksums, and all listed artifacts.
+- Add safe cross-disk backup copying without overwriting an existing destination backup.
 - Add filtered CSV export to the Reports page, including separate database and application artifact sizes.
 - Protect CSV text fields against spreadsheet formula injection and add feature coverage for the download response.
 
