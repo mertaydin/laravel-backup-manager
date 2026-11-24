@@ -344,6 +344,72 @@ final class DashboardController extends Controller
         }
     }
 
+
+    public function repeat(string $id): RedirectResponse
+    {
+        abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
+        $profileName = (string) $this->config->get('backup-manager.default', 'default');
+        $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
+        $storage = is_array($profile) ? ($profile['storage'] ?? []) : [];
+        $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
+        $relative = ($prefix === '' ? '' : $prefix.'/').$id.'/manifest.json';
+        $disks = array_values(array_unique(array_filter([(string) ($storage['disk'] ?? 'local'), (string) ($storage['local_disk'] ?? 'local'), ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string'))])));
+        foreach ($disks as $diskName) {
+            try {
+                $disk = $this->filesystem->disk($diskName);
+                if (! $disk->exists($relative)) continue;
+                $manifest = json_decode((string) $disk->get($relative), true, 512, JSON_THROW_ON_ERROR);
+                abort_unless(is_array($manifest) && ($manifest['id'] ?? null) === $id, 404);
+                $artifacts = (array) ($manifest['artifacts'] ?? []);
+                request()->merge([
+                    'database' => collect(array_keys($artifacts))->contains(fn (string $name): bool => str_contains(strtolower($name), 'database') || str_contains(strtolower($name), 'sql')),
+                    'files' => collect(array_keys($artifacts))->contains(fn (string $name): bool => str_contains(strtolower($name), 'application') || str_contains(strtolower($name), 'zip')),
+                    'label' => $manifest['label'] ?? null, 'note' => $manifest['note'] ?? null, 'tags' => $manifest['tags'] ?? [],
+                ]);
+                return $this->run();
+            } catch (\\Illuminate\\Http\\Exceptions\\HttpResponseException $exception) {
+                throw $exception;
+            } catch (Throwable $exception) { report($exception); }
+        }
+        abort(404, 'Backup manifest not found.');
+    }
+
+    public function updateMetadata(string $id): RedirectResponse
+    {
+        abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
+        $validated = request()->validate(['label' => ['nullable', 'string', 'max:100'], 'note' => ['nullable', 'string', 'max:500'], 'tags' => ['nullable', 'string', 'max:500']]);
+        $profileName = (string) $this->config->get('backup-manager.default', 'default');
+        $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
+        $storage = is_array($profile) ? ($profile['storage'] ?? []) : [];
+        $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
+        $relative = ($prefix === '' ? '' : $prefix.'/').$id.'/manifest.json';
+        $disks = array_values(array_unique(array_filter([(string) ($storage['disk'] ?? 'local'), (string) ($storage['local_disk'] ?? 'local'), ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string'))])));
+        $originals = [];
+        foreach ($disks as $diskName) {
+            try { $disk = $this->filesystem->disk($diskName); if ($disk->exists($relative)) $originals[$diskName] = (string) $disk->get($relative); }
+            catch (Throwable $exception) { report($exception); }
+        }
+        if ($originals === []) abort(404, 'Backup manifest not found.');
+        $manifest = json_decode(reset($originals), true, 512, JSON_THROW_ON_ERROR);
+        abort_unless(is_array($manifest) && ($manifest['id'] ?? null) === $id, 404);
+        $manifest['label'] = trim((string) ($validated['label'] ?? ''));
+        $manifest['note'] = trim((string) ($validated['note'] ?? ''));
+        $manifest['tags'] = array_values(array_unique(array_filter(array_map('trim', preg_split('/[\\r\\n,]+/', (string) ($validated['tags'] ?? '')) ?: []))));
+        $contents = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $updated = [];
+        try {
+            foreach ($originals as $diskName => $original) {
+                if (! $this->filesystem->disk($diskName)->put($relative, $contents)) throw new \\RuntimeException("Unable to update manifest on disk [{$diskName}].");
+                $updated[] = $diskName;
+            }
+        } catch (Throwable $exception) {
+            foreach ($updated as $diskName) { try { $this->filesystem->disk($diskName)->put($relative, $originals[$diskName]); } catch (Throwable $rollbackException) { report($rollbackException); } }
+            report($exception);
+            return back()->with('backup_error', 'Backup metadata could not be saved consistently across storage targets.');
+        }
+        return back()->with('backup_success', 'Backup label, note and tags updated.');
+    }
+
     public function verify(string $id): RedirectResponse
     {
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
