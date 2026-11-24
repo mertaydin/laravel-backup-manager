@@ -359,6 +359,7 @@ final class DashboardBackupActionsTest extends TestCase
         Queue::fake();
         $this->instance(BackupPreflight::class, new class extends BackupPreflight {
             public function __construct() {}
+
             public function inspect(array $options = []): array { return ['ready' => true, 'checks' => [], 'errors' => []]; }
         });
         config(['backup-manager.queue.connection' => 'database']);
