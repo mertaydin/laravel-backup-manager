@@ -54,6 +54,9 @@ final class StorageHealthCheckerTest extends TestCase
             ->assertSee('OAuth İstemci Kimliği')
             ->assertSee('Otomatik yedekleme ayarlarını kaydet')
             ->assertSee('Yedekleme hedefleri')
+            ->assertSee('Storage capacity warnings')
+            ->assertSee('Recent storage tests')
+            ->assertSee('Preview expired backups (no deletion)')
             ->assertSee('destination-grid', false)
             ->assertSee('destination-selected-count', false)
             ->assertSee('destination-state-text', false)
@@ -94,5 +97,11 @@ final class StorageHealthCheckerTest extends TestCase
         $this->post('/backup-manager/storage/test', ['disk' => 'local'])
             ->assertRedirect()
             ->assertSessionHas('storage_success');
+
+        $this->assertDatabaseHas('backup_manager_activity', [
+            'event' => 'storage.test',
+            'disk' => 'local',
+            'status' => 'completed',
+        ]);
     }
 }
