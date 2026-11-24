@@ -428,7 +428,7 @@ final class DashboardController extends Controller
     public function downloadArchive(string $id): mixed
     {
         abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
-        abort_unless(class_exists(\ZipArchive::class), 501, 'The PHP zip extension is required to create a combined backup archive.');
+        abort_unless(class_exists(ZipArchive::class), 501, 'The PHP zip extension is required to create a combined backup archive.');
 
         $profileName = (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
@@ -468,10 +468,10 @@ final class DashboardController extends Controller
         unlink($temporaryBase);
         $archivePath = $temporaryBase.'.zip';
         $temporaryFiles = [];
-        $archive = new \ZipArchive();
+        $archive = new ZipArchive();
 
         try {
-            if ($archive->open($archivePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            if ($archive->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
                 throw new RuntimeException('Unable to create the combined backup archive.');
             }
 
