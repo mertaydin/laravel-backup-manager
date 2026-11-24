@@ -388,3 +388,8 @@ Generate an inventory report, including invalid manifests and total verified art
 ```bash
 php artisan backup:report --json
 ```
+
+
+### Exporting backup reports
+
+The Reports page supports JSON and CSV downloads. Both exports respect the active date, status, and storage-disk filters. CSV files include backup metadata and separate database/application artifact sizes, and text cells are guarded against spreadsheet formula injection.
