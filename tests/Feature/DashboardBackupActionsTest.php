@@ -157,7 +157,7 @@ final class DashboardBackupActionsTest extends TestCase
         $this->post('/backup-manager/run', ['database' => 1])->assertRedirect()->assertSessionHas('backup_job_id');
         $this->post('/backup-manager/run', ['database' => 1])->assertRedirect()->assertSessionHas('backup_error');
 
-        Queue::assertPushed(CreateBackupJob::class, 1);
+        $this->assertCount(1, Queue::pushed(CreateBackupJob::class));
     }
 
     public function test_dashboard_accepts_backup_without_optional_metadata(): void
