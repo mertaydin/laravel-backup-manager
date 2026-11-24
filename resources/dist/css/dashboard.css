@@ -551,3 +551,62 @@ html[data-theme="light"] .destination-option.is-selected{background:linear-gradi
  .destination-section-label{align-items:flex-start;flex-direction:column;gap:3px}
  .destination-state{display:none}
 }
+
+
+/* Storage settings: consistent section headers, clear hierarchy and responsive forms. */
+.storage-page>.storage-card{padding:26px 28px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,var(--panel),var(--panel2));box-shadow:0 14px 36px var(--shadow);margin:18px 0;overflow:hidden}
+.storage-card-heading{display:flex;align-items:center;gap:15px;min-width:0;margin:0 0 22px;padding:0 0 19px;border-bottom:1px solid var(--line)}
+.storage-card-heading>div{flex:1;min-width:0}
+.storage-card-icon{display:grid;place-items:center;flex:none;width:48px;height:48px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--blue)}
+.storage-card-icon svg{width:25px;height:25px}
+.storage-card-icon--google{background:#fff;border-color:#e5e7eb}
+.storage-card-icon--schedule{color:#7d9aff;background:#718cff14}
+.storage-card-icon--disks{color:#5bd6cf;background:#5bd6cf12}
+.storage-card-kicker{display:block;margin-bottom:4px;color:var(--blue);font-size:9px;font-weight:800;letter-spacing:.15em}
+.storage-card-heading h2{margin:0;color:var(--text);font-size:18px;line-height:1.25;letter-spacing:-.025em}
+.storage-card-heading p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.55}
+.storage-connection{display:inline-flex;align-items:center;gap:7px;flex:none;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel2);color:var(--muted);font-size:10px;font-weight:700;white-space:nowrap}
+.storage-connection i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.storage-connection.is-connected{border-color:#47d7a044;color:var(--green);background:#47d7a010}
+.storage-connection.is-connected i{background:var(--green);box-shadow:0 0 0 3px #47d7a018}
+.storage-connection.is-disconnected i{background:#e4a85d}
+.storage-card--google form:first-of-type{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.storage-card--google .storage-field{margin:0 0 15px}
+.storage-card--google .storage-field--wide{grid-column:1/-1}
+.storage-redirect{display:grid;gap:7px;margin:2px 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.storage-redirect strong{color:var(--muted);font-size:10px}
+.storage-redirect code{overflow-wrap:anywhere;color:var(--text);font-size:11px}
+.storage-card--google .storage-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.storage-card--google .storage-actions .primary{width:auto;margin:0}
+.storage-card--google .storage-actions form{display:flex;min-width:0}
+.storage-card--google .storage-actions button:not(.primary){min-height:40px;padding:9px 14px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.storage-card--google .storage-actions--connection{margin-top:12px}
+.storage-help{margin-top:16px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--muted);font-size:10px;line-height:1.6}
+.schedule-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.schedule-form .storage-field{margin:0 0 16px}
+.schedule-form .schedule-toggle-field{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 15px;border:1px solid var(--line);border-radius:11px;background:var(--panel2)}
+.schedule-toggle-field>span{display:flex;align-items:center;gap:9px;color:var(--text);font-size:11px}
+.schedule-toggle-field input{width:18px!important;height:18px!important;accent-color:var(--blue)}
+.schedule-actions{grid-column:1/-1;display:flex;justify-content:flex-end;padding-top:3px}
+.schedule-actions .primary{width:auto;min-width:220px;margin:0}
+.storage-cron{display:flex;align-items:flex-start;gap:12px;margin-top:18px;padding:14px;border:1px solid var(--line);border-radius:11px;background:var(--panel2)}
+.storage-cron-icon{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;background:#718cff18;color:var(--blue);font-size:17px}
+.storage-cron>div{display:grid;gap:4px;min-width:0}
+.storage-cron strong{font-size:11px;color:var(--text)}
+.storage-cron small{color:var(--muted);font-size:10px}
+.storage-cron code{margin-top:3px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--cyan);font-size:10px;overflow-wrap:anywhere}
+.filesystem-disk-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:0;list-style:none}
+.filesystem-disk{display:flex;align-items:center;gap:11px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+.filesystem-disk-icon{display:grid;place-items:center;flex:none;width:37px;height:37px;border-radius:10px;background:#5bd6cf12;color:var(--cyan)}
+.filesystem-disk-icon svg{width:20px;height:20px}
+.filesystem-disk-name{display:grid;gap:2px;flex:1;min-width:0}
+.filesystem-disk-name strong{overflow-wrap:anywhere;color:var(--text);font-size:12px}
+.filesystem-disk-name small{color:var(--muted);font-size:9px}
+.filesystem-disk form{margin:0;flex:none}
+.disk-test-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--text);font:inherit;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
+.disk-test-button:hover{border-color:var(--blue);color:var(--blue)}
+.disk-test-button span{color:var(--green);font-weight:900}
+html[data-theme="light"] .storage-page>.storage-card{background:linear-gradient(145deg,#fff,#f8faff)}
+html[data-theme="light"] .storage-connection.is-connected{background:#eaf8f2}
+@media(max-width:700px){.storage-page>.storage-card{padding:20px 18px}.storage-card-heading{align-items:flex-start;gap:11px}.storage-card-icon{width:42px;height:42px}.storage-card-heading h2{font-size:16px}.storage-connection{padding:6px 8px;font-size:9px}.storage-card--google form:first-of-type,.schedule-form{grid-template-columns:minmax(0,1fr)}.schedule-form .schedule-toggle-field,.schedule-actions{grid-column:auto}.filesystem-disk-list{grid-template-columns:minmax(0,1fr)}.schedule-actions .primary{width:100%;min-width:0}}
+@media(max-width:460px){.storage-card-heading{flex-wrap:wrap}.storage-connection{margin-inline-start:53px}.storage-card--google .storage-actions{align-items:stretch;flex-direction:column}.storage-card--google .storage-actions form,.storage-card--google .storage-actions button{width:100%}.storage-card--google .storage-actions .primary{width:100%}.filesystem-disk{align-items:flex-start;flex-wrap:wrap}.filesystem-disk form{width:100%;margin-inline-start:48px}.disk-test-button{width:100%}.storage-cron{padding:11px}.storage-page{width:min(100% - 24px,1040px)}}
