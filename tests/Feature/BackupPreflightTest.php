@@ -6,7 +6,7 @@ namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\BackupPreflight;
-use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
+use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\TestCase;
 
 final class BackupPreflightTest extends TestCase
@@ -25,12 +25,7 @@ final class BackupPreflightTest extends TestCase
 
     public function test_preflight_rejects_a_temporary_filesystem_below_the_configured_free_space_minimum(): void
     {
-        $health = \Mockery::mock(StorageHealthChecker::class);
-        $health->shouldReceive('check')->andReturn([
-            'successful' => true,
-            'checks' => ['connection' => true, 'list' => true, 'write' => true, 'read' => true, 'delete' => true],
-        ]);
-        $this->app->instance(StorageHealthChecker::class, $health);
+        Storage::fake('local');
 
         $result = app(BackupPreflight::class)->inspect(['database' => false, 'files' => false]);
 
