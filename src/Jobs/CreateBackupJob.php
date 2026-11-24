@@ -41,11 +41,15 @@ final class CreateBackupJob implements ShouldQueue
 
         try {
             $result = $manager->run($this->options);
+            $finishedAt = now();
             $status = [
                 'status' => $result->successful ? 'completed' : 'failed',
+                'job_id' => $this->jobId,
                 'backup_id' => $result->id,
                 'error' => $result->error,
-                'finished_at' => now()->toIso8601String(),
+                'started_at' => $startedAt->toIso8601String(),
+                'finished_at' => $finishedAt->toIso8601String(),
+                'duration_seconds' => $startedAt->diffInSeconds($finishedAt),
             ];
             if (! $result->successful) {
                 $cache->put($key, ['status' => 'retrying', 'backup_id' => $result->id, 'error' => $result->error, 'finished_at' => now()->toIso8601String()], now()->addDay());
@@ -57,7 +61,7 @@ final class CreateBackupJob implements ShouldQueue
             report($exception);
             $finishedAt = now();
             $status = [
-                'status' => $this->attempts() < $this->tries ? 'retrying' : 'failed',
+                'status' => $this->job !== null && $this->attempts() < $this->tries ? 'retrying' : 'failed',
                 'job_id' => $this->jobId,
                 'error' => $exception->getMessage(),
                 'started_at' => $startedAt->toIso8601String(),
