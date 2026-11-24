@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('backup-manager::dashboard.storage_title') }} · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.13">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.14">
 
 </head>
 <body>
@@ -134,10 +134,52 @@
                 <input type="number" name="retain_days" min="1" max="3650" value="{{ old('retain_days', $schedule['retain_days'] ?? 30) }}" required>
                 <small>{{ __('backup-manager::dashboard.retention_help') }}</small>
             </label>
+            <label class="storage-field">
+                <strong>Storage usage warning (%)</strong>
+                <input type="number" name="warning_threshold_percent" min="1" max="99" value="{{ old('warning_threshold_percent', $schedule['warning_threshold_percent'] ?? 85) }}" required>
+                <small>Warn when a local filesystem disk reaches this used-capacity percentage. Remote disks do not expose a portable capacity API.</small>
+            </label>
             <div class="storage-actions schedule-actions"><button class="primary" type="submit">{{ __('backup-manager::dashboard.save_schedule') }}</button></div>
         </form>
+        <form method="POST" action="{{ route('backup-manager.storage.retention-preview') }}" class="storage-actions" style="margin-top:18px">
+            @csrf
+            <button type="submit" class="disk-test-button">Preview expired backups (no deletion)</button>
+        </form>
+        @if(session('retention_preview') as $preview)
+            <div class="storage-help" role="status">
+                <strong>Retention preview · {{ count($preview['items']) }} candidate(s)</strong>
+                <p>Cutoff: {{ $preview['cutoff'] }} · Protected/retained: {{ $preview['protected_count'] }} · Invalid skipped: {{ $preview['invalid_count'] }}. This preview did not delete anything.</p>
+                @if($preview['items'] !== [])
+                    <ul>@foreach($preview['items'] as $item)<li>{{ $item['id'] }} · {{ $item['disk'] }} · {{ number_format($item['size'] / 1048576, 2) }} MB · {{ $item['created_at'] }}</li>@endforeach</ul>
+                @endif
+            </div>
+        @endif
         <div class="storage-cron"><span class="storage-cron-icon">⌘</span><div><strong>{{ __('backup-manager::dashboard.cron_requirement') }}</strong><small>Laravel zamanlayıcısının her dakika çalışması gerekir.</small><code>* * * * * php /path/to/your-project/artisan schedule:run</code></div></div>
     </section>
+
+    @if($storageCapacity !== [])
+    <section class="storage-card">
+        <div class="storage-card-heading"><div><span class="storage-card-kicker">LOCAL FILESYSTEM</span><h2>Storage capacity warnings</h2><p>Capacity can be detected for local filesystem disks. S3-compatible and other remote disks are shown without a guessed capacity.</p></div></div>
+        <ul class="filesystem-disk-list">
+            @foreach($storageCapacity as $diskName => $capacity)
+                <li class="filesystem-disk">
+                    <span class="filesystem-disk-name"><strong>{{ $diskName }}</strong><small>{{ $capacity['used_percent'] === null ? 'Capacity unavailable' : number_format($capacity['used_percent'], 1).'% used · '.number_format($capacity['free_bytes'] / 1048576, 1).' MB free' }}</small></span>
+                    <span class="storage-connection {{ $capacity['warning'] ? 'is-disconnected' : 'is-connected' }}"><i></i>{{ $capacity['warning'] ? 'Threshold reached' : 'Healthy' }}</span>
+                </li>
+            @endforeach
+        </ul>
+    </section>
+    @endif
+    @if($storageActivities !== [])
+    <section class="storage-card">
+        <div class="storage-card-heading"><div><span class="storage-card-kicker">AUDIT HISTORY</span><h2>Recent storage tests</h2><p>Persistent history of storage permission checks.</p></div></div>
+        <ul class="filesystem-disk-list">
+            @foreach($storageActivities as $activity)
+                <li class="filesystem-disk"><span class="filesystem-disk-name"><strong>{{ $activity->disk }}</strong><small>{{ $activity->created_at }} · {{ $activity->message }}</small></span><span class="storage-connection {{ $activity->status === 'completed' ? 'is-connected' : 'is-disconnected' }}"><i></i>{{ ucfirst($activity->status) }}</span></li>
+            @endforeach
+        </ul>
+    </section>
+    @endif
 
     <section class="storage-card storage-card--disks">
         <div class="storage-card-heading">
@@ -160,6 +202,6 @@
         <div class="storage-help">{{ __('backup-manager::dashboard.test_help') }}</div>
     </section>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.13" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.14" defer></script>
 </body>
 </html>
