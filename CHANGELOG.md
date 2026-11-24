@@ -2,6 +2,8 @@
 
 ## [0.8.11] - 2026-11-24
 
+Release: v0.8.11
+
 ### Improved
 - Refined Google Drive connection settings with a clear connection state, grouped credentials, and a dedicated callback URI panel.
 - Reworked automatic backup scheduling into a responsive settings layout with a prominent enable state and cron guidance.
