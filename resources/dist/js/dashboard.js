@@ -113,3 +113,31 @@
         });
     });
 })();
+
+(function () {
+    var search = document.querySelector('input[name="q"][type="search"]');
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+        var target = event.target;
+        if (target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName))) return;
+        if (!search) return;
+        event.preventDefault();
+        search.focus();
+        search.select();
+    });
+
+    var countdown = document.getElementById('next-backup-countdown');
+    if (!countdown) return;
+    var target = Number(countdown.getAttribute('data-target')) * 1000;
+    function renderCountdown() {
+        var remaining = Math.max(0, target - Date.now());
+        var seconds = Math.floor(remaining / 1000);
+        var days = Math.floor(seconds / 86400);
+        var hours = Math.floor((seconds % 86400) / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var secs = seconds % 60;
+        countdown.textContent = days + 'd ' + hours + 'h ' + minutes + 'm ' + secs + 's';
+    }
+    renderCountdown();
+    window.setInterval(renderCountdown, 1000);
+})();
