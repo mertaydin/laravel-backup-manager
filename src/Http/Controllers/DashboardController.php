@@ -346,6 +346,192 @@ final class DashboardController extends Controller
         }
     }
 
+    public function copyToDisk(string $id): RedirectResponse
+    {
+        abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
+
+        $profileName = (string) $this->config->get('backup-manager.default', 'default');
+        $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
+        $storage = is_array($profile) ? ($profile['storage'] ?? []) : [];
+        $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
+        $backupPath = ($prefix === '' ? '' : $prefix.'/').$id;
+        $diskNames = array_values(array_unique(array_filter([
+            (string) ($storage['disk'] ?? 'local'),
+            (string) ($storage['local_disk'] ?? 'local'),
+            ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
+        ])));
+        $validated = request()->validate([
+            'destination' => ['required', 'string', 'in:'.implode(',', $diskNames)],
+        ]);
+        $destinationName = $validated['destination'];
+        $source = null;
+
+        foreach ($diskNames as $diskName) {
+            if ($diskName === $destinationName) {
+                continue;
+            }
+
+            try {
+                $disk = $this->filesystem->disk($diskName);
+                if ($disk->exists($backupPath.'/manifest.json')) {
+                    $source = $disk;
+                    break;
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        if ($source === null) {
+            return back()->with('backup_error', 'The source backup could not be found on another configured storage target.');
+        }
+
+        try {
+            $destination = $this->filesystem->disk($destinationName);
+            if ($destination->allFiles($backupPath) !== []) {
+                return back()->with('backup_error', 'The destination already contains files for this backup. Existing files were not overwritten.');
+            }
+
+            $files = $source->allFiles($backupPath);
+            usort($files, static fn (string $a, string $b): int => (str_ends_with($a, '/manifest.json') ? 1 : 0) <=> (str_ends_with($b, '/manifest.json') ? 1 : 0));
+
+            foreach ($files as $path) {
+                $stream = $source->readStream($path);
+                if (! is_resource($stream)) {
+                    throw new RuntimeException('Unable to read source backup file: '.$path);
+                }
+
+                try {
+                    if (! $destination->writeStream($path, $stream)) {
+                        throw new RuntimeException('Unable to write backup file to destination: '.$path);
+                    }
+                } finally {
+                    fclose($stream);
+                }
+            }
+        } catch (Throwable $exception) {
+            try {
+                $this->filesystem->disk($destinationName)->deleteDirectory($backupPath);
+            } catch (Throwable $cleanupException) {
+                report($cleanupException);
+            }
+
+            report($exception);
+
+            return back()->with('backup_error', 'The backup copy failed. The incomplete destination copy was removed where possible.');
+        }
+
+        return back()->with('backup_success', 'Backup copied to '.$destinationName.'.');
+    }
+
+    public function downloadArchive(string $id): mixed
+    {
+        abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
+        abort_unless(class_exists(\\ZipArchive::class), 501, 'The PHP zip extension is required to create a combined backup archive.');
+
+        $profileName = (string) $this->config->get('backup-manager.default', 'default');
+        $profile = $this->config->get('backup-manager.profiles.'.$profileName, []);
+        $storage = is_array($profile) ? ($profile['storage'] ?? []) : [];
+        $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
+        $backupPath = ($prefix === '' ? '' : $prefix.'/').$id;
+        $diskNames = array_values(array_unique(array_filter([
+            (string) ($storage['disk'] ?? 'local'),
+            (string) ($storage['local_disk'] ?? 'local'),
+            ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
+        ])));
+        $source = null;
+        $manifest = null;
+
+        foreach ($diskNames as $diskName) {
+            try {
+                $disk = $this->filesystem->disk($diskName);
+                if (! $disk->exists($backupPath.'/manifest.json')) {
+                    continue;
+                }
+
+                $candidate = json_decode((string) $disk->get($backupPath.'/manifest.json'), true, 512, JSON_THROW_ON_ERROR);
+                if (is_array($candidate) && ($candidate['id'] ?? null) === $id) {
+                    $source = $disk;
+                    $manifest = $candidate;
+                    break;
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        abort_unless($source !== null && is_array($manifest), 404);
+
+        $temporaryBase = tempnam(sys_get_temp_dir(), 'backup-manager-');
+        abort_unless(is_string($temporaryBase), 500, 'Unable to allocate a temporary archive file.');
+        @unlink($temporaryBase);
+        $archivePath = $temporaryBase.'.zip';
+        $temporaryFiles = [];
+        $archive = new \\ZipArchive();
+
+        try {
+            if ($archive->open($archivePath, \\ZipArchive::CREATE | \\ZipArchive::OVERWRITE) !== true) {
+                throw new RuntimeException('Unable to create the combined backup archive.');
+            }
+
+            foreach ((array) ($manifest['artifacts'] ?? []) as $name => $metadata) {
+                if (! is_string($name) || basename($name) !== $name || preg_match('/^[A-Za-z0-9_.-]+$/', $name) !== 1) {
+                    continue;
+                }
+
+                $stream = $source->readStream($backupPath.'/'.$name);
+                if (! is_resource($stream)) {
+                    throw new RuntimeException('Unable to read backup artifact: '.$name);
+                }
+
+                $temporaryArtifact = tempnam(sys_get_temp_dir(), 'backup-artifact-');
+                if (! is_string($temporaryArtifact)) {
+                    fclose($stream);
+                    throw new RuntimeException('Unable to allocate temporary space for backup artifact.');
+                }
+
+                $temporaryFiles[] = $temporaryArtifact;
+                $target = fopen($temporaryArtifact, 'wb');
+                if (! is_resource($target)) {
+                    fclose($stream);
+                    throw new RuntimeException('Unable to open temporary backup artifact.');
+                }
+
+                try {
+                    stream_copy_to_stream($stream, $target);
+                } finally {
+                    fclose($stream);
+                    fclose($target);
+                }
+
+                if (! $archive->addFile($temporaryArtifact, $name)) {
+                    throw new RuntimeException('Unable to add backup artifact to archive: '.$name);
+                }
+            }
+
+            $archive->addFromString('manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+            if ($source->exists($backupPath.'/checksums.sha256')) {
+                $archive->addFromString('checksums.sha256', (string) $source->get($backupPath.'/checksums.sha256'));
+            }
+
+            $archive->close();
+            foreach ($temporaryFiles as $temporaryFile) {
+                @unlink($temporaryFile);
+            }
+
+            return response()->download($archivePath, $id.'.zip')->deleteFileAfterSend(true);
+        } catch (Throwable $exception) {
+            $archive->close();
+            foreach ($temporaryFiles as $temporaryFile) {
+                @unlink($temporaryFile);
+            }
+            @unlink($archivePath);
+            report($exception);
+
+            return back()->with('backup_error', 'Unable to create a combined backup archive.');
+        }
+    }
+
     public function repeat(string $id): RedirectResponse
     {
         abort_unless(preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id) === 1, 404);
