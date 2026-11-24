@@ -273,6 +273,7 @@ final class StorageManagementController extends Controller
 
     public function testGoogle(): RedirectResponse
     {
+        $startedAt = now();
         try {
             $credentials = data_get($this->settings->all(), 'disks.google-drive', []);
             (new GoogleDriveClient($credentials))->testConnection();
@@ -280,11 +281,14 @@ final class StorageManagementController extends Controller
             $prefix = (string) data_get(config('backup-manager.profiles.'.$profileName, []), 'storage.path', 'backups');
             $result = $this->healthChecker->check('google-drive', $prefix);
             if (! $result['successful']) {
-                throw new \RuntimeException('Google Drive read/write/delete verification failed.');
+                throw new \\RuntimeException('Google Drive read/write/delete verification failed.');
             }
+
+            $this->activity->record('storage.test', 'completed', disk: 'google-drive', message: 'Google Drive connection and read/write/delete tests succeeded.', metadata: ['checks' => $result['checks']], startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
 
             return back()->with('storage_success', 'Google Drive connection and read/write/delete tests succeeded.');
         } catch (Throwable $exception) {
+            $this->activity->record('storage.test', 'failed', disk: 'google-drive', message: $exception->getMessage(), startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
             report($exception);
 
             return back()->with('storage_error', 'Google Drive connection test failed. Check the application log.');
