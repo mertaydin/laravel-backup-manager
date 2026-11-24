@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('backup-manager::dashboard.storage_title') }} · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.11') }}-0.8.11">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.12">
 
 </head>
 <body>
@@ -18,24 +18,27 @@
     @if(session('storage_error'))<div class="alert error" role="alert">{{ session('storage_error') }}</div>@endif
     @if($errors->any())<div class="alert error" role="alert"><strong>{{ __('backup-manager::dashboard.validation_error') }}</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
-    <section class="storage-card">
-        <h2>{{ __('backup-manager::dashboard.google_drive') }}</h2>
-        <p>{{ $googleConnected ? __('backup-manager::dashboard.google_connected') : __('backup-manager::dashboard.google_connect_prompt') }}</p>
+    <section class="storage-card storage-card--google">
+        <div class="storage-card-heading">
+            <span class="storage-card-icon storage-card-icon--google" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#00832d" d="M15.4 6h10.2L10.2 32.7H0z"/><path fill="#2684fc" d="M10.2 32.7h30.6L35.7 42H5.1z"/><path fill="#ffba00" d="M25.6 6 48 42H35.7L15.4 6z"/></svg></span>
+            <div><span class="storage-card-kicker">BULUT DEPOLAMA</span><h2>{{ __('backup-manager::dashboard.google_drive') }}</h2><p>{{ $googleConnected ? __('backup-manager::dashboard.google_connected') : __('backup-manager::dashboard.google_connect_prompt') }}</p></div>
+            <span class="storage-connection {{ $googleConnected ? 'is-connected' : 'is-disconnected' }}"><i></i>{{ $googleConnected ? 'Bağlı' : 'Bağlantı bekleniyor' }}</span>
+        </div>
         <form method="POST" action="{{ route('backup-manager.storage.google.credentials') }}">
             @csrf
-            <label class="storage-field"><strong>{{ __('backup-manager::dashboard.oauth_client_id') }}</strong><input type="text" name="client_id" value="{{ old('client_id', data_get($settings, 'disks.google-drive.client_id')) }}" required autocomplete="off"></label>
-            <label class="storage-field"><strong>{{ __('backup-manager::dashboard.oauth_client_secret') }}</strong><input type="password" name="client_secret" value="{{ old('client_secret') }}" placeholder="{{ data_get($settings, 'disks.google-drive.client_secret') ? __('backup-manager::dashboard.saved_secret') : '' }}" {{ data_get($settings, 'disks.google-drive.client_secret') ? '' : 'required' }} autocomplete="new-password"></label>
-            <label class="storage-field"><strong>Google Drive klasör kimliği</strong><input type="text" name="root_folder_id" value="{{ old('root_folder_id', data_get($settings, 'disks.google-drive.root_folder_id', 'root')) }}" placeholder="root"><small>Drive'da yedeklerin tutulacağı klasörün kimliğini gir. Boş bırakırsan Drive kök dizini kullanılır.</small></label>
-            <p><strong>{{ __('backup-manager::dashboard.redirect_uri') }}:</strong><br><code>{{ $callbackUrl }}</code></p>
+            <label class="storage-field storage-field--wide"><strong>{{ __('backup-manager::dashboard.oauth_client_id') }}</strong><input type="text" name="client_id" value="{{ old('client_id', data_get($settings, 'disks.google-drive.client_id')) }}" required autocomplete="off"></label>
+            <label class="storage-field storage-field--wide"><strong>{{ __('backup-manager::dashboard.oauth_client_secret') }}</strong><input type="password" name="client_secret" value="{{ old('client_secret') }}" placeholder="{{ data_get($settings, 'disks.google-drive.client_secret') ? __('backup-manager::dashboard.saved_secret') : '' }}" {{ data_get($settings, 'disks.google-drive.client_secret') ? '' : 'required' }} autocomplete="new-password"></label>
+            <label class="storage-field storage-field--wide"><strong>Google Drive klasör kimliği</strong><input type="text" name="root_folder_id" value="{{ old('root_folder_id', data_get($settings, 'disks.google-drive.root_folder_id', 'root')) }}" placeholder="root"><small>Drive'da yedeklerin tutulacağı klasörün kimliğini gir. Boş bırakırsan Drive kök dizini kullanılır.</small></label>
+            <div class="storage-redirect"><strong>{{ __('backup-manager::dashboard.redirect_uri') }}</strong><code>{{ $callbackUrl }}</code></div>
             <div class="storage-actions"><button class="primary" type="submit">{{ __('backup-manager::dashboard.save_credentials') }}</button></div>
         </form>
-        <div class="storage-actions" style="margin-top:14px">
+        <div class="storage-actions storage-actions--connection">
             <form method="POST" action="{{ route('backup-manager.storage.google.connect') }}">@csrf<button class="primary" type="submit">{{ __('backup-manager::dashboard.connect_drive') }}</button></form>
             @if($googleConnected)
                 <form method="POST" action="{{ route('backup-manager.storage.google.test') }}">@csrf<button type="submit">{{ __('backup-manager::dashboard.test_connection') }}</button></form>
             @endif
         </div>
-        <p>{{ __('backup-manager::dashboard.google_setup') }}</p>
+        <div class="storage-help">{{ __('backup-manager::dashboard.google_setup') }}</div>
     </section>
 
     <section class="storage-card destination-section">
@@ -99,12 +102,15 @@
         </form>
     </section>
 
-    <section class="storage-card">
-        <h2>{{ __('backup-manager::dashboard.automatic_backups') }}</h2>
-        <p>{{ __('backup-manager::dashboard.schedule_intro') }}</p>
-        <form method="POST" action="{{ route('backup-manager.storage.schedule') }}">
+    <section class="storage-card storage-card--schedule">
+        <div class="storage-card-heading">
+            <span class="storage-card-icon storage-card-icon--schedule" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+            <div><span class="storage-card-kicker">ZAMANLAMA VE SAKLAMA</span><h2>{{ __('backup-manager::dashboard.automatic_backups') }}</h2><p>{{ __('backup-manager::dashboard.schedule_intro') }}</p></div>
+            <span class="storage-connection {{ ($schedule['enabled'] ?? false) ? 'is-connected' : 'is-disconnected' }}"><i></i>{{ ($schedule['enabled'] ?? false) ? 'Etkin' : 'Duraklatıldı' }}</span>
+        </div>
+        <form method="POST" action="{{ route('backup-manager.storage.schedule') }}" class="schedule-form">
             @csrf
-            <label class="storage-field">
+            <label class="storage-field schedule-toggle-field">
                 <strong>{{ __('backup-manager::dashboard.automatic_backup') }}</strong>
                 <span><input type="checkbox" name="enabled" value="1" {{ ($schedule['enabled'] ?? false) ? 'checked' : '' }}> {{ __('backup-manager::dashboard.enable_schedule') }}</span>
             </label>
@@ -128,29 +134,32 @@
                 <input type="number" name="retain_days" min="1" max="3650" value="{{ old('retain_days', $schedule['retain_days'] ?? 30) }}" required>
                 <small>{{ __('backup-manager::dashboard.retention_help') }}</small>
             </label>
-            <div class="storage-actions"><button class="primary" type="submit">{{ __('backup-manager::dashboard.save_schedule') }}</button></div>
+            <div class="storage-actions schedule-actions"><button class="primary" type="submit">{{ __('backup-manager::dashboard.save_schedule') }}</button></div>
         </form>
-        <p><strong>{{ __('backup-manager::dashboard.cron_requirement') }}:</strong> <code>* * * * * php /path/to/your-project/artisan schedule:run</code></p>
+        <div class="storage-cron"><span class="storage-cron-icon">⌘</span><div><strong>{{ __('backup-manager::dashboard.cron_requirement') }}</strong><small>Laravel zamanlayıcısının her dakika çalışması gerekir.</small><code>* * * * * php /path/to/your-project/artisan schedule:run</code></div></div>
     </section>
 
-    <section class="storage-card">
-        <h2>{{ __('backup-manager::dashboard.filesystem_disks') }}</h2>
-        <p>{{ __('backup-manager::dashboard.filesystem_intro') }}</p>
-        <ul>
+    <section class="storage-card storage-card--disks">
+        <div class="storage-card-heading">
+            <span class="storage-card-icon storage-card-icon--disks" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01M17 7h1M17 17h1"/></svg></span>
+            <div><span class="storage-card-kicker">LARAVEL STORAGE</span><h2>{{ __('backup-manager::dashboard.filesystem_disks') }}</h2><p>{{ __('backup-manager::dashboard.filesystem_intro') }}</p></div>
+        </div>
+        <ul class="filesystem-disk-list">
             @foreach($filesystemDisks as $disk)
-                <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                    <code>{{ $disk }}</code>
+                <li class="filesystem-disk">
+                    <span class="filesystem-disk-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3"/></svg></span>
+                    <span class="filesystem-disk-name"><strong>{{ $disk }}</strong><small>Laravel filesystem diski</small></span>
                     <form method="POST" action="{{ route('backup-manager.storage.test') }}">
                         @csrf
                         <input type="hidden" name="disk" value="{{ $disk }}">
-                        <button type="submit">{{ __('backup-manager::dashboard.test_permissions') }}</button>
+                        <button class="disk-test-button" type="submit"><span>✓</span>{{ __('backup-manager::dashboard.test_permissions') }}</button>
                     </form>
                 </li>
             @endforeach
         </ul>
-        <p>{{ __('backup-manager::dashboard.test_help') }}</p>
+        <div class="storage-help">{{ __('backup-manager::dashboard.test_help') }}</div>
     </section>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.11') }}-0.8.11" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.12" defer></script>
 </body>
 </html>
