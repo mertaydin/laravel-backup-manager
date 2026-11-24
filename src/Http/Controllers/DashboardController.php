@@ -398,7 +398,7 @@ final class DashboardController extends Controller
 
             foreach ($files as $path) {
                 $stream = $source->readStream($path);
-                if (!is_resource($stream)) {
+                if (is_resource($stream) === false) {
                     throw new RuntimeException('Unable to read source backup file: '.$path);
                 }
 
@@ -476,7 +476,7 @@ final class DashboardController extends Controller
             }
 
             foreach ((array) ($manifest['artifacts'] ?? []) as $name => $metadata) {
-                if (! is_string($name) || basename($name) !== $name || preg_match('/^[A-Za-z0-9_.-]+$/', $name) !== 1) {
+                if (is_string($name) === false || basename($name) !== $name || preg_match('/^[A-Za-z0-9_.-]+$/', $name) !== 1) {
                     continue;
                 }
 
@@ -486,7 +486,7 @@ final class DashboardController extends Controller
                 }
 
                 $temporaryArtifact = tempnam(sys_get_temp_dir(), 'backup-artifact-');
-                if (! is_string($temporaryArtifact)) {
+                if (is_string($temporaryArtifact) === false) {
                     fclose($stream);
                     throw new RuntimeException('Unable to allocate temporary space for backup artifact.');
                 }
@@ -505,7 +505,7 @@ final class DashboardController extends Controller
                     fclose($target);
                 }
 
-                if (! $archive->addFile($temporaryArtifact, $name)) {
+                if ($archive->addFile($temporaryArtifact, $name) === false) {
                     throw new RuntimeException('Unable to add backup artifact to archive: '.$name);
                 }
             }
