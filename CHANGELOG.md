@@ -2,6 +2,8 @@
 
 ## [0.8.12] - 2026-11-24
 
+Release: v0.8.12
+
 ### Added
 - Added a dedicated Reports page to the dashboard navigation, with backup inventory, per-disk storage usage, valid/invalid manifest counts, backup types, protected backup counts, and latest backup summary.
 - Added date, status, and storage-target filters plus JSON report export.
