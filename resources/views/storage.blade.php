@@ -145,12 +145,13 @@
             @csrf
             <button type="submit" class="disk-test-button">Preview expired backups (no deletion)</button>
         </form>
-        @if(session('retention_preview') as $preview)
+        @php($retentionPreview = session('retention_preview'))
+        @if($retentionPreview)
             <div class="storage-help" role="status">
-                <strong>Retention preview · {{ count($preview['items']) }} candidate(s)</strong>
-                <p>Cutoff: {{ $preview['cutoff'] }} · Protected/retained: {{ $preview['protected_count'] }} · Invalid skipped: {{ $preview['invalid_count'] }}. This preview did not delete anything.</p>
-                @if($preview['items'] !== [])
-                    <ul>@foreach($preview['items'] as $item)<li>{{ $item['id'] }} · {{ $item['disk'] }} · {{ number_format($item['size'] / 1048576, 2) }} MB · {{ $item['created_at'] }}</li>@endforeach</ul>
+                <strong>Retention preview · {{ count($retentionPreview['items']) }} candidate(s)</strong>
+                <p>Cutoff: {{ $retentionPreview['cutoff'] }} · Protected/retained: {{ $retentionPreview['protected_count'] }} · Invalid skipped: {{ $retentionPreview['invalid_count'] }}. This preview did not delete anything.</p>
+                @if($retentionPreview['items'] !== [])
+                    <ul>@foreach($retentionPreview['items'] as $item)<li>{{ $item['id'] }} · {{ $item['disk'] }} · {{ number_format($item['size'] / 1048576, 2) }} MB · {{ $item['created_at'] }}</li>@endforeach</ul>
                 @endif
             </div>
         @endif
