@@ -18,6 +18,7 @@ Route::middleware(array_merge(
         Route::get('/storage', [StorageManagementController::class, 'index'])->name('storage');
         Route::get('/reports', [ReportsController::class, 'index'])->name('reports');
         Route::get('/reports/export', [ReportsController::class, 'export'])->name('reports.export');
+        Route::get('/reports/export.csv', [ReportsController::class, 'exportCsv'])->name('reports.export.csv');
         Route::post('/storage/schedule', [StorageManagementController::class, 'saveSchedule'])->name('storage.schedule');
         Route::post('/storage/targets', [StorageManagementController::class, 'saveTargets'])->name('storage.targets');
         Route::post('/storage/test', [StorageManagementController::class, 'testDisk'])->name('storage.test');
