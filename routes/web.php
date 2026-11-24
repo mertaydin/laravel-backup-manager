@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use MertAydin\LaravelBackupManager\Http\Controllers\DashboardController;
+use MertAydin\LaravelBackupManager\Http\Controllers\ReportsController;
 use MertAydin\LaravelBackupManager\Http\Controllers\StorageManagementController;
 use MertAydin\LaravelBackupManager\Http\Middleware\AuthorizeDashboard;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
@@ -14,7 +15,9 @@ Route::middleware(array_merge(
     ->name('backup-manager.')
     ->group(function (): void {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/storage', [StorageManagementController::class, 'index'])->name('storage');\n        Route::get('/reports', [ReportsController::class, 'index'])->name('reports');\n        Route::get('/reports/export', [ReportsController::class, 'export'])->name('reports.export');
+        Route::get('/storage', [StorageManagementController::class, 'index'])->name('storage');
+        Route::get('/reports', [ReportsController::class, 'index'])->name('reports');
+        Route::get('/reports/export', [ReportsController::class, 'export'])->name('reports.export');
         Route::post('/storage/schedule', [StorageManagementController::class, 'saveSchedule'])->name('storage.schedule');
         Route::post('/storage/targets', [StorageManagementController::class, 'saveTargets'])->name('storage.targets');
         Route::post('/storage/test', [StorageManagementController::class, 'testDisk'])->name('storage.test');
