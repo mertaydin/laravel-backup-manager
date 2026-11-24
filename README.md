@@ -115,7 +115,7 @@ Register the callback in your application's `AppServiceProvider::boot()` method 
 php artisan migrate
 ```
 
-The package automatically registers its migrations through its service provider; you do not need to publish the migration manually. This creates the `backup_manager_storage_settings` table, which is required by Storage Management to persist encrypted storage credentials and automatic-backup settings. Without it, the dashboard may report MySQL error `1146` for the missing table.
+The package automatically registers its migrations through its service provider; you do not need to publish the migration manually. These migrations create `backup_manager_storage_settings` for encrypted storage credentials and schedule settings, and `backup_manager_activity` for persistent backup execution and storage-test history. Without it, the dashboard may report MySQL error `1146` for the missing table.
 
 You can confirm whether Laravel has run the migration with:
 
@@ -401,3 +401,10 @@ php artisan backup:report --json
 ### Exporting backup reports
 
 The Reports page supports JSON and CSV downloads. Both exports respect the active date, status, and storage-disk filters. CSV files include backup metadata and separate database/application artifact sizes, and text cells are guarded against spreadsheet formula injection.
+
+
+### Backup dashboard safety controls
+
+- `BACKUP_MANAGER_MINIMUM_FREE_BYTES` sets the minimum free space required on the temporary filesystem before a backup starts (default: 104857600 bytes / 100 MiB).
+- `BACKUP_MANAGER_DEDUPE_WINDOW_SECONDS` prevents a second dashboard backup for the same profile during the configured window (default: 300 seconds). Set it to `0` to disable the additional time-window guard; the existing overlap lock remains active.
+- Storage Management lets you set a local filesystem usage warning threshold and preview expired backups. Preview never deletes files. Remote object stores do not expose a portable capacity API, so no remote capacity is guessed.
