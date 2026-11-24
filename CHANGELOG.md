@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.12] - 2026-11-24
+
+### Added
+- Added a dedicated Reports page to the dashboard navigation, with backup inventory, per-disk storage usage, valid/invalid manifest counts, backup types, protected backup counts, and latest backup summary.
+- Added date, status, and storage-target filters plus JSON report export.
+
+### Notes
+- The report reflects current backup manifests on configured storage targets. Full historical restore/verification event auditing is not represented as a persisted event log in this release.
+
+
 ## [0.8.11] - 2026-11-24
 
 Release: v0.8.11
