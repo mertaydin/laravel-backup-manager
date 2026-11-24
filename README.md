@@ -36,6 +36,8 @@ A Laravel package for database and application file backups, compression, encryp
 - Repeat an existing backup from the dashboard using its original artifact selection and metadata.
 - Bulk protect, unlock, or delete backups; protected backups are skipped by bulk deletion.
 - Show database and application archive sizes separately in backup history.
+- Download a complete backup set as a single ZIP archive.
+- Copy an existing backup to another configured storage destination without overwriting existing copies.
 - Edit backup labels, notes, and tags from the dashboard; update remote and local manifest copies consistently.
 - Export filtered backup reports as CSV or JSON.
 - Download individual backup artifacts and manifests directly from the dashboard.
