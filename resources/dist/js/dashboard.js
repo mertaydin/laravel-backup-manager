@@ -94,11 +94,22 @@
     var form = document.querySelector('.destination-form');
     if (!count || !form) return;
 
-    function updateSelectedCount() {
+    function updateSelection(input) {
+        var option = input.closest('.destination-option');
+        if (!option) return;
+
+        var selected = input.checked;
+        option.classList.toggle('is-selected', selected);
+
+        var state = option.querySelector('.destination-state-text');
+        if (state) state.textContent = selected ? 'Seçildi' : 'Seç';
+
         count.textContent = form.querySelectorAll('input[name="targets[]"]:checked').length;
     }
 
     form.querySelectorAll('input[name="targets[]"]').forEach(function (input) {
-        input.addEventListener('change', updateSelectedCount);
+        input.addEventListener('change', function () {
+            updateSelection(input);
+        });
     });
 })();
