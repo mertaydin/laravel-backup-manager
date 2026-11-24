@@ -37,6 +37,10 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - Son başarısız yedeklemeyi aynı bileşen ve metadata ayarlarıyla yeniden kuyruğa alma; yeniden denemeden önce preflight kontrollerini çalıştırma.
 - Yedek etiketi, açıklaması ve etiketlerini panelden düzenleme; uzak ve yerel manifest kopyalarını tutarlı güncelleme.
 - Raporlar sayfasından filtrelenmiş CSV ve JSON dışa aktarma.
+- Yedekleme denemeleri ve depolama sağlık testleri için durum, zaman, hata ve süre bilgilerini içeren kalıcı işlem geçmişi.
+- Korumalı ve geçersiz yedekleri silme adaylarından hariç tutan güvenli saklama politikası önizlemesi.
+- Yapılandırılabilir kullanım eşiğiyle yerel disk kapasite uyarıları ve yedekleme öncesi minimum boş alan kontrolü.
+- Yinelenen yedeklemeleri engellemek için yapılandırılabilir süre, sonraki yedekleme için canlı geri sayım ve arama alanı için `/` kısayolu.
 - Yedek silindiğinde hem uzak depodan hem yerel kopyadan kaldırma.
 - Önemli yedekleri kalıcı olarak veya belirli bir tarihe kadar silinmeye karşı kilitleme; kilitli yedekler açılmadan ya da süreleri dolmadan silinemez.
 - Profil başına eşzamanlılık kilidiyle aynı profilin çakışan yedeklemelerini engelleme.
@@ -74,7 +78,7 @@ php artisan vendor:publish --tag=backup-manager-config
 php artisan vendor:publish --tag=backup-manager-assets
 ```
 
-Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.8.7`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
+Panel varsayılan olarak `/backup-manager` adresinde açılır. Asset dosyaları `public/vendor/backup-manager` konumuna yayınlanır. CSS ve JavaScript adresleri tarayıcı önbelleğini yenilemek için `backup-manager.ui.asset_version` parametresini kullanır (varsayılan `0.8.14`). `BACKUP_MANAGER_ASSET_VERSION` ortam değişkeniyle değiştirilebilir. Paket güncellendiğinde:
 
 ```bash
 php artisan vendor:publish --tag=backup-manager-assets --force
@@ -113,7 +117,7 @@ Bu tanımı uygulamanızın `AppServiceProvider::boot()` metoduna ekleyebilirsin
 php artisan migrate
 ```
 
-Paket migration dosyalarını Service Provider üzerinden otomatik olarak Laravel'e tanıtır. Migration dosyasını ayrıca publish etmeniz gerekmez. Bu komut, Storage Management ekranının şifrelenmiş depolama bilgilerini ve otomatik yedekleme ayarlarını saklamak için kullandığı `backup_manager_storage_settings` tablosunu oluşturur. Bu tablo oluşturulmadıysa panelde MySQL `1146` (`Table doesn't exist`) hatası alırsınız.
+Paket migration dosyalarını Service Provider üzerinden otomatik olarak Laravel'e tanıtır. Migration dosyasını ayrıca publish etmeniz gerekmez. Bu komut, şifrelenmiş depolama ve zamanlama ayarları için `backup_manager_storage_settings`; yedekleme ve depolama testi işlem geçmişi için `backup_manager_activity` tablolarını oluşturur. Bu tablo oluşturulmadıysa panelde MySQL `1146` (`Table doesn't exist`) hatası alırsınız.
 
 Migration'ın çalışıp çalışmadığını kontrol etmek için:
 
@@ -389,3 +393,10 @@ php artisan backup:report --json
 ### Yedekleme raporlarını dışa aktarma
 
 Raporlar sayfasından JSON veya CSV indirebilirsiniz. Her iki dışa aktarma da seçili tarih, durum ve depolama hedefi filtrelerini uygular. CSV dosyasında yedek metaverileri ile veritabanı/uygulama arşivi boyutları ayrı sütunlarda bulunur; metin alanları elektronik tablo formül enjeksiyonuna karşı korunur.
+
+
+### Backup dashboard safety controls
+
+- `BACKUP_MANAGER_MINIMUM_FREE_BYTES`, yedek başlamadan önce geçici dosya sisteminde bulunması gereken minimum boş alanı belirler (varsayılan: 104857600 bayt / 100 MiB).
+- `BACKUP_MANAGER_DEDUPE_WINDOW_SECONDS`, aynı profil için belirlenen süre içinde ikinci bir panel yedeklemesini engeller (varsayılan: 300 saniye). Ek süre kontrolünü kapatmak için `0` verilebilir; mevcut çakışma kilidi çalışmaya devam eder.
+- Depolama Yönetimi ekranında yerel disk kullanım uyarı eşiğini ayarlayabilir ve süresi dolmuş yedekleri silmeden önce önizleyebilirsiniz. Uzak nesne depolarında standart kapasite API'si bulunmadığından kapasite değeri tahmin edilmez.
