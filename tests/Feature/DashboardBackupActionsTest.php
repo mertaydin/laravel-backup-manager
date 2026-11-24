@@ -334,7 +334,7 @@ final class DashboardBackupActionsTest extends TestCase
         $this->put('/backup-manager/'.self::BACKUP_ID.'/metadata', [
             'label' => 'Release backup',
             'note' => 'Before production deployment',
-            'tags' => "production\\nrelease, important",
+            'tags' => "production\nrelease, important",
         ])->assertRedirect()->assertSessionHas('backup_success');
 
         foreach (['s3', 'local'] as $disk) {
