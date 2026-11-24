@@ -33,6 +33,9 @@ A Laravel package for database and application file backups, compression, encryp
 - Streaming SHA-256 and file-size integrity checks with `backup:verify`.
 - Verified MySQL, PostgreSQL, SQLite and application ZIP restore with `backup:restore`.
 - One-click integrity verification from the dashboard.
+- Repeat an existing backup from the dashboard using its original artifact selection and metadata.
+- Edit backup labels, notes, and tags from the dashboard; update remote and local manifest copies consistently.
+- Export filtered backup reports as CSV or JSON.
 - Download individual backup artifacts and manifests directly from the dashboard.
 - Delete backup sets from both the configured remote disk and the local mirror.
 - Protect important backups permanently or until a selected date; protected backups cannot be manually deleted or pruned until unlocked or expired.
