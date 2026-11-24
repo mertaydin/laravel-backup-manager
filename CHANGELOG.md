@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.11] - 2026-11-24
+
+### Improved
+- Refined Google Drive connection settings with a clear connection state, grouped credentials, and a dedicated callback URI panel.
+- Reworked automatic backup scheduling into a responsive settings layout with a prominent enable state and cron guidance.
+- Presented Laravel Filesystem disks as compact provider rows with clearer names and per-disk permission test actions.
+- Standardized dashboard asset cache versioning at 0.8.12.
+
+
 ## [0.8.10] - 2026-11-24
 
 ### Improved
