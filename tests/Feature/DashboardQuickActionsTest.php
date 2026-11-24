@@ -158,4 +158,23 @@ final class DashboardQuickActionsTest extends TestCase
         self::assertNotFalse($archive->locateName('manifest.json'));
         $archive->close();
     }
+    public function test_dashboard_can_retry_the_last_failed_backup_with_saved_options(): void
+    {
+        Queue::fake();
+        cache()->put('backup-manager:last-run', [
+            'status' => 'failed',
+            'options' => ['database' => true, 'files' => false, 'label' => 'Retry me', 'note' => 'Same options', 'tags' => ['nightly']],
+        ], now()->addDays(30));
+        config(['backup-manager.queue.connection' => 'database']);
+
+        $this->post('/backup-manager/retry-last')
+            ->assertRedirect()
+            ->assertSessionHas('backup_job_id');
+
+        Queue::assertPushed(CreateBackupJob::class, static fn (CreateBackupJob $job): bool => $job->options['database'] === true
+            && $job->options['files'] === false
+            && $job->options['label'] === 'Retry me'
+            && $job->options['tags'] === ['nightly']);
+    }
+
 }
