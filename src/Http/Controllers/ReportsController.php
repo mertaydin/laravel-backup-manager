@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Http\\Controllers;
+namespace MertAydin\LaravelBackupManager\Http\Controllers;
 
-use Illuminate\\Contracts\\Config\\Repository as ConfigRepository;
-use Illuminate\\Contracts\\Filesystem\\Factory as FilesystemFactory;
-use Illuminate\\Http\\Response;
-use Illuminate\\Routing\\Controller;
-use Illuminate\\Support\\Collection;
-use Illuminate\\View\\View;
-use MertAydin\\LaravelBackupManager\\BackupInspector;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
+use Illuminate\View\View;
+use MertAydin\LaravelBackupManager\BackupInspector;
 use Throwable;
 
 final class ReportsController extends Controller
@@ -18,7 +17,6 @@ final class ReportsController extends Controller
     public function __construct(
         private readonly BackupInspector $inspector,
         private readonly ConfigRepository $config,
-        private readonly FilesystemFactory $filesystem,
     ) {}
 
     public function index(): View
