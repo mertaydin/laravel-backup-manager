@@ -157,5 +157,4 @@ final class DashboardQuickActionsTest extends TestCase
         self::assertNotFalse($archive->locateName('manifest.json'));
         $archive->close();
     }
-
 }
