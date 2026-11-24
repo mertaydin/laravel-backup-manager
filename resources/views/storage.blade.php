@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('backup-manager::dashboard.storage_title') }} · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.10') }}-0.8.10">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.11') }}-0.8.11">
 
 </head>
 <body>
@@ -40,16 +40,23 @@
 
     <section class="storage-card destination-section">
         <div class="destination-heading">
-            <div>
-                <span class="destination-eyebrow">BACKUP STORAGE</span>
+            <div class="destination-heading-copy">
+                <span class="destination-eyebrow">DEPOLAMA AYARLARI</span>
                 <h2>Yedekleme hedefleri</h2>
-                <p>Yedeklerinin nereye gönderileceğini belirle. Birden fazla hedef seçersen her yedek seçtiğin konumlara ayrı ayrı kopyalanır.</p>
+                <p>Yedeklerinin saklanacağı konumları seç. Birden fazla hedef etkinleştirerek aynı yedeği birden fazla yere gönderebilirsin.</p>
             </div>
-            <div class="destination-count"><span id="destination-selected-count">{{ count($selectedTargets) }}</span><small>seçili hedef</small></div>
+            <div class="destination-summary" aria-live="polite">
+                <span class="destination-summary-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12.1V21"/></svg></span>
+                <span class="destination-summary-copy"><strong id="destination-selected-count">{{ count($selectedTargets) }}</strong><small>aktif hedef</small></span>
+            </div>
         </div>
 
         <form method="POST" action="{{ route('backup-manager.storage.targets') }}" class="destination-form">
             @csrf
+            <div class="destination-section-label">
+                <span>YEDEKLER NEREYE GÖNDERİLSİN?</span>
+                <small>İstediğin kadar hedef seçebilirsin</small>
+            </div>
             <div class="destination-grid">
                 @foreach($filesystemDisks as $disk)
                     @php
@@ -58,12 +65,12 @@
                         $isSelected = in_array($disk, $selectedTargets, true);
                         $destinationName = $isGoogleDrive ? 'Google Drive' : ($disk === 'local' ? 'Sunucu diski' : ($disk === 'public' ? 'Public disk' : \Illuminate\Support\Str::headline($disk)));
                         $destinationDescription = $isGoogleDrive
-                            ? 'Yedekleri bağlı Google hesabındaki seçili klasöre gönderir.'
-                            : ($isLocal ? 'Yedekleri uygulamanın bulunduğu sunucunun diskinde saklar.' : 'Laravel dosya sistemi yapılandırmasındaki bu diske yedek kopyası gönderir.');
+                            ? 'Google hesabındaki depolama alanına yedek kopyası gönderir.'
+                            : ($isLocal ? 'Yedekleri bu uygulamanın çalıştığı sunucuda tutar.' : 'Yapılandırılmış uzak depolama alanına yedek gönderir.');
                     @endphp
                     <label class="destination-option {{ $isSelected ? 'is-selected' : '' }}" for="backup-target-{{ $loop->index }}">
                         <input id="backup-target-{{ $loop->index }}" type="checkbox" name="targets[]" value="{{ $disk }}" {{ $isSelected ? 'checked' : '' }}>
-                        <span class="destination-icon" aria-hidden="true">
+                        <span class="destination-icon {{ $isGoogleDrive ? 'destination-icon-google' : ($isLocal ? 'destination-icon-local' : 'destination-icon-cloud') }}" aria-hidden="true">
                             @if($isGoogleDrive)
                                 <svg viewBox="0 0 48 48"><path fill="#00832d" d="M15.4 6h10.2L10.2 32.7H0z"/><path fill="#2684fc" d="M10.2 32.7h30.6L35.7 42H5.1z"/><path fill="#ffba00" d="M25.6 6 48 42H35.7L15.4 6z"/></svg>
                             @elseif($isLocal)
@@ -75,8 +82,8 @@
                         <span class="destination-copy">
                             <strong>{{ $destinationName }}</strong>
                             <small>{{ $destinationDescription }}</small>
-                            <span class="destination-kind">{{ $isGoogleDrive ? 'BULUT DEPOLAMA' : ($isLocal ? 'YEREL DEPOLAMA' : 'DOSYA SİSTEMİ') }}</span>
                         </span>
+                        <span class="destination-state"><span class="destination-state-dot"></span><span class="destination-state-text">{{ $isSelected ? 'Seçildi' : 'Seç' }}</span></span>
                         <span class="destination-check" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                     </label>
                 @endforeach
@@ -84,10 +91,10 @@
 
             <div class="destination-footer">
                 <div class="destination-note">
-                    <strong>Bilgi</strong>
-                    <span>Hedef değişikliği yalnızca bundan sonra oluşturulacak yedekleri etkiler. Mevcut yedekler taşınmaz.</span>
+                    <span class="destination-note-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span>
+                    <span><strong>Bilmen gereken</strong><small>Bu seçim bundan sonra oluşturulacak yedeklere uygulanır. Eski yedekler taşınmaz.</small></span>
                 </div>
-                <button class="primary destination-save" type="submit">Seçili hedefleri kaydet <span aria-hidden="true">→</span></button>
+                <button class="primary destination-save" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h12l3 3v13H4V4h1Z"/><path d="M8 4v6h8V4M8 20v-7h8v7"/></svg> Hedefleri kaydet</button>
             </div>
         </form>
     </section>
@@ -144,6 +151,6 @@
         <p>{{ __('backup-manager::dashboard.test_help') }}</p>
     </section>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.10') }}-0.8.10" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.11') }}-0.8.11" defer></script>
 </body>
 </html>
