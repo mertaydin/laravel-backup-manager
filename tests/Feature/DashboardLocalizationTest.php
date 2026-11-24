@@ -34,7 +34,6 @@ final class DashboardLocalizationTest extends TestCase
             ->assertSee('Total backups');
     }
 
-
     public function test_reports_page_displays_inventory_summary_and_json_export(): void
     {
         $this->get('/backup-manager/reports')
