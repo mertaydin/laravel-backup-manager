@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.8.13] - 2026-11-24
+
+Release: v0.8.13
+
+### Added
+- Add dashboard actions to repeat an existing backup and edit its label, note, and tags across configured copies.
+- Add bulk protect, unlock, and delete actions; protected backups are skipped during bulk deletion.
+- Show individual database and application artifact sizes in backup history.
+- Add a combined ZIP download containing the manifest, checksums, and all listed artifacts.
+- Add safe cross-disk backup copying without overwriting an existing destination backup.
+- Add a dashboard retry action for the last failed backup, preserving its original options and recording execution timing in the last-run status.
+- Add filtered CSV export to the Reports page, including separate database and application artifact sizes.
+- Protect CSV text fields against spreadsheet formula injection and add feature coverage for the download response.
+
+### Notes
+- This release adds dashboard quick operations, complete ZIP downloads, cross-disk copies, failed-backup retry, and CSV reports.
+- A persistent, multi-entry historical audit log for every backup and storage test is not included in this release.
+
+
 ## [0.8.12] - 2026-11-24
 
 Release: v0.8.12

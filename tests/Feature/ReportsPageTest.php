@@ -33,5 +33,10 @@ final class ReportsPageTest extends TestCase
             ->assertOk()
             ->assertHeader('content-type', 'application/json; charset=UTF-8')
             ->assertHeader('content-disposition');
+
+        $this->get('/backup-manager/reports/export.csv')
+            ->assertOk()
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8')
+            ->assertHeader('content-disposition');
     }
 }

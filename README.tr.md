@@ -29,6 +29,14 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - SHA-256 checksum, JSON manifest ve GZIP/ZIP arşiv yapısı doğrulaması.
 - Artisan komutlarıyla yedek listeleme, doğrulama, şifre çözme ve geri yükleme.
 - Yönetim panelinden yedek başlatma, durumunu takip etme ve dosyaları indirme.
+- Mevcut yedeğin bileşen ve metadata ayarlarını kullanarak tek tıkla yeniden yedekleme.
+- Birden fazla yedeği toplu koruma, kilit açma veya silme; korumalı yedekler toplu silme sırasında otomatik atlanır.
+- Yedek listesinde SQL ve uygulama ZIP dosyalarının boyutlarını ayrı ayrı gösterme.
+- Yedek setinin tüm dosyalarını tek ZIP arşivi olarak indirme.
+- Mevcut yedeği yapılandırılmış başka bir depolama hedefine kopyalama; hedefteki mevcut yedeklerin üzerine yazmama.
+- Son başarısız yedeklemeyi aynı bileşen ve metadata ayarlarıyla yeniden kuyruğa alma; yeniden denemeden önce preflight kontrollerini çalıştırma.
+- Yedek etiketi, açıklaması ve etiketlerini panelden düzenleme; uzak ve yerel manifest kopyalarını tutarlı güncelleme.
+- Raporlar sayfasından filtrelenmiş CSV ve JSON dışa aktarma.
 - Yedek silindiğinde hem uzak depodan hem yerel kopyadan kaldırma.
 - Önemli yedekleri kalıcı olarak veya belirli bir tarihe kadar silinmeye karşı kilitleme; kilitli yedekler açılmadan ya da süreleri dolmadan silinemez.
 - Profil başına eşzamanlılık kilidiyle aynı profilin çakışan yedeklemelerini engelleme.
@@ -376,3 +384,8 @@ Yedek envanteri ve toplam depolama kullanım raporu:
 ```bash
 php artisan backup:report --json
 ```
+
+
+### Yedekleme raporlarını dışa aktarma
+
+Raporlar sayfasından JSON veya CSV indirebilirsiniz. Her iki dışa aktarma da seçili tarih, durum ve depolama hedefi filtrelerini uygular. CSV dosyasında yedek metaverileri ile veritabanı/uygulama arşivi boyutları ayrı sütunlarda bulunur; metin alanları elektronik tablo formül enjeksiyonuna karşı korunur.

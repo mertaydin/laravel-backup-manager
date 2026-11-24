@@ -60,11 +60,17 @@
                 <button class="action-button" type="submit">Filter</button>
                 <a class="action-button" href="{{ route('backup-manager.dashboard') }}">Clear</a>
             </form>
+            <form id="bulk-backups-form" method="POST" action="{{ route('backup-manager.bulk') }}" class="report-filters" data-confirm="Apply this action to all selected backups?">
+                @csrf
+                <label><span>Bulk action</span><select name="action" required><option value="delete">Delete selected (protected backups are skipped)</option><option value="protect">Protect selected</option><option value="unlock">Unlock selected</option></select></label>
+                <button class="action-button" type="submit">Apply to selected</button>
+            </form>
             <div class="backup-list">
             @forelse($backups->take(12) as $backup)
                 <article class="backup">
+                    <label class="backup-select"><input type="checkbox" name="ids[]" value="{{ $backup['id'] }}" form="bulk-backups-form" aria-label="Select {{ $backup['id'] }}"></label>
                     <div class="file-icon">▤</div>
-                    <div class="backup-main"><div class="backup-title"><a href="{{ route('backup-manager.details', $backup['id']) }}">{{ ($backup['label'] ?? '') ?: $backup['id'] }}</a></div><div class="backup-sub">{{ $backup['id'] }} &nbsp;·&nbsp; {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }}</span>@endforeach
+                    <div class="backup-main"><div class="backup-title"><a href="{{ route('backup-manager.details', $backup['id']) }}">{{ ($backup['label'] ?? '') ?: $backup['id'] }}</a></div><div class="backup-sub">{{ $backup['id'] }} &nbsp;·&nbsp; {{ $backup['created_at'] ? \Illuminate\Support\Carbon::parse($backup['created_at'])->format('d M Y · H:i:s') : __('backup-manager::dashboard.invalid_date') }} &nbsp;·&nbsp; {{ $backup['profile'] }}</div><div class="artifacts">@foreach($backup['artifacts'] as $artifact)<span class="artifact">{{ $artifact['name'] }} · {{ number_format(((int) ($artifact['size'] ?? 0)) / 1048576, 2) }} MB</span>@endforeach
                     @if($backup['encrypted'] ?? false)<span class="artifact">{{ __('backup-manager::dashboard.encrypted') }}</span>@endif
                     @foreach(($backup['tags'] ?? []) as $tag)<span class="artifact">{{ $tag }}</span>@endforeach
                     @if($backup['protected'] ?? false)<span class="artifact protection-badge">{{ __('backup-manager::dashboard.protected') }}</span>@endif
@@ -73,6 +79,28 @@
                     @if(!empty($backup['note']))<div class="backup-sub">{{ $backup['note'] }}</div>@endif</div></div>
                     <div class="backup-size">{{ number_format($backup['size'] / 1048576, 2) }} MB</div>
                     <div class="backup-actions">
+                        <form class="verify-form" method="POST" action="{{ route('backup-manager.repeat', $backup['id']) }}" data-confirm="Create a new backup using this backup's components and metadata?">@csrf<button class="verify-button" type="submit">↻ Repeat</button></form>
+                        <a class="action-button" href="{{ route('backup-manager.download.archive', $backup['id']) }}">↓ Full ZIP</a>
+                        <form class="protection-form" method="POST" action="{{ route('backup-manager.copy', $backup['id']) }}">
+                            @csrf
+                            <select class="protection-input" name="destination" aria-label="Copy backup to another storage target" required>
+                                <option value="">Copy to disk…</option>
+                                @foreach($availableBackupDisks as $availableDisk)
+                                    @if($availableDisk !== ($backup['disk'] ?? null))
+                                        <option value="{{ $availableDisk }}">{{ $availableDisk }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                            <button class="protection-button" type="submit">Copy</button>
+                        </form>
+                        <details class="backup-metadata-edit"><summary class="action-button">Edit details</summary>
+                            <form class="protection-form" method="POST" action="{{ route('backup-manager.metadata', $backup['id']) }}">@csrf @method('PUT')
+                                <input class="protection-input" type="text" name="label" maxlength="100" value="{{ $backup['label'] ?? '' }}" placeholder="Backup label" aria-label="Backup label">
+                                <input class="protection-input" type="text" name="note" maxlength="500" value="{{ $backup['note'] ?? '' }}" placeholder="Backup note" aria-label="Backup note">
+                                <textarea class="protection-input" name="tags" rows="2" placeholder="Tags (one per line)" aria-label="Tags">{{ implode("\\n", $backup['tags'] ?? []) }}</textarea>
+                                <button class="protection-button" type="submit">Save details</button>
+                            </form>
+                        </details>
                         @foreach($backup['artifacts'] as $artifact)
                             <a class="action-button" href="{{ route('backup-manager.download', ['id' => $backup['id'], 'artifact' => $artifact['name']]) }}">↓ {{ $artifact['name'] }}</a>
                         @endforeach
@@ -130,6 +158,12 @@
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.database') }}</span><strong>{{ $databaseEnabled ? __('backup-manager::dashboard.enabled') : __('backup-manager::dashboard.disabled') }}</strong></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.application_files') }}</span><strong>{{ $filesEnabled ? __('backup-manager::dashboard.enabled') : __('backup-manager::dashboard.disabled') }}</strong></div>
                     <div class="storage-row"><span>Last backup status</span><strong>{{ is_array($lastBackupStatus) ? ucfirst($lastBackupStatus['status'] ?? 'unknown') : 'No recent run' }}</strong></div>
+                    @if(is_array($lastBackupStatus) && ($lastBackupStatus['status'] ?? null) === 'failed' && is_array($lastBackupStatus['options'] ?? null))
+                        <form method="POST" action="{{ route('backup-manager.retry-last') }}" data-confirm="Retry the last failed backup with the same settings?">
+                            @csrf
+                            <button class="protection-button" type="submit">↻ Retry failed backup</button>
+                        </form>
+                    @endif
                     @if(is_array($lastBackupStatus) && !empty($lastBackupStatus['finished_at']))<div class="storage-row"><span>Last run finished</span><strong>{{ \Illuminate\Support\Carbon::parse($lastBackupStatus['finished_at'])->diffForHumans() }}</strong></div>@endif
                     <div class="storage-row"><span>Next scheduled backup</span><strong>{{ $nextScheduledBackup ? $nextScheduledBackup->format('d M Y H:i T') : 'Not scheduled' }}</strong></div>
                     <div class="divider"></div>

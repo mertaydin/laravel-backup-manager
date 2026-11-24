@@ -15,6 +15,7 @@
             <a class="theme-button" href="{{ route('backup-manager.dashboard') }}">← Panele dön</a>
             <a class="theme-button" href="{{ route('backup-manager.storage') }}">Depolama yönetimi</a>
             <a class="theme-button reports-export" href="{{ route('backup-manager.reports.export', request()->query()) }}">↓ JSON raporunu indir</a>
+            <a class="theme-button reports-export" href="{{ route('backup-manager.reports.export.csv', request()->query()) }}">↓ CSV indir</a>
         </div>
     </header>
 
