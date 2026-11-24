@@ -119,4 +119,43 @@ final class DashboardQuickActionsTest extends TestCase
         Storage::disk('s3')->assertExists('backups/'.$protectedId.'/manifest.json');
         Storage::disk('s3')->assertMissing('backups/'.self::BACKUP_ID.'/manifest.json');
     }
+
+    public function test_dashboard_can_copy_a_backup_to_another_configured_disk(): void
+    {
+        Storage::fake('s3');
+        Storage::fake('local');
+        $manifest = ['id' => self::BACKUP_ID, 'artifacts' => ['database.sql.gz' => ['size' => 6, 'sha256' => hash('sha256', 'backup')]]];
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode($manifest, JSON_THROW_ON_ERROR));
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/database.sql.gz', 'backup');
+
+        $this->post('/backup-manager/'.self::BACKUP_ID.'/copy', ['destination' => 'local'])
+            ->assertRedirect()
+            ->assertSessionHas('backup_success');
+
+        Storage::disk('local')->assertExists('backups/'.self::BACKUP_ID.'/manifest.json');
+        self::assertSame('backup', Storage::disk('local')->get('backups/'.self::BACKUP_ID.'/database.sql.gz'));
+    }
+
+    public function test_dashboard_can_download_all_backup_artifacts_as_one_zip(): void
+    {
+        if (! class_exists(\\ZipArchive::class)) {
+            $this->markTestSkipped('The PHP zip extension is not available.');
+        }
+
+        Storage::fake('s3');
+        Storage::fake('local');
+        $manifest = ['id' => self::BACKUP_ID, 'artifacts' => ['database.sql.gz' => ['size' => 6, 'sha256' => hash('sha256', 'backup')]]];
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/manifest.json', json_encode($manifest, JSON_THROW_ON_ERROR));
+        Storage::disk('s3')->put('backups/'.self::BACKUP_ID.'/database.sql.gz', 'backup');
+
+        $response = $this->get('/backup-manager/'.self::BACKUP_ID.'/download.zip');
+        $response->assertOk()->assertHeader('content-disposition');
+
+        $archive = new \\ZipArchive();
+        self::assertTrue($archive->open($response->baseResponse->getFile()->getPathname()));
+        self::assertNotFalse($archive->locateName('database.sql.gz'));
+        self::assertNotFalse($archive->locateName('manifest.json'));
+        $archive->close();
+    }
+
 }
