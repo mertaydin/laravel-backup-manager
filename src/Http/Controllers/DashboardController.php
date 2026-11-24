@@ -481,7 +481,7 @@ final class DashboardController extends Controller
                 }
 
                 $stream = $source->readStream($backupPath.'/'.$name);
-                if (!is_resource($stream)) {
+                if (is_resource($stream) === false) {
                     throw new RuntimeException('Unable to read backup artifact: '.$name);
                 }
 
@@ -493,7 +493,7 @@ final class DashboardController extends Controller
 
                 $temporaryFiles[] = $temporaryArtifact;
                 $target = fopen($temporaryArtifact, 'wb');
-                if (!is_resource($target)) {
+                if (is_resource($target) === false) {
                     fclose($stream);
                     throw new RuntimeException('Unable to open temporary backup artifact.');
                 }
