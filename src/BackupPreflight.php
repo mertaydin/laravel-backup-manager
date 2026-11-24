@@ -37,6 +37,16 @@ class BackupPreflight
             $errors[] = 'The backup temporary directory is not writable.';
         }
 
+        $minimumFreeBytes = max(0, (int) config('backup-manager.preflight.minimum_free_bytes', 104857600));
+        if ($minimumFreeBytes > 0) {
+            $freeBytes = @disk_free_space($writableParent);
+            $checks['temporary_free_space'] = (is_float($freeBytes) || is_int($freeBytes)) && $freeBytes >= $minimumFreeBytes;
+            if (! $checks['temporary_free_space']) {
+                $available = is_float($freeBytes) || is_int($freeBytes) ? number_format((int) $freeBytes).' bytes' : 'unknown';
+                $errors[] = "The temporary filesystem has {$available} free; at least {$minimumFreeBytes} bytes are required before creating a backup.";
+            }
+        }
+
         $storageDisks = array_values(array_unique([
             $diskName,
             (string) data_get($profile, 'storage.local_disk', 'local'),
