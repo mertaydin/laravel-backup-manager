@@ -39,6 +39,52 @@ final class ReportsController extends Controller
         ]);
     }
 
+    public function exportCsv(BackupInspector $inspector, ConfigRepository $config): StreamedResponse
+    {
+        $report = $this->reportData($inspector, $config);
+
+        return response()->streamDownload(static function () use ($report): void {
+            $output = fopen('php://output', 'wb');
+            if ($output === false) {
+                return;
+            }
+
+            // UTF-8 BOM keeps the CSV readable in desktop spreadsheet applications.
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['Backup ID', 'Label', 'Note', 'Type', 'Disk', 'Created at', 'Status', 'Protected', 'Total bytes', 'Database bytes', 'Application bytes']);
+
+            foreach ($report['backups'] as $backup) {
+                $artifacts = collect($backup['artifacts'] ?? [])->keyBy('name');
+                $safe = static function (mixed $value): string {
+                    $value = (string) ($value ?? '');
+                    if (preg_match('/^[\s]*[=+@\-]/u', $value) === 1) {
+                        return "'".$value;
+                    }
+
+                    return $value;
+                };
+
+                fputcsv($output, [
+                    $safe($backup['id'] ?? ''),
+                    $safe($backup['label'] ?? ''),
+                    $safe($backup['note'] ?? ''),
+                    $safe($backup['type'] ?? ''),
+                    $safe($backup['disk'] ?? ''),
+                    $safe($backup['created_at'] ?? ''),
+                    $safe($backup['status'] ?? ''),
+                    ! empty($backup['protected']) ? 'yes' : 'no',
+                    (int) ($backup['total_size'] ?? 0),
+                    (int) ($artifacts->get('database.sql.gz')['size'] ?? $artifacts->get('database.sqlite.gz')['size'] ?? 0),
+                    (int) ($artifacts->get('application.zip')['size'] ?? 0),
+                ]);
+            }
+
+            fclose($output);
+        }, 'backup-report-'.now()->format('Ymd-His').'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
     /** @return array<string, mixed> */
     private function reportData(BackupInspector $inspector, ConfigRepository $config): array
     {
