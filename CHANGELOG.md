@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Add filtered CSV export to the Reports page, including separate database and application artifact sizes.
+- Protect CSV text fields against spreadsheet formula injection and add feature coverage for the download response.
+
+
 ## [0.8.12] - 2026-11-24
 
 Release: v0.8.12
