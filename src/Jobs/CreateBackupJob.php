@@ -33,11 +33,11 @@ final class CreateBackupJob implements ShouldQueue
         $this->backoff = max(0, (int) config('backup-manager.retry.delay_seconds', 30));
     }
 
-    public function handle(BackupManager $manager, CacheRepository $cache): void
+    public function handle(BackupManager $manager, CacheRepository $cache, BackupManagerActivityLogger $activity): void
     {
         $key = 'backup-manager:jobs:'.$this->jobId;
         $startedAt = now();
-        $cache->put($key, ['status' => 'running', 'started_at' => $startedAt->toIso8601String()], now()->addDay());
+        $cache->put($key, ['status' => 'running', 'started_at' => $startedAt->toIso8601String()], now()->addDay());\n        $activity->record('backup.started', 'running', jobId: $this->jobId, disk: isset($this->options['disk']) ? (string) $this->options['disk'] : null, metadata: ['type' => $this->options['type'] ?? 'manual'], startedAt: $startedAt->toDateTimeString());
 
         try {
             $result = $manager->run($this->options);
@@ -56,7 +56,7 @@ final class CreateBackupJob implements ShouldQueue
                 throw new RuntimeException($result->error ?? 'Backup job failed.');
             }
             $cache->put($key, $status, now()->addDay());
-            $cache->put('backup-manager:last-run', $status, now()->addDays(30));
+            $cache->put('backup-manager:last-run', $status, now()->addDays(30));\n            $activity->record('backup.completed', 'completed', $result->id, $this->jobId, isset($this->options['disk']) ? (string) $this->options['disk'] : null, startedAt: $startedAt->toDateTimeString(), finishedAt: $finishedAt->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds($finishedAt));\n            $this->releaseDedupeLock($cache);
         } catch (Throwable $exception) {
             report($exception);
             $finishedAt = now();
@@ -78,7 +78,7 @@ final class CreateBackupJob implements ShouldQueue
         }
     }
 
-    public function failed(?Throwable $exception): void
+    private function releaseDedupeLock(CacheRepository $cache): void\n    {\n        $profile = (string) ($this->options['profile'] ?? config('backup-manager.default', 'default'));\n        $key = 'backup-manager:dedupe:'.$profile;\n        if ($cache->get($key) === $this->jobId) {\n            $cache->forget($key);\n        }\n    }\n\n    public function failed(?Throwable $exception): void
     {
         $finishedAt = now();
         $jobStatus = cache()->get('backup-manager:jobs:'.$this->jobId, []);
@@ -95,6 +95,6 @@ final class CreateBackupJob implements ShouldQueue
             'options' => $this->options,
         ];
         cache()->put('backup-manager:jobs:'.$this->jobId, array_diff_key($status, ['options' => true]), now()->addDay());
-        cache()->put('backup-manager:last-run', $status, now()->addDays(30));
+        cache()->put('backup-manager:last-run', $status, now()->addDays(30));\n        app(BackupManagerActivityLogger::class)->record('backup.failed', 'failed', jobId: $this->jobId, disk: isset($this->options['disk']) ? (string) $this->options['disk'] : null, message: $status['error'], startedAt: $startedAt->toDateTimeString(), finishedAt: $finishedAt->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds($finishedAt));\n        $this->releaseDedupeLock(cache());
     }
 }
