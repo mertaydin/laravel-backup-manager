@@ -30,6 +30,8 @@ Route::middleware(array_merge(
             ->whereIn('locale', SetDashboardLocale::SUPPORTED_LOCALES)
             ->name('locale');
         Route::post('/run', [DashboardController::class, 'run'])->name('run');
+        Route::post('/{id}/repeat', [DashboardController::class, 'repeat'])->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')->name('repeat');
+        Route::put('/{id}/metadata', [DashboardController::class, 'updateMetadata'])->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')->name('metadata');
         Route::get('/{id}', [DashboardController::class, 'show'])
             ->where('id', '[0-9]{8}_[0-9]{6}_[a-f0-9]{8}')
             ->name('details');
