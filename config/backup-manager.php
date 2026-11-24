@@ -6,7 +6,7 @@ return [
     'ui' => [
         'enabled' => env('BACKUP_MANAGER_UI_ENABLED', true),
         'prefix' => env('BACKUP_MANAGER_UI_PREFIX', 'backup-manager'),
-        'asset_version' => env('BACKUP_MANAGER_ASSET_VERSION', '0.8.11'),
+        'asset_version' => env('BACKUP_MANAGER_ASSET_VERSION', '0.8.12'),
         'middleware' => ['web', 'auth'],
     ],
     'naming' => [
