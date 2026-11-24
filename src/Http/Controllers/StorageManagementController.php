@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use MertAydin\LaravelBackupManager\BackupManagerActivityLogger;
+use MertAydin\LaravelBackupManager\BackupPruner;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveClient;
 use MertAydin\LaravelBackupManager\Storage\GoogleDriveOAuth;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
@@ -21,6 +23,8 @@ final class StorageManagementController extends Controller
         private readonly StorageSettingsRepository $settings,
         private readonly GoogleDriveOAuth $oauth,
         private readonly StorageHealthChecker $healthChecker,
+        private readonly BackupManagerActivityLogger $activity,
+        private readonly BackupPruner $pruner,
     ) {}
 
     public function index(): View
@@ -39,7 +43,9 @@ final class StorageManagementController extends Controller
             'googleConnected' => ! empty(data_get($settings, 'disks.google-drive.refresh_token')),
             'selectedTargets' => $settings['backup_targets'] ?? [data_get(config('backup-manager.profiles.'.config('backup-manager.default', 'default')), 'storage.disk', 'local')],
             'callbackUrl' => route('backup-manager.storage.google.callback'),
-            'schedule' => $settings['schedule'] ?? ['enabled' => false, 'time' => '02:00', 'timezone' => config('app.timezone', 'UTC'), 'retain_days' => 30],
+            'schedule' => $settings['schedule'] ?? ['enabled' => false, 'time' => '02:00', 'timezone' => config('app.timezone', 'UTC'), 'retain_days' => 30, 'warning_threshold_percent' => 85],
+            'storageActivities' => $this->activity->recent(10, 'storage.test'),
+            'storageCapacity' => $this->localStorageCapacity($disks, (int) data_get($settings, 'schedule.warning_threshold_percent', 85)),
         ]);
     }
 
@@ -75,6 +81,7 @@ final class StorageManagementController extends Controller
             'time' => ['required', 'date_format:H:i'],
             'timezone' => ['required', 'timezone'],
             'retain_days' => ['required', 'integer', 'min:1', 'max:3650'],
+            'warning_threshold_percent' => ['nullable', 'integer', 'min:1', 'max:99'],
         ]);
 
         $settings = $this->settings->all();
@@ -83,6 +90,7 @@ final class StorageManagementController extends Controller
             'time' => $data['time'],
             'timezone' => $data['timezone'],
             'retain_days' => (int) $data['retain_days'],
+            'warning_threshold_percent' => (int) ($data['warning_threshold_percent'] ?? 85),
         ];
         $this->settings->save($settings);
 
@@ -166,12 +174,14 @@ final class StorageManagementController extends Controller
         $data = $request->validate([
             'disk' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_.-]+$/'],
         ]);
+        $startedAt = now();
 
         try {
             $profileName = (string) config('backup-manager.default', 'default');
             $prefix = (string) data_get(config('backup-manager.profiles.'.$profileName, []), 'storage.path', 'backups');
             $result = $this->healthChecker->check($data['disk'], $prefix);
             $failed = array_keys(array_filter($result['checks'], static fn (bool $passed): bool => ! $passed));
+            $this->activity->record('storage.test', $result['successful'] ? 'completed' : 'failed', disk: $data['disk'], message: $result['successful'] ? 'Storage health check passed.' : 'Failed checks: '.implode(', ', $failed), metadata: ['checks' => $result['checks']], startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
 
             if ($result['successful']) {
                 return back()->with('storage_success', "Storage disk [{$data['disk']}] passed connection, list, write, read and delete checks.");
@@ -179,14 +189,91 @@ final class StorageManagementController extends Controller
 
             return back()->with('storage_error', "Storage disk [{$data['disk']}] failed checks: ".implode(', ', $failed).'.');
         } catch (Throwable $exception) {
+            $this->activity->record('storage.test', 'failed', disk: $data['disk'], message: $exception->getMessage(), startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
             report($exception);
 
             return back()->with('storage_error', "Storage disk [{$data['disk']}] could not be checked. Review the application log.");
         }
     }
 
+    /** @param list<string> $disks
+     * @return array<string, array{free_bytes: int|null, total_bytes: int|null, used_percent: float|null, warning: bool}>
+     */
+    private function localStorageCapacity(array $disks, int $warningThreshold): array
+    {
+        $capacity = [];
+        foreach ($disks as $diskName) {
+            $diskConfig = config('filesystems.disks.'.$diskName, []);
+            if (! is_array($diskConfig) || ($diskConfig['driver'] ?? null) !== 'local') {
+                continue;
+            }
+
+            $root = (string) ($diskConfig['root'] ?? '');
+            $probePath = $root;
+            while ($probePath !== '' && ! is_dir($probePath) && dirname($probePath) !== $probePath) {
+                $probePath = dirname($probePath);
+            }
+            $free = $probePath !== '' && is_dir($probePath) ? @disk_free_space($probePath) : false;
+            $total = $probePath !== '' && is_dir($probePath) ? @disk_total_space($probePath) : false;
+            $freeBytes = is_float($free) || is_int($free) ? (int) $free : null;
+            $totalBytes = is_float($total) || is_int($total) ? (int) $total : null;
+            $usedPercent = $freeBytes !== null && $totalBytes !== null && $totalBytes > 0
+                ? round((1 - ($freeBytes / $totalBytes)) * 100, 1)
+                : null;
+            $capacity[$diskName] = [
+                'free_bytes' => $freeBytes,
+                'total_bytes' => $totalBytes,
+                'used_percent' => $usedPercent,
+                'warning' => $usedPercent !== null && $usedPercent >= $warningThreshold,
+            ];
+        }
+
+        return $capacity;
+    }
+
+    public function previewRetention(): RedirectResponse
+    {
+        $profileName = (string) config('backup-manager.default', 'default');
+        $settings = $this->settings->all();
+        $retainDays = max(1, (int) data_get($settings, 'schedule.retain_days', 30));
+        config([
+            'backup-manager.profiles.'.$profileName.'.retention.enabled' => true,
+            'backup-manager.profiles.'.$profileName.'.retention.keep_days' => $retainDays,
+            'backup-manager.profiles.'.$profileName.'.retention.keep_last' => 0,
+        ]);
+
+        try {
+            $preview = $this->pruner->run($profileName, null, false);
+            $items = array_map(static fn (array $backup): array => [
+                'id' => (string) ($backup['id'] ?? ''),
+                'created_at' => (string) ($backup['created_at'] ?? ''),
+                'size' => (int) ($backup['total_size'] ?? 0),
+                'disk' => (string) ($backup['disk'] ?? ''),
+            ], $preview['candidates']);
+            $this->activity->record(
+                'retention.preview',
+                'completed',
+                message: count($items).' expired backup(s) identified; nothing was deleted.',
+                metadata: ['candidate_count' => count($items), 'protected_count' => $preview['protected_count'], 'invalid_count' => $preview['invalid_count'], 'cutoff' => $preview['cutoff']],
+            );
+
+            return back()->with('retention_preview', [
+                'items' => $items,
+                'protected_count' => $preview['protected_count'],
+                'invalid_count' => $preview['invalid_count'],
+                'cutoff' => $preview['cutoff'],
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->activity->record('retention.preview', 'failed', message: $exception->getMessage());
+
+            return back()->with('storage_error', 'Retention preview failed: '.$exception->getMessage());
+        }
+    }
+
     public function testGoogle(): RedirectResponse
     {
+        $startedAt = now();
         try {
             $credentials = data_get($this->settings->all(), 'disks.google-drive', []);
             (new GoogleDriveClient($credentials))->testConnection();
@@ -197,8 +284,11 @@ final class StorageManagementController extends Controller
                 throw new \RuntimeException('Google Drive read/write/delete verification failed.');
             }
 
+            $this->activity->record('storage.test', 'completed', disk: 'google-drive', message: 'Google Drive connection and read/write/delete tests succeeded.', metadata: ['checks' => $result['checks']], startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
+
             return back()->with('storage_success', 'Google Drive connection and read/write/delete tests succeeded.');
         } catch (Throwable $exception) {
+            $this->activity->record('storage.test', 'failed', disk: 'google-drive', message: $exception->getMessage(), startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
             report($exception);
 
             return back()->with('storage_error', 'Google Drive connection test failed. Check the application log.');

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\Storage\StorageHealthChecker;
+use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
 use Orchestra\Testbench\TestCase;
 
 final class StorageHealthCheckerTest extends TestCase
@@ -43,8 +44,8 @@ final class StorageHealthCheckerTest extends TestCase
             ->assertOk()
             ->assertSee('Depolama Yönetimi')
             ->assertSee('Türkçe')
-            ->assertSee('dashboard.css?v=0.8.13-0.8.13')
-            ->assertSee('dashboard.js?v=0.8.13-0.8.13')
+            ->assertSee('dashboard.css?v=0.8.14-0.8.14')
+            ->assertSee('dashboard.js?v=0.8.14-0.8.14')
             ->assertSee('data-locale-switcher', false)
             ->assertDontSee('onchange=', false)
             ->assertSee('class="shell storage-page"', false)
@@ -54,6 +55,9 @@ final class StorageHealthCheckerTest extends TestCase
             ->assertSee('OAuth İstemci Kimliği')
             ->assertSee('Otomatik yedekleme ayarlarını kaydet')
             ->assertSee('Yedekleme hedefleri')
+            ->assertSee('Storage capacity warnings')
+            ->assertSee('Recent storage tests')
+            ->assertSee('Preview expired backups (no deletion)')
             ->assertSee('destination-grid', false)
             ->assertSee('destination-selected-count', false)
             ->assertSee('destination-state-text', false)
@@ -86,6 +90,30 @@ final class StorageHealthCheckerTest extends TestCase
         $this->assertSame([], Storage::disk('health-check')->allFiles('backups/.backup-manager-health'));
     }
 
+    public function test_retention_preview_lists_expired_backups_without_deleting_them(): void
+    {
+        Storage::fake('local');
+        config([
+            'backup-manager.profiles.default.storage.disk' => 'local',
+            'backup-manager.profiles.default.storage.local_disk' => 'local',
+            'backup-manager.profiles.default.storage.path' => 'backups',
+        ]);
+        app(StorageSettingsRepository::class)->save([
+            'schedule' => ['retain_days' => 30, 'warning_threshold_percent' => 85],
+        ]);
+
+        $this->post('/backup-manager/storage/retention-preview')
+            ->assertRedirect()
+            ->assertSessionHas('retention_preview')
+            ->assertSessionHas('retention_preview.items', []);
+
+        Storage::disk('local')->assertDirectoryEmpty('backups');
+        $this->assertDatabaseHas('backup_manager_activity', [
+            'event' => 'retention.preview',
+            'status' => 'completed',
+        ]);
+    }
+
     public function test_dashboard_exposes_storage_health_check_endpoint(): void
     {
         Storage::fake('local');
@@ -94,5 +122,11 @@ final class StorageHealthCheckerTest extends TestCase
         $this->post('/backup-manager/storage/test', ['disk' => 'local'])
             ->assertRedirect()
             ->assertSessionHas('storage_success');
+
+        $this->assertDatabaseHas('backup_manager_activity', [
+            'event' => 'storage.test',
+            'disk' => 'local',
+            'status' => 'completed',
+        ]);
     }
 }

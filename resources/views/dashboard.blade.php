@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Backup Manager · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.13">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.14') }}-0.8.14">
 </head>
 <body>
 <div class="shell">
@@ -165,7 +165,7 @@
                         </form>
                     @endif
                     @if(is_array($lastBackupStatus) && !empty($lastBackupStatus['finished_at']))<div class="storage-row"><span>Last run finished</span><strong>{{ \Illuminate\Support\Carbon::parse($lastBackupStatus['finished_at'])->diffForHumans() }}</strong></div>@endif
-                    <div class="storage-row"><span>Next scheduled backup</span><strong>{{ $nextScheduledBackup ? $nextScheduledBackup->format('d M Y H:i T') : 'Not scheduled' }}</strong></div>
+                    <div class="storage-row"><span>Next scheduled backup</span><strong>{{ $nextScheduledBackup ? $nextScheduledBackup->format('d M Y H:i T') : 'Not scheduled' }}</strong>@if($nextScheduledBackup)<small id="next-backup-countdown" data-target="{{ $nextScheduledBackup->timestamp }}" aria-live="off"></small>@endif</div>
                     <div class="divider"></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.integrity') }}</span><strong>SHA-256</strong></div>
                     <div class="storage-row"><span>{{ __('backup-manager::dashboard.manifest') }}</span><strong>JSON</strong></div>
@@ -173,8 +173,26 @@
             </div>
         </aside>
     </section>
+    @if($activityEntries !== [])
+    <section class="panel" style="margin-top:22px">
+        <div class="panel-head"><div><h2>Backup execution history</h2><p>Persistent recent backup attempts, outcomes and durations</p></div><span class="count">{{ count($activityEntries) }} events</span></div>
+        <div class="backup-list">
+            @foreach($activityEntries as $entry)
+                <article class="backup">
+                    <div class="file-icon">◷</div>
+                    <div class="backup-main">
+                        <div class="backup-title">{{ str_replace('backup.', '', $entry->event) }} · {{ ucfirst($entry->status) }}</div>
+                        <div class="backup-sub">{{ $entry->created_at }}@if($entry->backup_id) · {{ $entry->backup_id }}@endif @if($entry->job_id) · Job {{ $entry->job_id }}@endif</div>
+                        @if($entry->message)<div class="backup-sub">{{ $entry->message }}</div>@endif
+                    </div>
+                    <div class="backup-size">{{ $entry->duration_seconds === null ? '—' : $entry->duration_seconds.'s' }}</div>
+                </article>
+            @endforeach
+        </div>
+    </section>
+    @endif
     <footer class="footer"><span>Laravel Backup Manager</span><span>{{ __('backup-manager::dashboard.protect') }}</span></footer>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.13" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.14') }}-0.8.14" defer></script>
 </body>
 </html>

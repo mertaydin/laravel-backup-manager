@@ -64,8 +64,8 @@ final class DashboardBackupActionsTest extends TestCase
 
         $this->get('/backup-manager')
             ->assertOk()
-            ->assertSee('dashboard.css?v=0.8.13-0.8.13')
-            ->assertSee('dashboard.js?v=0.8.13-0.8.13');
+            ->assertSee('dashboard.css?v=0.8.14-0.8.14')
+            ->assertSee('dashboard.js?v=0.8.14-0.8.14');
     }
 
     public function test_dashboard_locale_selection_persists_for_every_supported_language(): void
@@ -143,6 +143,23 @@ final class DashboardBackupActionsTest extends TestCase
         Queue::assertPushed(CreateBackupJob::class);
     }
 
+    public function test_dashboard_rejects_a_second_backup_request_inside_the_deduplication_window(): void
+    {
+        Queue::fake();
+        $preflight = \Mockery::mock(BackupPreflight::class);
+        $preflight->shouldReceive('inspect')->twice()->andReturn(['ready' => true, 'checks' => [], 'errors' => []]);
+        $this->instance(BackupPreflight::class, $preflight);
+        config([
+            'backup-manager.queue.connection' => 'database',
+            'backup-manager.dedupe_window_seconds' => 300,
+        ]);
+
+        $this->post('/backup-manager/run', ['database' => 1])->assertRedirect()->assertSessionHas('backup_job_id');
+        $this->post('/backup-manager/run', ['database' => 1])->assertRedirect()->assertSessionHas('backup_error');
+
+        $this->assertCount(1, Queue::pushed(CreateBackupJob::class));
+    }
+
     public function test_dashboard_accepts_backup_without_optional_metadata(): void
     {
         Queue::fake();
@@ -195,7 +212,7 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertSee('Türkçe')
             ->assertSee('data-locale-switcher', false)
             ->assertDontSee('onchange=', false)
-            ->assertSee('dashboard.css?v=0.8.13-0.8.13')
+            ->assertSee('dashboard.css?v=0.8.14-0.8.14')
             ->assertSee('details-panel')
             ->assertSee('details-checksum')
             ->assertSee('Before deployment')

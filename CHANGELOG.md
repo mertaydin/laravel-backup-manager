@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.14] - 2026-11-24
+
+### Added
+- Persist backup execution and storage health-check history in the new `backup_manager_activity` table, including status, timestamps, failure messages, and duration.
+- Add a dashboard retention preview that lists expiry candidates without deleting anything and reports protected/invalid items separately.
+- Add configurable minimum temporary-filesystem free space checks before backup creation.
+- Add local filesystem usage threshold warnings in Storage Management; remote storage capacity is never guessed.
+- Prevent rapid duplicate dashboard backup requests with a configurable per-profile deduplication window.
+- Add a live countdown to the next scheduled backup and the `/` keyboard shortcut to focus backup search.
+
+### Documentation
+- Document the new migration, storage warning limits, free-space threshold, and deduplication settings.
+
+
 ## [0.8.13] - 2026-11-24
 
 Release: v0.8.13

@@ -22,6 +22,7 @@ Route::middleware(array_merge(
         Route::post('/storage/schedule', [StorageManagementController::class, 'saveSchedule'])->name('storage.schedule');
         Route::post('/storage/targets', [StorageManagementController::class, 'saveTargets'])->name('storage.targets');
         Route::post('/storage/test', [StorageManagementController::class, 'testDisk'])->name('storage.test');
+        Route::post('/storage/retention-preview', [StorageManagementController::class, 'previewRetention'])->name('storage.retention-preview');
         Route::post('/storage/google/credentials', [StorageManagementController::class, 'saveGoogleCredentials'])->name('storage.google.credentials');
         Route::post('/storage/google/connect', [StorageManagementController::class, 'connectGoogle'])->name('storage.google.connect');
         Route::get('/storage/google/callback', [StorageManagementController::class, 'googleCallback'])->name('storage.google.callback');

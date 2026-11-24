@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupDeleter;
 use MertAydin\LaravelBackupManager\BackupInspector;
+use MertAydin\LaravelBackupManager\BackupManagerActivityLogger;
 use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\BackupProtector;
 use MertAydin\LaravelBackupManager\Http\Middleware\SetDashboardLocale;
@@ -35,6 +36,7 @@ final class DashboardController extends Controller
         private readonly ConfigRepository $config,
         private readonly CacheRepository $cache,
         private readonly StorageSettingsRepository $settings,
+        private readonly BackupManagerActivityLogger $activity,
     ) {}
 
     public function index(): View
@@ -118,6 +120,7 @@ final class DashboardController extends Controller
             'availableBackupDisks' => $availableBackupDisks,
             'nextScheduledBackup' => $nextScheduledBackup,
             'lastBackupStatus' => $this->cache->get('backup-manager:last-run'),
+            'activityEntries' => $this->activity->recent(12),
             'diskName' => $diskName,
             'profileName' => $profileName,
             'databaseEnabled' => (bool) data_get($profile, 'database.enabled', false),
@@ -157,6 +160,13 @@ final class DashboardController extends Controller
         }
 
         $jobId = (string) Str::uuid();
+        $profileName = (string) $this->config->get('backup-manager.default', 'default');
+        $dedupeKey = 'backup-manager:dedupe:'.$profileName;
+        $dedupeWindow = max(0, (int) $this->config->get('backup-manager.dedupe_window_seconds', 300));
+        if ($dedupeWindow > 0 && ! $this->cache->add($dedupeKey, $jobId, now()->addSeconds($dedupeWindow))) {
+            return back()->with('backup_error', 'A backup was already started recently for this profile. Wait for it to finish before starting another one.');
+        }
+
         $key = 'backup-manager:jobs:'.$jobId;
         $this->cache->put($key, ['status' => 'queued'], now()->addDay());
 
@@ -184,6 +194,7 @@ final class DashboardController extends Controller
                 dispatch($job)->afterResponse();
             }
         } catch (Throwable $exception) {
+            $this->cache->forget($dedupeKey);
             report($exception);
             $this->cache->put($key, [
                 'status' => 'failed',
@@ -668,6 +679,13 @@ final class DashboardController extends Controller
         }
 
         $jobId = (string) Str::uuid();
+        $profileName = (string) ($lastRun['options']['profile'] ?? $this->config->get('backup-manager.default', 'default'));
+        $dedupeKey = 'backup-manager:dedupe:'.$profileName;
+        $dedupeWindow = max(0, (int) $this->config->get('backup-manager.dedupe_window_seconds', 300));
+        if ($dedupeWindow > 0 && ! $this->cache->add($dedupeKey, $jobId, now()->addSeconds($dedupeWindow))) {
+            return back()->with('backup_error', 'A backup was already started recently for this profile. Wait for it to finish before retrying.');
+        }
+
         $this->cache->put('backup-manager:jobs:'.$jobId, ['status' => 'queued'], now()->addDay());
         $job = new CreateBackupJob($jobId, $lastRun['options']);
         $connection = $this->config->get('backup-manager.queue.connection');
@@ -684,6 +702,7 @@ final class DashboardController extends Controller
                 dispatch($job)->afterResponse();
             }
         } catch (Throwable $exception) {
+            $this->cache->forget($dedupeKey);
             report($exception);
 
             return back()->with('backup_error', 'The failed backup could not be queued for retry.');

@@ -6,7 +6,7 @@ return [
     'ui' => [
         'enabled' => env('BACKUP_MANAGER_UI_ENABLED', true),
         'prefix' => env('BACKUP_MANAGER_UI_PREFIX', 'backup-manager'),
-        'asset_version' => env('BACKUP_MANAGER_ASSET_VERSION', '0.8.13'),
+        'asset_version' => env('BACKUP_MANAGER_ASSET_VERSION', '0.8.14'),
         'middleware' => ['web', 'auth'],
     ],
     'naming' => [
@@ -16,6 +16,10 @@ return [
         'verify_after_upload' => env('BACKUP_MANAGER_VERIFY_AFTER_UPLOAD', true),
     ],
     'lock_seconds' => (int) env('BACKUP_MANAGER_LOCK_SECONDS', 21600),
+    'dedupe_window_seconds' => (int) env('BACKUP_MANAGER_DEDUPE_WINDOW_SECONDS', 300),
+    'preflight' => [
+        'minimum_free_bytes' => (int) env('BACKUP_MANAGER_MINIMUM_FREE_BYTES', 104857600),
+    ],
     'retry' => [
         'max_attempts' => (int) env('BACKUP_MANAGER_RETRY_ATTEMPTS', 1),
         'delay_seconds' => (int) env('BACKUP_MANAGER_RETRY_DELAY', 30),
