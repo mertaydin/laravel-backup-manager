@@ -130,7 +130,7 @@ final class DashboardBackupActionsTest extends TestCase
     public function test_dashboard_dispatches_backup_job_to_configured_queue(): void
     {
         Queue::fake();
-        $preflight = \\Mockery::mock(BackupPreflight::class);
+        $preflight = \Mockery::mock(BackupPreflight::class);
         $preflight->shouldReceive('inspect')->once()->andReturn(['ready' => true, 'checks' => [], 'errors' => []]);
         $this->instance(BackupPreflight::class, $preflight);
         config(['backup-manager.queue.connection' => 'database']);
