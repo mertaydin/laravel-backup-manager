@@ -158,6 +158,7 @@ final class DashboardQuickActionsTest extends TestCase
         self::assertNotFalse($archive->locateName('manifest.json'));
         $archive->close();
     }
+
     public function test_dashboard_can_retry_the_last_failed_backup_with_saved_options(): void
     {
         Queue::fake();
