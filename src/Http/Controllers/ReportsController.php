@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace MertAydin\LaravelBackupManager\Http\Controllers;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use MertAydin\LaravelBackupManager\BackupInspector;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 final class ReportsController extends Controller
