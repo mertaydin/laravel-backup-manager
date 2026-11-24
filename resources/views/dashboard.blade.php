@@ -173,6 +173,24 @@
             </div>
         </aside>
     </section>
+    @if($activityEntries !== [])
+    <section class="panel" style="margin-top:22px">
+        <div class="panel-head"><div><h2>Backup execution history</h2><p>Persistent recent backup attempts, outcomes and durations</p></div><span class="count">{{ count($activityEntries) }} events</span></div>
+        <div class="backup-list">
+            @foreach($activityEntries as $entry)
+                <article class="backup">
+                    <div class="file-icon">◷</div>
+                    <div class="backup-main">
+                        <div class="backup-title">{{ str_replace('backup.', '', $entry->event) }} · {{ ucfirst($entry->status) }}</div>
+                        <div class="backup-sub">{{ $entry->created_at }}@if($entry->backup_id) · {{ $entry->backup_id }}@endif @if($entry->job_id) · Job {{ $entry->job_id }}@endif</div>
+                        @if($entry->message)<div class="backup-sub">{{ $entry->message }}</div>@endif
+                    </div>
+                    <div class="backup-size">{{ $entry->duration_seconds === null ? '—' : $entry->duration_seconds.'s' }}</div>
+                </article>
+            @endforeach
+        </div>
+    </section>
+    @endif
     <footer class="footer"><span>Laravel Backup Manager</span><span>{{ __('backup-manager::dashboard.protect') }}</span></footer>
 </div>
 <script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.12') }}-0.8.14" defer></script>
