@@ -30,6 +30,8 @@ Laravel uygulamaları için MySQL veritabanı ve uygulama dosyası yedekleme, s�
 - Artisan komutlarıyla yedek listeleme, doğrulama, şifre çözme ve geri yükleme.
 - Yönetim panelinden yedek başlatma, durumunu takip etme ve dosyaları indirme.
 - Mevcut yedeğin bileşen ve metadata ayarlarını kullanarak tek tıkla yeniden yedekleme.
+- Birden fazla yedeği toplu koruma, kilit açma veya silme; korumalı yedekler toplu silme sırasında otomatik atlanır.
+- Yedek listesinde SQL ve uygulama ZIP dosyalarının boyutlarını ayrı ayrı gösterme.
 - Yedek etiketi, açıklaması ve etiketlerini panelden düzenleme; uzak ve yerel manifest kopyalarını tutarlı güncelleme.
 - Raporlar sayfasından filtrelenmiş CSV ve JSON dışa aktarma.
 - Yedek silindiğinde hem uzak depodan hem yerel kopyadan kaldırma.
