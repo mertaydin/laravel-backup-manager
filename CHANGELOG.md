@@ -8,6 +8,7 @@
 - Show individual database and application artifact sizes in backup history.
 - Add a combined ZIP download containing the manifest, checksums, and all listed artifacts.
 - Add safe cross-disk backup copying without overwriting an existing destination backup.
+- Add a dashboard retry action for the last failed backup, preserving its original options and recording execution timing in the last-run status.
 - Add filtered CSV export to the Reports page, including separate database and application artifact sizes.
 - Protect CSV text fields against spreadsheet formula injection and add feature coverage for the download response.
 
