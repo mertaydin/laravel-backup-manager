@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MertAydin\LaravelBackupManager\Tests\Feature;
 
+use Illuminate\Support\Facades\Storage;
 use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
 use MertAydin\LaravelBackupManager\BackupPreflight;
-use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\TestCase;
 
 final class BackupPreflightTest extends TestCase
