@@ -7,6 +7,7 @@ namespace MertAydin\LaravelBackupManager\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use MertAydin\LaravelBackupManager\BackupManager;
+use MertAydin\LaravelBackupManager\BackupManagerActivityLogger;
 use MertAydin\LaravelBackupManager\BackupPreflight;
 use MertAydin\LaravelBackupManager\BackupPruner;
 use MertAydin\LaravelBackupManager\Storage\StorageSettingsRepository;
@@ -24,6 +25,7 @@ final class ScheduledBackupCommand extends Command
         StorageSettingsRepository $settings,
         CacheRepository $cache,
         BackupPreflight $preflight,
+        BackupManagerActivityLogger $activity,
     ): int {
         $schedule = $settings->all()['schedule'] ?? [];
         if (! ($schedule['enabled'] ?? false)) {
@@ -36,7 +38,8 @@ final class ScheduledBackupCommand extends Command
             return self::SUCCESS;
         }
 
-        $startedAt = now();\n        $lockKey = 'backup-manager:scheduled:'.$now->format('Y-m-d');
+        $startedAt = now();
+        $lockKey = 'backup-manager:scheduled:'.$now->format('Y-m-d');
         if (! $cache->add($lockKey, true, now()->addDays(2))) {
             return self::SUCCESS;
         }
@@ -45,8 +48,10 @@ final class ScheduledBackupCommand extends Command
             $checks = $preflight->inspect(['type' => 'scheduled']);
             if (! $checks['ready']) {
                 $cache->forget($lockKey);
-                $cache->put('backup-manager:last-run', ['status' => 'failed', 'error' => implode(' ', $checks['errors']), 'finished_at' => now()->toIso8601String()], now()->addDays(30));
-                $activity->record('backup.scheduled', 'failed', message: implode(' ', $checks['errors']), startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));\n                foreach ($checks['errors'] as $error) {
+                $message = implode(' ', $checks['errors']);
+                $cache->put('backup-manager:last-run', ['status' => 'failed', 'error' => $message, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
+                $activity->record('backup.scheduled', 'failed', message: $message, startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
+                foreach ($checks['errors'] as $error) {
                     $this->components->error($error);
                 }
 
@@ -66,10 +71,12 @@ final class ScheduledBackupCommand extends Command
                     sleep($retryDelay);
                 }
             }
+
             if (! $result?->successful) {
                 $cache->forget($lockKey);
-                $cache->put('backup-manager:last-run', ['status' => 'failed', 'backup_id' => $result->id, 'error' => $result->error, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
-                $activity->record('backup.scheduled', 'failed', $result->id, message: $result->error, startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));\n                $this->components->error($result->error ?? 'Scheduled backup failed.');
+                $cache->put('backup-manager:last-run', ['status' => 'failed', 'backup_id' => $result?->id, 'error' => $result?->error, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
+                $activity->record('backup.scheduled', 'failed', $result?->id, message: $result?->error ?? 'Scheduled backup failed.', startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
+                $this->components->error($result?->error ?? 'Scheduled backup failed.');
 
                 return self::FAILURE;
             }
@@ -83,13 +90,15 @@ final class ScheduledBackupCommand extends Command
 
             $cache->put('backup-manager:last-run', ['status' => 'completed', 'backup_id' => $result->id, 'finished_at' => now()->toIso8601String()], now()->addDays(30));
             $pruned = $pruner->run($profileName, null, true);
-            $activity->record('backup.scheduled', 'completed', $result->id, message: 'Scheduled backup and retention cleanup completed.', startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));\n            $this->components->info('Scheduled backup completed: '.$result->id);
+            $activity->record('backup.scheduled', 'completed', $result->id, message: 'Scheduled backup and retention cleanup completed.', startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
+            $this->components->info('Scheduled backup completed: '.$result->id);
             $this->line('Expired backups deleted: '.count($pruned['deleted']));
 
             return self::SUCCESS;
         } catch (Throwable $exception) {
             $cache->forget($lockKey);
             $cache->put('backup-manager:last-run', ['status' => 'failed', 'error' => $exception->getMessage(), 'finished_at' => now()->toIso8601String()], now()->addDays(30));
+            $activity->record('backup.scheduled', 'failed', message: $exception->getMessage(), startedAt: $startedAt->toDateTimeString(), finishedAt: now()->toDateTimeString(), durationSeconds: (int) $startedAt->diffInSeconds(now()));
             report($exception);
             $this->components->error('Scheduled backup failed: '.$exception->getMessage());
 
