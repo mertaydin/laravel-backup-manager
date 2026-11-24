@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Add dashboard actions to repeat an existing backup and edit its label, note, and tags across configured copies.
 - Add filtered CSV export to the Reports page, including separate database and application artifact sizes.
 - Protect CSV text fields against spreadsheet formula injection and add feature coverage for the download response.
 
