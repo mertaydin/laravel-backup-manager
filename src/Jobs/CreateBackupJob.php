@@ -77,7 +77,7 @@ final class CreateBackupJob implements ShouldQueue
     {
         $finishedAt = now();
         $jobStatus = cache()->get('backup-manager:jobs:'.$this->jobId, []);
-        $startedAt = is_array($jobStatus) && ! empty($jobStatus['started_at'])
+        $startedAt = is_array($jobStatus) && empty($jobStatus['started_at']) === false
             ? \\Illuminate\\Support\\Carbon::parse($jobStatus['started_at'])
             : $finishedAt;
         $status = [
