@@ -662,6 +662,11 @@ final class DashboardController extends Controller
         $lastRun = $this->cache->get('backup-manager:last-run');
         abort_unless(is_array($lastRun) && ($lastRun['status'] ?? null) === 'failed' && is_array($lastRun['options'] ?? null), 404);
 
+        $preflight = $this->preflight->inspect($lastRun['options']);
+        if ($preflight['ready'] === false) {
+            return back()->with('backup_error', implode(' ', $preflight['errors']));
+        }
+
         $jobId = (string) Str::uuid();
         $this->cache->put('backup-manager:jobs:'.$jobId, ['status' => 'queued'], now()->addDay());
         $job = new CreateBackupJob($jobId, $lastRun['options']);
