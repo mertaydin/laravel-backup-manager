@@ -47,6 +47,26 @@ final class BackupDeleterTest extends TestCase
         Storage::disk('backup-r2')->assertMissing('backups/'.self::BACKUP_ID.'/manifest.json');
     }
 
+    public function test_it_deletes_canonical_backup_manager_path_with_legacy_published_config(): void
+    {
+        $path = 'backup-manager/backups/'.self::BACKUP_ID;
+        foreach (['backup-local', 'backup-r2'] as $disk) {
+            Storage::disk($disk)->put($path.'/manifest.json', json_encode([
+                'id' => self::BACKUP_ID,
+                'protection' => [],
+                'artifacts' => [],
+            ], JSON_THROW_ON_ERROR));
+            Storage::disk($disk)->put($path.'/database.sql.gz', 'backup');
+        }
+
+        $result = app(BackupDeleter::class)->delete(self::BACKUP_ID);
+
+        self::assertSame(['backup-local', 'backup-r2'], $result['deleted']);
+        self::assertSame([], $result['failed']);
+        Storage::disk('backup-local')->assertMissing($path.'/manifest.json');
+        Storage::disk('backup-r2')->assertMissing($path.'/manifest.json');
+    }
+
     public function test_it_deletes_secondary_copy_when_primary_copy_is_already_missing(): void
     {
         $this->storeBackup('backup-r2');
