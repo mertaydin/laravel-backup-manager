@@ -76,7 +76,7 @@ return [
                 'disk' => env('BACKUP_MANAGER_DISK', 'local'),
                 'local_disk' => env('BACKUP_MANAGER_LOCAL_DISK', 'local'),
                 'disks' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_MANAGER_TARGET_DISKS', ''))))),
-                'path' => 'backups',
+                'path' => 'backup-manager/backups',
             ],
             'encryption' => [
                 'enabled' => false,
