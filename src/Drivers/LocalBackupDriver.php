@@ -176,7 +176,12 @@ final class LocalBackupDriver implements BackupDriver
             $localDisk = (string) ($profile['storage']['local_disk'] ?? 'local');
             $additionalDisks = array_values(array_filter((array) ($profile['storage']['disks'] ?? []), 'is_string'));
             $diskNames = array_values(array_unique(array_filter([$localDisk, $disk, ...$additionalDisks])));
-            $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
+            $storagePath = trim((string) ($profile['storage']['path'] ?? 'backups'), '/');
+            // Keep installations with an older published config on the package's standard directory.
+            if ($storagePath === '' || $storagePath === 'backups') {
+                $storagePath = 'backup-manager/backups';
+            }
+            $prefix = $storagePath.'/'.$id;
 
             foreach ($diskNames as $diskName) {
                 $storages[$diskName] = new LaravelFilesystemStorage($this->filesystem, $diskName);
