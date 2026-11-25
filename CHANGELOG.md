@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.15] - 2026-11-25
+
+### Fixed
+- Fix backup deletion across all configured storage targets, including Cloudflare R2, by deleting explicit object keys instead of relying on directory deletion.
+- Verify that each target is empty after deletion and report targets that could not be cleared.
+- Allow deletion of orphaned secondary copies when the primary copy is missing.
+- Respect deletion-protection metadata found on any replica before deleting any copy.
+- Add regression coverage for local and R2 deletion, missing primary copies, and protected replicas.
+
 ## [0.8.14] - 2026-11-24
 
 ### Added
