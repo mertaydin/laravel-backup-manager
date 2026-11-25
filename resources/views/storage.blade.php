@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('backup-manager::dashboard.storage_title') }} · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.14') }}-0.8.14">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.17') }}-0.8.17">
 
 </head>
 <body>
@@ -24,7 +24,7 @@
             <div><span class="storage-card-kicker">BULUT DEPOLAMA</span><h2>{{ __('backup-manager::dashboard.google_drive') }}</h2><p>{{ $googleConnected ? __('backup-manager::dashboard.google_connected') : __('backup-manager::dashboard.google_connect_prompt') }}</p></div>
             <span class="storage-connection {{ $googleConnected ? 'is-connected' : 'is-disconnected' }}"><i></i>{{ $googleConnected ? 'Bağlı' : 'Bağlantı bekleniyor' }}</span>
         </div>
-        <form method="POST" action="{{ route('backup-manager.storage.google.credentials') }}">
+        <form method="POST" action="{{ route('backup-manager.storage.google.credentials') }}" data-loading-title="Google Drive ayarları kaydediliyor" data-loading-help="İşlem devam ediyor. Lütfen sayfayı kapatmayın.">
             @csrf
             <label class="storage-field"><strong>{{ __('backup-manager::dashboard.oauth_client_id') }}</strong><input type="text" name="client_id" value="{{ old('client_id', data_get($settings, 'disks.google-drive.client_id')) }}" required autocomplete="off"></label>
             <label class="storage-field"><strong>{{ __('backup-manager::dashboard.oauth_client_secret') }}</strong><input type="password" name="client_secret" value="{{ old('client_secret') }}" placeholder="{{ data_get($settings, 'disks.google-drive.client_secret') ? __('backup-manager::dashboard.saved_secret') : '' }}" {{ data_get($settings, 'disks.google-drive.client_secret') ? '' : 'required' }} autocomplete="new-password"></label>
@@ -33,9 +33,9 @@
             <div class="storage-actions"><button class="primary" type="submit">{{ __('backup-manager::dashboard.save_credentials') }}</button></div>
         </form>
         <div class="storage-actions storage-actions--connection">
-            <form method="POST" action="{{ route('backup-manager.storage.google.connect') }}">@csrf<button class="primary" type="submit">{{ __('backup-manager::dashboard.connect_drive') }}</button></form>
+            <form method="POST" action="{{ route('backup-manager.storage.google.connect') }}" data-loading-title="Google Drive bağlantısı hazırlanıyor" data-loading-help="İşlem devam ediyor. Lütfen sayfayı kapatmayın.">@csrf<button class="primary" type="submit">{{ __('backup-manager::dashboard.connect_drive') }}</button></form>
             @if($googleConnected)
-                <form method="POST" action="{{ route('backup-manager.storage.google.test') }}">@csrf<button type="submit">{{ __('backup-manager::dashboard.test_connection') }}</button></form>
+                <form method="POST" action="{{ route('backup-manager.storage.google.test') }}" data-loading-title="Google Drive bağlantısı test ediliyor" data-loading-help="İşlem devam ediyor. Lütfen sayfayı kapatmayın.">@csrf<button type="submit">{{ __('backup-manager::dashboard.test_connection') }}</button></form>
             @endif
         </div>
         <div class="storage-help">{{ __('backup-manager::dashboard.google_setup') }}</div>
@@ -54,7 +54,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('backup-manager.storage.targets') }}" class="destination-form">
+        <form method="POST" action="{{ route('backup-manager.storage.targets') }}" class="destination-form" data-loading-title="Yedekleme hedefleri kaydediliyor" data-loading-help="İşlem devam ediyor. Lütfen sayfayı kapatmayın.">
             @csrf
             <div class="destination-section-label">
                 <span>YEDEKLER NEREYE GÖNDERİLSİN?</span>
@@ -108,7 +108,7 @@
             <div><span class="storage-card-kicker">ZAMANLAMA VE SAKLAMA</span><h2>{{ __('backup-manager::dashboard.automatic_backups') }}</h2><p>{{ __('backup-manager::dashboard.schedule_intro') }}</p></div>
             <span class="storage-connection {{ ($schedule['enabled'] ?? false) ? 'is-connected' : 'is-disconnected' }}"><i></i>{{ ($schedule['enabled'] ?? false) ? 'Etkin' : 'Duraklatıldı' }}</span>
         </div>
-        <form method="POST" action="{{ route('backup-manager.storage.schedule') }}" class="schedule-form">
+        <form method="POST" action="{{ route('backup-manager.storage.schedule') }}" class="schedule-form" data-loading-title="Otomatik yedekleme ayarları kaydediliyor" data-loading-help="İşlem devam ediyor. Lütfen sayfayı kapatmayın.">
             @csrf
             <label class="storage-field schedule-toggle-field">
                 <strong>{{ __('backup-manager::dashboard.automatic_backup') }}</strong>
@@ -141,7 +141,7 @@
             </label>
             <div class="storage-actions schedule-actions"><button class="primary" type="submit">{{ __('backup-manager::dashboard.save_schedule') }}</button></div>
         </form>
-        <form method="POST" action="{{ route('backup-manager.storage.retention-preview') }}" class="storage-actions" style="margin-top:18px">
+        <form method="POST" action="{{ route('backup-manager.storage.retention-preview') }}" class="storage-actions" style="margin-top:18px" data-loading-title="Yedekleme saklama politikası kontrol ediliyor" data-loading-help="İşlem devam ediyor. Lütfen sayfayı kapatmayın.">
             @csrf
             <button type="submit" class="disk-test-button">Preview expired backups (no deletion)</button>
         </form>
@@ -192,7 +192,7 @@
                 <li class="filesystem-disk">
                     <span class="filesystem-disk-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3"/></svg></span>
                     <span class="filesystem-disk-name"><strong>{{ $disk }}</strong><small>Laravel filesystem diski</small></span>
-                    <form method="POST" action="{{ route('backup-manager.storage.test') }}">
+                    <form method="POST" action="{{ route('backup-manager.storage.test') }}" data-loading-title="Depolama bağlantısı test ediliyor" data-loading-help="İşlem devam ediyor. Lütfen sayfayı kapatmayın.">
                         @csrf
                         <input type="hidden" name="disk" value="{{ $disk }}">
                         <button class="disk-test-button" type="submit"><span>✓</span>{{ __('backup-manager::dashboard.test_permissions') }}</button>
@@ -203,6 +203,16 @@
         <div class="storage-help">{{ __('backup-manager::dashboard.test_help') }}</div>
     </section>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.14') }}-0.8.14" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.17') }}-0.8.17" defer></script>
+
+<div class="backup-manager-loading" id="backup-manager-loading" role="status" aria-live="polite" aria-hidden="true" data-default-title="İşlem gerçekleştiriliyor" data-default-help="Lütfen işlem tamamlanana kadar bekleyin.">
+    <div class="backup-manager-loading__dialog">
+        <span class="backup-manager-loading__spinner" aria-hidden="true"></span>
+        <h2 data-loading-title>İşlem gerçekleştiriliyor</h2>
+        <p data-loading-help>Lütfen işlem tamamlanana kadar bekleyin.</p>
+        <div class="backup-manager-loading__track" aria-hidden="true"><span></span></div>
+    </div>
+</div>
+
 </body>
 </html>
