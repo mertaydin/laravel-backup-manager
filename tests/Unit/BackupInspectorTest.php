@@ -31,7 +31,7 @@ final class BackupInspectorTest extends TestCase
         ]);
     }
 
-    public function test_it_lists_backups_from_valid_manifests(): void
+    public function test_it_lists_backups_from_legacy_configured_storage_path(): void
     {
         $this->storeBackup('database.sql.gz', 'database payload');
 
