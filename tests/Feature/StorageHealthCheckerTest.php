@@ -62,7 +62,9 @@ final class StorageHealthCheckerTest extends TestCase
             ->assertSee('destination-selected-count', false)
             ->assertSee('destination-state-text', false)
             ->assertSee('Hedefleri kaydet')
-            ->assertSee('/backup-manager/storage/targets');
+            ->assertSee('/backup-manager/storage/targets')
+            ->assertSee('id="backup-manager-loading"', false)
+            ->assertSee('Yedekleme hedefleri kaydediliyor', false);
 
         $css = file_get_contents(dirname(__DIR__, 2).'/resources/dist/css/dashboard.css');
 
