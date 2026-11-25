@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Backup Manager · {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.14') }}-0.8.14">
+    <link rel="stylesheet" href="{{ asset('vendor/backup-manager/css/dashboard.css') }}?v={{ config('backup-manager.ui.asset_version', '0.8.17') }}-0.8.17">
 </head>
 <body>
 <div class="shell">
@@ -139,7 +139,7 @@
         <aside class="side">
             <div class="panel">
                 <div class="panel-head"><div><h2>{{ __('backup-manager::dashboard.new_backup') }}</h2><p>{{ __('backup-manager::dashboard.manual_backup') }}</p></div><span class="count">{{ __('backup-manager::dashboard.manual') }}</span></div>
-                <form class="run-body" method="POST" action="{{ route('backup-manager.run') }}">
+                <form class="run-body" method="POST" action="{{ route('backup-manager.run') }}" data-loading-title="Yedek oluşturuluyor" data-loading-help="Yedek hazırlanıyor ve seçilen depolama hedefine aktarılıyor. Lütfen bekleyin.">
                     @csrf
                     <label class="check"><input type="checkbox" name="database" value="1" {{ $databaseEnabled ? 'checked' : '' }}><span><strong>{{ __('backup-manager::dashboard.database_backup') }}</strong><small>{{ __('backup-manager::dashboard.mysql_compressed') }}</small></span></label>
                     <label class="check"><input type="checkbox" name="files" value="1" {{ $filesEnabled ? 'checked' : '' }}><span><strong>{{ __('backup-manager::dashboard.application_files') }}</strong><small>{{ __('backup-manager::dashboard.zip_exclusions') }}</small></span></label>
@@ -193,6 +193,16 @@
     @endif
     <footer class="footer"><span>Laravel Backup Manager</span><span>{{ __('backup-manager::dashboard.protect') }}</span></footer>
 </div>
-<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.14') }}-0.8.14" defer></script>
+<script src="{{ asset('vendor/backup-manager/js/dashboard.js') }}?v={{ config('backup-manager.ui.asset_version', '0.8.17') }}-0.8.17" defer></script>
+
+<div class="backup-manager-loading" id="backup-manager-loading" role="status" aria-live="polite" aria-hidden="true" data-default-title="İşlem gerçekleştiriliyor" data-default-help="Lütfen işlem tamamlanana kadar bekleyin.">
+    <div class="backup-manager-loading__dialog">
+        <span class="backup-manager-loading__spinner" aria-hidden="true"></span>
+        <h2 data-loading-title>İşlem gerçekleştiriliyor</h2>
+        <p data-loading-help>Lütfen işlem tamamlanana kadar bekleyin.</p>
+        <div class="backup-manager-loading__track" aria-hidden="true"><span></span></div>
+    </div>
+</div>
+
 </body>
 </html>
