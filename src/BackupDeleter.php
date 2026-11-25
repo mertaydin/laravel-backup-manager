@@ -21,13 +21,13 @@ final class BackupDeleter
     /** @return array{deleted: list<string>, failed: list<string>} */
     public function delete(string $id, ?string $profileName = null): array
     {
-        if (! preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id)) {
+        if (!preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id)) {
             throw new RuntimeException('Invalid backup identifier.');
         }
 
         $profileName ??= (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->config->get('backup-manager.profiles.'.$profileName);
-        if (! is_array($profile)) {
+        if (!is_array($profile)) {
             throw new RuntimeException("Backup profile [{$profileName}] does not exist.");
         }
 
@@ -45,12 +45,12 @@ final class BackupDeleter
                 $disk = $this->filesystem->disk($diskName);
                 foreach ($paths as $path) {
                     $manifestPath = $path.'/manifest.json';
-                    if (! $disk->exists($manifestPath)) {
+                    if (!$disk->exists($manifestPath)) {
                         continue;
                     }
 
                     $manifest = json_decode((string) $disk->get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
-                    if (! is_array($manifest) || ($manifest['id'] ?? null) !== $id) {
+                    if (!is_array($manifest) || ($manifest['id'] ?? null) !== $id) {
                         continue;
                     }
 
