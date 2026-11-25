@@ -141,3 +141,31 @@
     renderCountdown();
     window.setInterval(renderCountdown, 1000);
 })();
+
+
+/* Show a centered progress dialog for POST actions without changing their server flow. */
+(function () {
+    'use strict';
+    var overlay = document.getElementById('backup-manager-loading');
+    if (!overlay) return;
+    var title = overlay.querySelector('[data-loading-title]');
+    var help = overlay.querySelector('[data-loading-help]');
+    var defaultTitle = overlay.getAttribute('data-default-title') || 'İşlem gerçekleştiriliyor';
+    var defaultHelp = overlay.getAttribute('data-default-help') || 'Lütfen işlem tamamlanana kadar bekleyin.';
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        if ((form.getAttribute('method') || 'get').toLowerCase() !== 'post' || event.defaultPrevented) return;
+        if (form.dataset.loading === 'true') { event.preventDefault(); return; }
+        form.dataset.loading = 'true';
+        if (title) title.textContent = form.getAttribute('data-loading-title') || defaultTitle;
+        if (help) help.textContent = form.getAttribute('data-loading-help') || defaultHelp;
+        overlay.classList.add('is-visible');
+        overlay.setAttribute('aria-hidden', 'false');
+        event.preventDefault();
+        window.getComputedStyle(overlay).opacity;
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () { HTMLFormElement.prototype.submit.call(form); });
+        });
+    });
+})();
