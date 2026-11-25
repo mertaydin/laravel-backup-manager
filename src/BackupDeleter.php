@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager;
+namespace MertAydin\LaravelBackupManager;
 
-use Illuminate\\Contracts\\Config\\Repository as ConfigRepository;
-use Illuminate\\Contracts\\Filesystem\\Factory as FilesystemFactory;
-use Illuminate\\Support\\Carbon;
-use MertAydin\\LaravelBackupManager\\Events\\BackupDeleted;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Support\Carbon;
+use MertAydin\LaravelBackupManager\Events\BackupDeleted;
 use RuntimeException;
 use Throwable;
 
@@ -21,7 +21,7 @@ final class BackupDeleter
     /** @return array{deleted: list<string>, failed: list<string>} */
     public function delete(string $id, ?string $profileName = null): array
     {
-        if (! preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id)) {
+        if (! preg_match('/^\d{8}_\d{6}_[a-f0-9]{8}$/', $id)) {
             throw new RuntimeException('Invalid backup identifier.');
         }
 
@@ -64,14 +64,11 @@ final class BackupDeleter
                     throw new RuntimeException('This backup is protected from deletion.'.($reason !== '' ? ' Reason: '.$reason : ''));
                 }
             } catch (RuntimeException $exception) {
-                // Preserve the explicit protection error; malformed manifests
-                // and unavailable targets are handled by the deletion pass below.
                 if (str_starts_with($exception->getMessage(), 'This backup is protected from deletion.')) {
                     throw $exception;
                 }
             } catch (Throwable) {
-                // Continue checking the remaining targets. The deletion pass
-                // will report a target that cannot be accessed or removed.
+                // The deletion pass reports targets that cannot be accessed.
             }
         }
 
@@ -85,16 +82,12 @@ final class BackupDeleter
             try {
                 $disk = $this->filesystem->disk($diskName);
                 $files = $disk->allFiles($path);
-
-                // The backup may not have been replicated to every configured disk.
-                // Treat an absent copy as already removed, not as a deletion failure.
                 if ($files === []) {
                     continue;
                 }
 
-                // Delete explicit object keys instead of relying on deleteDirectory().
-                // This is more reliable for S3-compatible stores such as Cloudflare R2,
-                // where directory markers are virtual and prefixes are object listings.
+                // Explicit object-key deletion is reliable for S3-compatible stores
+                // such as Cloudflare R2, where directories are virtual prefixes.
                 foreach (array_chunk($files, 1000) as $fileChunk) {
                     if ($disk->delete($fileChunk) === false) {
                         throw new RuntimeException("Unable to delete backup objects from disk [{$diskName}].");
