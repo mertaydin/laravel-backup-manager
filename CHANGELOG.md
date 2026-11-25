@@ -3,6 +3,17 @@
 ## [0.8.15] - 2026-11-25
 
 ### Fixed
+- Delete backup artifacts by explicit object keys across every configured storage target, including Cloudflare R2 and other S3-compatible disks.
+- Verify that each configured target is empty after deletion and report targets where deletion fails.
+- Allow orphaned secondary copies to be deleted when the primary backup copy is already missing.
+- Check protection metadata across all replicas before deleting any copy.
+
+### Tests
+- Add regression coverage for local and R2 deletion, missing primary copies, and protected replicas.
+
+## [0.8.15] - 2026-11-25
+
+### Fixed
 - Fix backup deletion across all configured storage targets, including Cloudflare R2, by deleting explicit object keys instead of relying on directory deletion.
 - Verify that each target is empty after deletion and report targets that could not be cleared.
 - Allow deletion of orphaned secondary copies when the primary copy is missing.
