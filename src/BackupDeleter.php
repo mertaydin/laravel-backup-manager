@@ -16,8 +16,7 @@ final class BackupDeleter
     public function __construct(
         private readonly ConfigRepository $config,
         private readonly FilesystemFactory $filesystem,
-    ) {
-    }
+    ) {}
 
     /** @return array{deleted: list<string>, failed: list<string>} */
     public function delete(string $id, ?string $profileName = null): array
