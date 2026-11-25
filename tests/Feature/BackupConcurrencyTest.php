@@ -26,7 +26,7 @@ final class BackupConcurrencyTest extends TestCase
             'backup-manager.profiles.default.files.enabled' => false,
             'backup-manager.profiles.default.storage.disk' => 'local',
             'backup-manager.profiles.default.storage.local_disk' => 'local',
-            'backup-manager.profiles.default.storage.path' => 'backups',
+            'backup-manager.profiles.default.storage.path' => 'backup-manager/backups',
             'backup-manager.temporary_directory' => storage_path('app/backup-manager-test-tmp'),
             'backup-manager.lock_seconds' => 300,
         ]);
