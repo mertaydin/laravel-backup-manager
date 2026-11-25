@@ -25,7 +25,7 @@ final class BackupInspector
         $profileName ??= (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->profile($profileName);
         $diskName ??= (string) ($profile['storage']['disk'] ?? 'local');
-        $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/');
+        $prefix = $this->storagePath($profile);
 
         $disk = $this->filesystem->disk($diskName);
         $backups = [];
@@ -305,6 +305,17 @@ final class BackupInspector
         }
 
         return null;
+    }
+
+    /** @param array<string, mixed> $profile */
+    private function storagePath(array $profile): string
+    {
+        $path = trim((string) data_get($profile, 'storage.path', 'backups'), '/');
+
+        // Match the legacy-config fallback used when creating backups.
+        return $path === '' || $path === 'backups'
+            ? 'backup-manager/backups'
+            : $path;
     }
 
     /**
