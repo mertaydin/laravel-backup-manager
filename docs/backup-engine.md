@@ -38,7 +38,7 @@ Without component flags, the selected profile's enabled components are used. Whe
 
 ## Storage
 
-The backup engine uses configured Laravel Filesystem disks. Local, Amazon S3, and S3-compatible services such as Cloudflare R2 can be used when their Laravel/Flysystem adapters are installed and configured. A local mirror and additional target disks can be configured in the backup profile.
+The backup engine uses configured Laravel Filesystem disks. Local, Amazon S3, and S3-compatible services such as Cloudflare R2 can be used when their Laravel/Flysystem adapters are installed and configured. A local mirror and additional target disks can be configured in the backup profile. The default package path is `backup-manager/backups/{backup-id}`. If an S3-compatible disk (such as Cloudflare R2) has `root => anibox`, the resulting object key is `anibox/backup-manager/backups/{backup-id}/{artifact}`. The profile's `storage.path` can override the package-relative path.
 
 Run `php artisan migrate` before opening Storage Management; the package migration creates the encrypted `backup_manager_storage_settings` table used for OAuth credentials, folder settings, schedules, and destination selections. Google Drive is registered as a native Laravel Filesystem disk after the account is connected in Storage Management. In the dashboard, open Storage Management, connect Google, enter the destination folder ID (or leave `root`), then select `google-drive` under Backup destinations. Select only Google Drive to avoid a local mirror, or select multiple disks for copies. Upload, inventory, checksum verification, download, restore, and deletion all use the selected Drive destination. The Drive connection test performs listing, write, read, and delete checks.
 
