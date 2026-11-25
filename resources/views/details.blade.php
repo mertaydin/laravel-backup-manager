@@ -66,5 +66,37 @@
     </div>
 </div>
 
+<style>
+.backup-manager-loading{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,8,20,.76);backdrop-filter:blur(5px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
+.backup-manager-loading.is-visible{opacity:1;visibility:visible;pointer-events:auto}
+.backup-manager-loading__dialog{width:min(430px,100%);padding:30px 28px;text-align:center;background:var(--panel,#172033);border:1px solid var(--line,#344054);border-radius:17px;box-shadow:0 24px 80px #0008}
+.backup-manager-loading__dialog h2{margin:17px 0 6px;font-size:17px;color:var(--text,#fff)}
+.backup-manager-loading__dialog p{margin:0;color:var(--muted,#aab4c5);font-size:12px;line-height:1.6}
+.backup-manager-loading__spinner{display:block;width:39px;height:39px;margin:0 auto;border:3px solid var(--line,#344054);border-top-color:var(--blue,#5488ff);border-radius:50%;animation:backup-manager-spin .8s linear infinite}
+.backup-manager-loading__track{height:5px;margin-top:23px;overflow:hidden;border-radius:5px;background:var(--line,#344054)}
+.backup-manager-loading__track span{display:block;width:38%;height:100%;border-radius:5px;background:var(--blue,#5488ff);animation:backup-manager-progress 1.25s ease-in-out infinite alternate}
+@keyframes backup-manager-spin{to{transform:rotate(360deg)}}
+@keyframes backup-manager-progress{from{transform:translateX(-105%)}to{transform:translateX(270%)}}
+@media(prefers-reduced-motion:reduce){.backup-manager-loading__spinner,.backup-manager-loading__track span{animation-duration:2.5s}}
+</style>
+<script>
+(function () {
+    var overlay = document.getElementById('backup-manager-loading');
+    if (!overlay) return;
+    var title = overlay.querySelector('[data-loading-title]');
+    var help = overlay.querySelector('[data-loading-help]');
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (!(form instanceof HTMLFormElement) || (form.method || 'get').toLowerCase() !== 'post') return;
+        if (event.defaultPrevented) return;
+        if (form.dataset.loading === 'true') { event.preventDefault(); return; }
+        form.dataset.loading = 'true';
+        if (title) title.textContent = form.getAttribute('data-loading-title') || overlay.dataset.defaultTitle;
+        if (help) help.textContent = form.getAttribute('data-loading-help') || overlay.dataset.defaultHelp;
+        overlay.classList.add('is-visible');
+        overlay.setAttribute('aria-hidden', 'false');
+    });
+})();
+</script>
 </body>
 </html>
