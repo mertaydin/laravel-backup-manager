@@ -25,12 +25,18 @@ final class BackupInspector
         $profileName ??= (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->profile($profileName);
         $diskName ??= (string) ($profile['storage']['disk'] ?? 'local');
-        $prefix = $this->storagePath($profile);
+        $prefixes = $this->storagePaths($profile);
 
         $disk = $this->filesystem->disk($diskName);
         $backups = [];
+        $paths = [];
+        foreach ($prefixes as $prefix) {
+            foreach ($disk->allFiles($prefix) as $path) {
+                $paths[$path] = $path;
+            }
+        }
 
-        foreach ($disk->allFiles($prefix) as $path) {
+        foreach ($paths as $path) {
             if (! str_ends_with($path, '/manifest.json')) {
                 continue;
             }
@@ -307,15 +313,19 @@ final class BackupInspector
         return null;
     }
 
-    /** @param array<string, mixed> $profile */
-    private function storagePath(array $profile): string
+    /** @param array<string, mixed> $profile
+     *  @return list<string>
+     */
+    private function storagePaths(array $profile): array
     {
-        $path = trim((string) data_get($profile, 'storage.path', 'backups'), '/');
-
-        // Match the legacy-config fallback used when creating backups.
-        return $path === '' || $path === 'backups'
+        $configured = trim((string) data_get($profile, 'storage.path', 'backups'), '/');
+        $canonical = $configured === '' || $configured === 'backups'
             ? 'backup-manager/backups'
-            : $path;
+            : $configured;
+
+        // Read both the canonical path used by current backup creation and the
+        // configured legacy path so existing backups remain visible and verifiable.
+        return array_values(array_unique(array_filter([$canonical, $configured])));
     }
 
     /**
