@@ -21,7 +21,7 @@ final class BackupDeleter
     /** @return array{deleted: list<string>, failed: list<string>} */
     public function delete(string $id, ?string $profileName = null): array
     {
-        if (! preg_match('/^\d{8}_\d{6}_[a-f0-9]{8}$/', $id)) {
+        if (! preg_match('/^\\d{8}_\\d{6}_[a-f0-9]{8}$/', $id)) {
             throw new RuntimeException('Invalid backup identifier.');
         }
 
@@ -32,70 +32,66 @@ final class BackupDeleter
         }
 
         $storage = $profile['storage'] ?? [];
-        $prefix = trim((string) ($storage['path'] ?? 'backups'), '/');
-        $path = ($prefix === '' ? '' : $prefix.'/').$id;
-        $manifestPath = $path.'/manifest.json';
+        $paths = $this->storagePaths($storage, $id);
         $disks = array_values(array_unique(array_filter([
             (string) ($storage['disk'] ?? 'local'),
             (string) ($storage['local_disk'] ?? 'local'),
             ...array_values(array_filter((array) ($storage['disks'] ?? []), 'is_string')),
         ])));
 
-        // A backup can exist on a secondary target even if its primary copy was
-        // removed manually. Inspect every target before deciding whether it exists.
-        $foundManifest = false;
+        $existing = [];
         foreach ($disks as $diskName) {
             try {
                 $disk = $this->filesystem->disk($diskName);
-                if (! $disk->exists($manifestPath)) {
-                    continue;
-                }
+                foreach ($paths as $path) {
+                    $manifestPath = $path.'/manifest.json';
+                    if (! $disk->exists($manifestPath)) {
+                        continue;
+                    }
 
-                $manifest = json_decode((string) $disk->get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
-                if (! is_array($manifest) || ($manifest['id'] ?? null) !== $id) {
-                    continue;
-                }
+                    $manifest = json_decode((string) $disk->get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+                    if (! is_array($manifest) || ($manifest['id'] ?? null) !== $id) {
+                        continue;
+                    }
 
-                $foundManifest = true;
-                $locked = (bool) data_get($manifest, 'protection.locked', false);
-                $protectedUntil = data_get($manifest, 'protection.protected_until');
-                if ($locked || ($protectedUntil && now()->lt(Carbon::parse($protectedUntil)))) {
-                    $reason = trim((string) data_get($manifest, 'protection.reason', ''));
-                    throw new RuntimeException('This backup is protected from deletion.'.($reason !== '' ? ' Reason: '.$reason : ''));
+                    $locked = (bool) data_get($manifest, 'protection.locked', false);
+                    $protectedUntil = data_get($manifest, 'protection.protected_until');
+                    if ($locked || ($protectedUntil && now()->lt(Carbon::parse($protectedUntil)))) {
+                        $reason = trim((string) data_get($manifest, 'protection.reason', ''));
+                        throw new RuntimeException('This backup is protected from deletion.'.($reason !== '' ? ' Reason: '.$reason : ''));
+                    }
+
+                    $existing[$diskName][] = $path;
                 }
             } catch (RuntimeException $exception) {
                 if (str_starts_with($exception->getMessage(), 'This backup is protected from deletion.')) {
                     throw $exception;
                 }
             } catch (Throwable) {
-                // The deletion pass reports targets that cannot be accessed.
+                // Continue checking other configured targets.
             }
         }
 
-        if (! $foundManifest) {
+        if ($existing === []) {
             throw new RuntimeException("Backup manifest [{$id}] was not found on any configured storage target.");
         }
 
         $deleted = [];
         $failed = [];
-        foreach ($disks as $diskName) {
+        foreach ($existing as $diskName => $diskPaths) {
             try {
                 $disk = $this->filesystem->disk($diskName);
-                $files = $disk->allFiles($path);
-                if ($files === []) {
-                    continue;
-                }
-
-                // Explicit object-key deletion is reliable for S3-compatible stores
-                // such as Cloudflare R2, where directories are virtual prefixes.
-                foreach (array_chunk($files, 1000) as $fileChunk) {
-                    if ($disk->delete($fileChunk) === false) {
-                        throw new RuntimeException("Unable to delete backup objects from disk [{$diskName}].");
+                foreach (array_unique($diskPaths) as $path) {
+                    $files = $disk->allFiles($path);
+                    foreach (array_chunk($files, 1000) as $fileChunk) {
+                        if ($disk->delete($fileChunk) === false) {
+                            throw new RuntimeException("Unable to delete backup objects from disk [{$diskName}].");
+                        }
                     }
-                }
 
-                if ($disk->allFiles($path) !== []) {
-                    throw new RuntimeException("Backup objects still exist on disk [{$diskName}] after deletion.");
+                    if ($disk->allFiles($path) !== []) {
+                        throw new RuntimeException("Backup objects still exist on disk [{$diskName}] after deletion.");
+                    }
                 }
 
                 $deleted[] = $diskName;
@@ -109,5 +105,25 @@ final class BackupDeleter
         }
 
         return ['deleted' => $deleted, 'failed' => $failed];
+    }
+
+    /**
+     * @param array<string, mixed> $storage
+     * @return list<string>
+     */
+    private function storagePaths(array $storage, string $id): array
+    {
+        $configuredPath = trim((string) ($storage['path'] ?? 'backups'), '/');
+        $paths = [$configuredPath === '' || $configuredPath === 'backups'
+            ? 'backup-manager/backups/'.$id
+            : $configuredPath.'/'.$id];
+
+        // Older published configs may still point to "backups" while newer
+        // package versions write to the canonical backup-manager directory.
+        if ($configuredPath === '' || $configuredPath === 'backups') {
+            $paths[] = 'backups/'.$id;
+        }
+
+        return array_values(array_unique($paths));
     }
 }
