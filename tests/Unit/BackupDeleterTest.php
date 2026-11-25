@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MertAydin\\LaravelBackupManager\\Tests\\Unit;
+namespace MertAydin\LaravelBackupManager\Tests\Unit;
 
-use Illuminate\\Support\\Facades\\Storage;
-use MertAydin\\LaravelBackupManager\\BackupDeleter;
-use MertAydin\\LaravelBackupManager\\BackupManagerServiceProvider;
-use Orchestra\\Testbench\\TestCase;
+use Illuminate\Support\Facades\Storage;
+use MertAydin\LaravelBackupManager\BackupDeleter;
+use MertAydin\LaravelBackupManager\BackupManagerServiceProvider;
+use Orchestra\Testbench\TestCase;
 use RuntimeException;
 
 final class BackupDeleterTest extends TestCase
