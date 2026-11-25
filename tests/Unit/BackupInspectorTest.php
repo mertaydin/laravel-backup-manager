@@ -39,7 +39,7 @@ final class BackupInspectorTest extends TestCase
 
         self::assertCount(1, $backups);
         self::assertSame(self::BACKUP_ID, $backups[0]['id']);
-        self::assertSame(Storage::disk('backup-test')->size('backups/'.self::BACKUP_ID.'/database.sql.gz'), $backups[0]['total_size']);
+        self::assertSame(Storage::disk('backup-test')->size('backup-manager/backups/'.self::BACKUP_ID.'/database.sql.gz'), $backups[0]['total_size']);
         self::assertSame('database.sql.gz', $backups[0]['artifacts'][0]['name']);
     }
 
@@ -57,7 +57,7 @@ final class BackupInspectorTest extends TestCase
     {
         $this->storeBackup('database.sql.gz', 'database payload');
         Storage::disk('backup-test')->put(
-            'backups/'.self::BACKUP_ID.'/database.sql.gz',
+            'backup-manager/backups/'.self::BACKUP_ID.'/database.sql.gz',
             'tampered payload'
         );
 
@@ -73,9 +73,9 @@ final class BackupInspectorTest extends TestCase
         $contents = gzencode('database payload');
         $lastByte = strlen($contents) - 1;
         $contents[$lastByte] = chr(ord($contents[$lastByte]) ^ 0xFF);
-        Storage::disk('backup-test')->put('backups/'.self::BACKUP_ID.'/database.sql.gz', $contents);
+        Storage::disk('backup-test')->put('backup-manager/backups/'.self::BACKUP_ID.'/database.sql.gz', $contents);
         Storage::disk('backup-test')->put(
-            'backups/'.self::BACKUP_ID.'/manifest.json',
+            'backup-manager/backups/'.self::BACKUP_ID.'/manifest.json',
             json_encode([
                 'id' => self::BACKUP_ID,
                 'created_at' => '2026-11-23T12:00:00+00:00',
@@ -107,11 +107,11 @@ final class BackupInspectorTest extends TestCase
         if (str_ends_with($name, '.gz')) {
             $contents = gzencode($contents);
         }
-        $path = 'backups/'.self::BACKUP_ID.'/'.$name;
+        $path = 'backup-manager/backups/'.self::BACKUP_ID.'/'.$name;
         Storage::disk('backup-test')->put($path, $contents);
 
         Storage::disk('backup-test')->put(
-            'backups/'.self::BACKUP_ID.'/manifest.json',
+            'backup-manager/backups/'.self::BACKUP_ID.'/manifest.json',
             json_encode([
                 'id' => self::BACKUP_ID,
                 'created_at' => '2026-11-23T12:00:00+00:00',
