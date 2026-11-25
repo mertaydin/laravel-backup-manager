@@ -108,7 +108,7 @@ final class BackupDeleter
     }
 
     /**
-     * @param array<string, mixed> $storage
+     * @param  array<string, mixed>  $storage
      * @return list<string>
      */
     private function storagePaths(array $storage, string $id): array
