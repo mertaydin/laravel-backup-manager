@@ -65,7 +65,9 @@ final class DashboardBackupActionsTest extends TestCase
         $this->get('/backup-manager')
             ->assertOk()
             ->assertSee('dashboard.css?v=')
-            ->assertSee('dashboard.js?v=');
+            ->assertSee('dashboard.js?v=')
+            ->assertSee('id="backup-manager-loading"', false)
+            ->assertSee('data-loading-title="Yedek oluşturuluyor"', false);
     }
 
     public function test_dashboard_locale_selection_persists_for_every_supported_language(): void
