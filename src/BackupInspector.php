@@ -117,13 +117,24 @@ final class BackupInspector
         $profileName ??= (string) $this->config->get('backup-manager.default', 'default');
         $profile = $this->profile($profileName);
         $diskName ??= (string) ($profile['storage']['disk'] ?? 'local');
-        $prefix = trim((string) ($profile['storage']['path'] ?? 'backups'), '/').'/'.$id;
         $disk = $this->filesystem->disk($diskName);
-        $manifestPath = $prefix.'/manifest.json';
+        $manifestPath = null;
 
-        if (! $disk->exists($manifestPath)) {
+        foreach ($this->storagePaths($profile) as $storagePath) {
+            $candidate = $storagePath.'/'.$id.'/manifest.json';
+
+            if ($disk->exists($candidate)) {
+                $manifestPath = $candidate;
+
+                break;
+            }
+        }
+
+        if ($manifestPath === null) {
             throw new RuntimeException("Backup manifest [{$id}] was not found on disk [{$diskName}].");
         }
+
+        $prefix = dirname($manifestPath);
 
         $manifest = json_decode((string) $disk->get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
         if (! is_array($manifest) || ($manifest['id'] ?? null) !== $id || ! is_array($manifest['artifacts'] ?? null)) {
@@ -313,8 +324,9 @@ final class BackupInspector
         return null;
     }
 
-    /** @param array<string, mixed> $profile
-     *  @return list<string>
+    /**
+     * @param  array<string, mixed>  $profile
+     * @return list<string>
      */
     private function storagePaths(array $profile): array
     {
@@ -323,8 +335,7 @@ final class BackupInspector
             ? 'backup-manager/backups'
             : $configured;
 
-        // Read both the canonical path used by current backup creation and the
-        // configured legacy path so existing backups remain visible and verifiable.
+        // Read both locations to keep existing backups visible and verifiable.
         return array_values(array_unique(array_filter([$canonical, $configured])));
     }
 
