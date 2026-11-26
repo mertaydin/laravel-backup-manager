@@ -68,8 +68,11 @@ final class DashboardBackupActionsTest extends TestCase
             ->assertSee('dashboard.js?v=')
             ->assertSee('id="backup-manager-loading"', false)
             ->assertSee('data-loading-title="Yedek oluşturuluyor"', false)
-            ->assertSee('document.addEventListener(\'submit\'', false)
-            ->assertSee('form.method || \'get\'', false);
+            ->assertDontSee('document.addEventListener(\'submit\'', false)
+            ->assertDontSee('form.method || \'get\'', false)
+            ->assertDontSee('<style>', false)
+            ->assertDontSee('<script>', false)
+            ->assertDontSee('style="', false);
     }
 
     public function test_dashboard_locale_selection_persists_for_every_supported_language(): void
