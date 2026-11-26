@@ -668,3 +668,7 @@ html[data-theme="light"] .storage-connection.is-connected{background:#eaf8f2}
     .execution-history-list > .backup > .file-icon { width: 34px; height: 38px; }
     .execution-history-list > .backup > .backup-size { grid-column: 2; margin: 0; }
 }
+
+
+/* Retention preview action spacing without inline styles. */
+.retention-preview-form { margin-top: 18px; }
