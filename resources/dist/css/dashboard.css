@@ -641,3 +641,30 @@ html[data-theme="light"] .storage-connection.is-connected{background:#eaf8f2}
 @keyframes backup-manager-spin{to{transform:rotate(360deg)}}
 @keyframes backup-manager-progress{from{transform:translateX(-105%)}to{transform:translateX(270%)}}
 @media(prefers-reduced-motion:reduce){.backup-manager-loading__spinner,.backup-manager-loading__track span{animation-duration:2.5s}}
+
+
+/* Execution history: visually separate event rows from the panel heading. */
+.execution-history-panel { margin-top: 22px; }
+.execution-history-list { display: grid; gap: 10px; padding: 18px 20px 20px; }
+.execution-history-list > .backup {
+    display: grid;
+    grid-template-columns: 39px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--panel2);
+}
+.execution-history-list > .backup:last-child { border: 1px solid var(--line); }
+.execution-history-list .backup-main { min-width: 0; }
+.execution-history-list .backup-title,
+.execution-history-list .backup-sub { overflow-wrap: anywhere; white-space: normal; }
+@media (max-width: 650px) {
+    .execution-history-list { gap: 8px; padding: 14px; }
+    .execution-history-list > .backup { grid-template-columns: 34px minmax(0, 1fr); gap: 9px; padding: 12px; }
+    .execution-history-list > .backup > .file-icon { width: 34px; height: 38px; }
+    .execution-history-list > .backup > .backup-size { grid-column: 2; margin: 0; }
+}
