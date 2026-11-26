@@ -174,9 +174,9 @@
         </aside>
     </section>
     @if($activityEntries !== [])
-    <section class="panel" style="margin-top:22px">
+    <section class="panel execution-history-panel">
         <div class="panel-head"><div><h2>Backup execution history</h2><p>Persistent recent backup attempts, outcomes and durations</p></div><span class="count">{{ count($activityEntries) }} events</span></div>
-        <div class="backup-list">
+        <div class="execution-history-list">
             @foreach($activityEntries as $entry)
                 <article class="backup">
                     <div class="file-icon">◷</div>
